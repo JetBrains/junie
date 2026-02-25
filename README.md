@@ -1,97 +1,72 @@
-# Junie Runner
-A command-line Junie interface for running code tasks.
+# Junie
 
-## Usage
+> An LLM-agnostic coding agent built for real-world development — by JetBrains.
 
-``` bash
-junie [<options>] [<task>]
-```
+Junie is an AI coding agent that lives in your terminal, integrates with your IDE and CI/CD pipelines, and helps you ship code faster. Give it a task in natural language — fix a bug, implement a feature, review a PR — and Junie handles the rest. Like your real coding buddy. 
 
-Quick start example
 
-``` bash
-cd you-project-folder
-junie "Fix the bug in MyClass"
-```
+## Get started
 
-Or run Junie from your terminal in any other place
+### Install
+
+**macOS / Linux** (recommended):
 
 ```bash
-junie "Finish the sum function in the MyFile.kt" -p /path/to/project
+curl -fsSL https://junie.jetbrains.com/install.sh | bash
 ```
 
-## Arguments
+**macOS (Homebrew):**
 
-| Argument | Description |
-| --- | --- |
-| `<task>` | Task description (optional positional argument) |
-
-## Options
-
-### Core Options
-
-
-| Option | Description                                                       |
-| --- |-------------------------------------------------------------------|
-| `--task=<text>` | Task description (alternative to positional argument)             |                                  |
-| `-p, --project=<text>` | Project directory to run Junie (default is the current directory) |
-| `--ide=<text>` | IDE + Version (e.g., `IdeaUltimate 2025.1.2`), IDEA Ultimate 2025.1 is default|
-
-### Authentication Options
-
-| Option | Description |
-| --- | --- |
-| `-a, --auth=<text>` | Authentication token (optional, fallbacks to JBA authentication) |
-
-### Supported Token Formats
-- **GitHub tokens**: `ghp_*` or `github_pat_*`
-- **Ingrazzio tokens**
-
-### GitHub Options
-
-| Option | Description | Example |
-| --- | --- | --- |
-| `-g, --github-url=<value>` | Any GitHub URL for an issue, PR, CI or comment | `--github-url "https://github.com/user/repo/pull/1#pullrequestreview-123"` |
-| `--github-issue=<value>` | GitHub issue URL | `--github-issue "https://github.com/owner/repo/issues/12"` |
-| `--github-pr-review=<value>` | GitHub PR review URL | `--github-pr-review "https://github.com/owner/repo/pull/456#pullrequestreview-123"` |
-| `--github-issue-comment=<value>` | GitHub PR comment URL | `--github-issue-comment "https://github.com/owner/repo/issues/12#issuecomment-456"` |
-| `--github-fix-ci=<value>` | GitHub CI check URL |  |
-
-> **Note**: GitHub URLs containing fragments (#) must be quoted to prevent shell interpretation.
-### System Options
-
-| Option | Description |
-| --- | --- |
-| `-t, --timeout=<int>` | Time limit in milliseconds |
-| `-c, --cache-dir=<text>` | Caching directory for agent and IDE |
-| `--version` | Show version |
-| `-h, --help` | Show help message and exit |
-
-## Environment Variables Configuration
-
-You can configure Junie Runner using environment variables instead of command-line options. This is particularly useful for **CI/CD environments** and automated deployments.
-
-### Available Environment Variables
-
-| Environment Variable | Equivalent Option | Description |
-| --- | --- | --- |
-| `PROJECT` | `-p, --project` | Project directory to run Junie |
-| `ENV_TIME_LIMIT` | `-t, --timeout` | Time limit in milliseconds |
-| `FOLDER_WORK` | `-c, --cache-dir` | Caching directory for agent and IDE |
-
-### CI/CD Script Example
-
-``` bash
-# Set environment variables for Junie configuration
-export PROJECT="/workspace/my-project" 
-export ENV_TIME_LIMIT="300000" # 5 minutes timeout
-export FOLDER_WORK="/tmp/junie-cache"
-
-junie "Review and fix any code quality issues in the latest commit"
+```bash
+brew tap jetbrains-junie/junie
+brew update
+brew install junie
 ```
 
-## Important Notes
-- **GitHub URLs**: URLs containing fragments (#) must be quoted to prevent shell interpretation
-- **Authentication**: Auto-detected based on token format
-- **Fallback Authentication**: If no authentication is provided, JBA (JetBrains Account) login will be attempted
-- **GitHub Commands**: GitHub commands are mutually exclusive - use only one at a time
+<details>
+<summary>Other channels</summary>
+
+**EAP** — early access, may be unstable:
+
+```bash
+curl -fsSL https://junie.jetbrains.com/install-eap.sh | bash
+```
+
+**Nightly** — latest features first, but expect rough edges:
+
+```bash
+curl -fsSL https://junie.jetbrains.com/install-nightly.sh | bash
+```
+
+</details>
+
+> **Note:** npm install (`npm install -g @jetbrains/junie-cli`) is deprecated. Please use one of the methods above.
+
+### GitHub integration
+
+Set up a GitHub Action to let Junie respond to issues, PRs, and CI failures automatically:
+
+```bash
+junie /install-github-action
+```
+
+See the full cookbook: **[Junie on GitHub](https://junie.jetbrains.com/docs/junie-on-github.html)**.
+
+## Documentation
+
+See the full documentation at **[junie.jetbrains.com/docs](https://junie.jetbrains.com/docs)**.
+
+## Reporting bugs
+
+- Use the `/feedback` command inside the agent
+- Or [open an issue](https://github.com/niceplaces/junie/issues) on this repository
+
+## Community
+
+Join us on Discord: **[jb.gg/junie-discord](https://jb.gg/junie-discord)**
+
+## License
+
+© JetBrains s.r.o. All rights reserved.
+
+Use is subject to [JetBrains AI Service Terms of Service](https://www.jetbrains.com/legal/docs/terms/jetbrains-ai-service/).
