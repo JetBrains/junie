@@ -106,10 +106,6 @@ if ($UserPath -notlike "*$INSTALL_DIR*") {
   Log "Added $INSTALL_DIR to User PATH."
 }
 
-# Add to current session PATH
-if ($env:Path -notlike "*$INSTALL_DIR*") {
-  $env:Path = "$INSTALL_DIR;$env:Path"
-}
-
 Write-Host ""
-Write-Host "Run: junie --help"
+Write-Host "Please restart your shell to apply the changes to the PATH variable."
+Write-Host "After that, you can run: junie --help"
