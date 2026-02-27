@@ -9,10 +9,16 @@ Junie is an AI coding agent that lives in your terminal, integrates with your ID
 
 ### Install
 
-**macOS / Linux** (recommended):
+**macOS / Linux:**
 
 ```bash
 curl -fsSL https://junie.jetbrains.com/install.sh | bash
+```
+
+**Windows:**
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm 'https://junie.jetbrains.com/install.ps1')"
 ```
 
 **macOS (Homebrew):**
