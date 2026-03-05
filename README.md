@@ -5,10 +5,12 @@ Junie is an AI coding agent that lives in your terminal, integrates with your ID
 
 Learn more at the **[official website](https://junie.jetbrains.com/).**
 
-
 ![Junie CLI Screenshot](./assets/junie-cli.gif)
 
----
+## ✦ Gemini 3 Flash — free for up to 7 days
+Includes up to $50 usage per user. Subject to the overall program limit. Limited-time offer.
+
+<br>
 
 ## 🚀 Get started
 
@@ -77,7 +79,7 @@ junie
 > Fix the failing tests in the auth module and add a regression test
 ```
 
-See the full documentation and supported features at the official [documentation](https://junie.jetbrains.com/docs) page.
+See the full documentation and supported features on the official [documentation](https://junie.jetbrains.com/docs) page.
 
 ### 🐙 GitHub integration
 
@@ -91,7 +93,7 @@ See the full cookbook: [Junie on GitHub](https://junie.jetbrains.com/docs/junie-
 
 ## 🐛 Reporting bugs
 
-Use the `/feedback` command inside the agent, or [open an issue](https://github.com/jetbrains/junie/issues) on this repository.
+Use the `/feedback` command inside the agent, or [open an issue](https://github.com/jetbrains/junie/issues) in this repository.
 
 ## 👥 Community
 
