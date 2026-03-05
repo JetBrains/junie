@@ -50,12 +50,11 @@ npm install -g @jetbrains/junie
 
 You can use Junie with one of the following methods:
 
-- **JetBrains Account**
-- **JUNIE_API_KEY**
-- **Bring Your Own Key** — use your own model provider  
-  (Anthropic, OpenAI, Google, xAI, OpenRouter, or Copilot)
+- **JetBrains Account** — OAuth login using your JetBrains account 
+- **Junie API Key** — get your key from [Junie Tokens](https://junie.jetbrains.com/cli) page
+- **Bring Your Own Key (BYOK)** — use your own model provider: Anthropic, OpenAI, Google, xAI, OpenRouter, or Copilot
 
-See the **[authentication](https://junie.jetbrains.com/docs/junie-cli.html#step-3-authenticate)** page for details.
+See the [authentication](https://junie.jetbrains.com/docs/junie-cli.html#step-3-authenticate) page for details.
 
 ### Quick Examples
 
@@ -78,7 +77,7 @@ junie
 > Fix the failing tests in the auth module and add a regression test
 ```
 
-See the full documentation and supported features at the official **[documentation](https://junie.jetbrains.com/docs)** page.
+See the full documentation and supported features at the official [documentation](https://junie.jetbrains.com/docs) page.
 
 ### GitHub integration
 
@@ -88,7 +87,7 @@ To set up a GitHub Action to let Junie respond to issues, PRs, and CI failures a
 /install-github-action
 ```
 
-See the full cookbook: **[Junie on GitHub](https://junie.jetbrains.com/docs/junie-on-github.html)**.
+See the full cookbook: [Junie on GitHub](https://junie.jetbrains.com/docs/junie-on-github.html).
 
 ## Reporting bugs
 
