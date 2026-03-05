@@ -10,9 +10,9 @@ Learn more at the **[official website](https://junie.jetbrains.com/).**
 
 ---
 
-## Get started
+## 🚀 Get started
 
-### Install
+### 📦 Install
 
 For more installation options and details, see the [quickstart](https://junie.jetbrains.com/docs/junie-cli.html#step-1-install-junie-cli) guide.
 
@@ -46,7 +46,7 @@ npm install -g @jetbrains/junie
 
 </details>
 
-### Authentication
+### 🔑 Authentication
 
 You can use Junie with one of the following methods:
 
@@ -56,7 +56,7 @@ You can use Junie with one of the following methods:
 
 See the [authentication](https://junie.jetbrains.com/docs/junie-cli.html#step-3-authenticate) page for details.
 
-### Quick Examples
+### 💡 Quick Examples
 
 #### Build a new project
 
@@ -79,7 +79,7 @@ junie
 
 See the full documentation and supported features at the official [documentation](https://junie.jetbrains.com/docs) page.
 
-### GitHub integration
+### 🐙 GitHub integration
 
 To set up a GitHub Action to let Junie respond to issues, PRs, and CI failures automatically, simply run this command inside the agent:
 
@@ -89,15 +89,15 @@ To set up a GitHub Action to let Junie respond to issues, PRs, and CI failures a
 
 See the full cookbook: [Junie on GitHub](https://junie.jetbrains.com/docs/junie-on-github.html).
 
-## Reporting bugs
+## 🐛 Reporting bugs
 
 Use the `/feedback` command inside the agent, or [open an issue](https://github.com/jetbrains/junie/issues) on this repository.
 
-## Community
+## 👥 Community
 
 Join the official [Junie Discord](https://jb.gg/junie-discord) server to connect with the team and other developers using Junie.
 
-## License
+## 📄 License
 
 © JetBrains s.r.o. All rights reserved.
 
