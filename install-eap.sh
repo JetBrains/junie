@@ -426,8 +426,76 @@ fi
 ln -sfn "$TARGET_DIR" "$JUNIE_DATA/current"
 
 log "Installed successfully!"
-echo ""
-echo "Add to your PATH if not already:"
-echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
-echo ""
-echo "Then run: junie --help"
+
+# Returns 0 if PATH was already set or profile was updated.
+# Returns 1 if profile could not be updated (caller shows manual instructions).
+add_to_path() {
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*) return 0 ;;
+  esac
+
+  local shell_name export_line profile_files profile_dir
+  shell_name=$(basename "${SHELL:-}" 2>/dev/null || echo "")
+  export_line='export PATH="$HOME/.local/bin:$PATH"'
+
+  case "$shell_name" in
+    zsh)
+      # .zshrc is preferred; .zprofile is the fallback (also sourced by login shells)
+      profile_files="$HOME/.zshrc $HOME/.zprofile"
+      ;;
+    bash)
+      # macOS terminals open login shells (.bash_profile); Linux terminals open non-login shells (.bashrc)
+      if [[ "$OS_NAME" == "macos" ]]; then
+        profile_files="$HOME/.bash_profile $HOME/.profile"
+      else
+        profile_files="$HOME/.bashrc $HOME/.profile"
+      fi
+      ;;
+    fish)
+      profile_files="$HOME/.config/fish/config.fish"
+      export_line='fish_add_path "$HOME/.local/bin"'
+      ;;
+    *)
+      profile_files="$HOME/.profile"
+      ;;
+  esac
+
+  local file
+  for file in $profile_files; do
+    if [[ -f "$file" ]] && grep -q '\.local/bin' "$file" 2>/dev/null; then
+      return 0
+    fi
+  done
+
+  for file in $profile_files; do
+    profile_dir=$(dirname "$file")
+    if [[ ! -d "$profile_dir" ]]; then
+      mkdir -p "$profile_dir" 2>/dev/null || continue
+    fi
+    if { printf '\n%s\n' "$export_line" >> "$file"; } 2>/dev/null; then
+      log "Added $JUNIE_BIN to PATH in $file"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+if add_to_path; then
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*)
+      echo ""
+      echo "Run: junie --help"
+      ;;
+    *)
+      echo ""
+      echo "Restart your shell, then run: junie --help"
+      ;;
+  esac
+else
+  echo ""
+  echo "Manually add to your PATH:"
+  echo '  export PATH="$HOME/.local/bin:$PATH"'
+  echo ""
+  echo "Then run: junie --help"
+fi
