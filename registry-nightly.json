@@ -446,7 +446,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1049.1",
+      "version": "1050.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "authors": [
@@ -627,7 +627,7 @@
     {
       "id": "nova",
       "name": "Nova",
-      "version": "1.0.75",
+      "version": "1.0.76",
       "description": "Nova by Compass AI - a fully-fledged software engineer at your command",
       "repository": "https://github.com/Compass-Agentic-Platform/nova",
       "authors": [
@@ -637,7 +637,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/nova.svg",
       "distribution": {
         "npx": {
-          "package": "@compass-ai/nova@1.0.75",
+          "package": "@compass-ai/nova@1.0.76",
           "args": [
             "acp"
           ]
