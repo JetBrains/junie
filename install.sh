@@ -489,7 +489,10 @@ if add_to_path; then
       ;;
     *)
       echo ""
-      echo "Restart your shell, then run: junie --help"
+      echo "To get started, run:"
+      echo '  export PATH="$HOME/.local/bin:$PATH"'
+      echo ""
+      echo "Then run: junie --help"
       ;;
   esac
 else
