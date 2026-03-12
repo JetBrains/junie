@@ -353,7 +353,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.5.10",
+      "version": "0.5.11",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "authors": [
@@ -362,7 +362,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.5.10",
+          "package": "fast-agent-acp==0.5.11",
           "args": [
             "-x"
           ]
@@ -464,7 +464,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1084.1",
+      "version": "1085.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "authors": [
@@ -572,7 +572,7 @@
     {
       "id": "kimi",
       "name": "Kimi CLI",
-      "version": "1.20.0",
+      "version": "1.21.0",
       "description": "Moonshot AI's coding assistant",
       "repository": "https://github.com/MoonshotAI/kimi-cli",
       "authors": [
@@ -582,28 +582,28 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.20.0/kimi-1.20.0-aarch64-apple-darwin.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.21.0/kimi-1.21.0-aarch64-apple-darwin.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.20.0/kimi-1.20.0-aarch64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.21.0/kimi-1.21.0-aarch64-unknown-linux-gnu.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.20.0/kimi-1.20.0-x86_64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.21.0/kimi-1.21.0-x86_64-unknown-linux-gnu.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.20.0/kimi-1.20.0-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.21.0/kimi-1.21.0-x86_64-pc-windows-msvc.zip",
             "cmd": "./kimi.exe",
             "args": [
               "acp"
@@ -636,7 +636,7 @@
     {
       "id": "mistral-vibe",
       "name": "Mistral Vibe",
-      "version": "2.4.1",
+      "version": "2.4.2",
       "description": "Mistral's open-source coding assistant",
       "repository": "https://github.com/mistralai/mistral-vibe",
       "authors": [
@@ -647,27 +647,27 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.1/vibe-acp-darwin-aarch64-2.4.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.2/vibe-acp-darwin-aarch64-2.4.2.zip",
             "cmd": "./vibe-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.1/vibe-acp-darwin-x86_64-2.4.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.2/vibe-acp-darwin-x86_64-2.4.2.zip",
             "cmd": "./vibe-acp"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.1/vibe-acp-linux-aarch64-2.4.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.2/vibe-acp-linux-aarch64-2.4.2.zip",
             "cmd": "./vibe-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.1/vibe-acp-linux-x86_64-2.4.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.2/vibe-acp-linux-x86_64-2.4.2.zip",
             "cmd": "./vibe-acp"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.1/vibe-acp-windows-aarch64-2.4.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.2/vibe-acp-windows-aarch64-2.4.2.zip",
             "cmd": "./vibe-acp.exe"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.1/vibe-acp-windows-x86_64-2.4.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.4.2/vibe-acp-windows-x86_64-2.4.2.zip",
             "cmd": "./vibe-acp.exe"
           }
         }
@@ -804,7 +804,7 @@
     {
       "id": "stakpak",
       "name": "Stakpak",
-      "version": "0.3.67",
+      "version": "0.3.68",
       "description": "Open-source DevOps agent in Rust with enterprise-grade security",
       "repository": "https://github.com/stakpak/agent",
       "authors": [
@@ -815,35 +815,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.67/stakpak-darwin-aarch64.tar.gz",
+            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.68/stakpak-darwin-aarch64.tar.gz",
             "cmd": "./stakpak",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.67/stakpak-darwin-x86_64.tar.gz",
+            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.68/stakpak-darwin-x86_64.tar.gz",
             "cmd": "./stakpak",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.67/stakpak-linux-aarch64.tar.gz",
+            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.68/stakpak-linux-aarch64.tar.gz",
             "cmd": "./stakpak",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.67/stakpak-linux-x86_64.tar.gz",
+            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.68/stakpak-linux-x86_64.tar.gz",
             "cmd": "./stakpak",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.67/stakpak-windows-x86_64.zip",
+            "archive": "https://github.com/stakpak/agent/releases/download/v0.3.68/stakpak-windows-x86_64.zip",
             "cmd": "./stakpak.exe",
             "args": [
               "acp"
