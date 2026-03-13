@@ -464,7 +464,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1093.1",
+      "version": "1094.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "authors": [
@@ -616,7 +616,7 @@
     {
       "id": "minion-code",
       "name": "Minion Code",
-      "version": "0.1.39",
+      "version": "0.1.42",
       "description": "An enhanced AI code assistant built on the Minion framework with rich development tools",
       "repository": "https://github.com/femto/minion-code",
       "authors": [
@@ -625,7 +625,7 @@
       "license": "AGPL-3.0",
       "distribution": {
         "uvx": {
-          "package": "minion-code@0.1.39",
+          "package": "minion-code@0.1.42",
           "args": [
             "acp"
           ]
