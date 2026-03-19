@@ -353,7 +353,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.6.1",
+      "version": "0.6.2",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "authors": [
@@ -362,7 +362,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.6.1",
+          "package": "fast-agent-acp==0.6.2",
           "args": [
             "-x"
           ]
@@ -464,7 +464,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1158.1",
+      "version": "1159.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "authors": [
@@ -474,35 +474,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1158.1/junie-nightly-1158.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1159.1/junie-nightly-1159.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1158.1/junie-nightly-1158.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1159.1/junie-nightly-1159.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1158.1/junie-nightly-1158.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1159.1/junie-nightly-1159.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1158.1/junie-nightly-1158.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1159.1/junie-nightly-1159.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1158.1/junie-nightly-1158.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1159.1/junie-nightly-1159.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
