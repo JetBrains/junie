@@ -40,7 +40,7 @@
     {
       "id": "auggie",
       "name": "Auggie CLI",
-      "version": "0.20.0",
+      "version": "0.20.1",
       "description": "Augment Code's powerful software agent, backed by industry-leading context engine",
       "repository": "https://github.com/augmentcode/auggie",
       "website": "https://www.augmentcode.com/",
@@ -51,7 +51,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/auggie.svg",
       "distribution": {
         "npx": {
-          "package": "@augmentcode/auggie@0.20.0",
+          "package": "@augmentcode/auggie@0.20.1",
           "args": [
             "--acp"
           ],
@@ -474,7 +474,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1183.1",
+      "version": "1186.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -485,35 +485,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1183.1/junie-nightly-1183.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1186.1/junie-nightly-1186.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1183.1/junie-nightly-1183.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1186.1/junie-nightly-1186.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1183.1/junie-nightly-1183.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1186.1/junie-nightly-1186.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1183.1/junie-nightly-1183.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1186.1/junie-nightly-1186.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1183.1/junie-nightly-1183.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1186.1/junie-nightly-1186.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -526,7 +526,7 @@
     {
       "id": "kilo",
       "name": "Kilo",
-      "version": "7.0.51",
+      "version": "7.1.0",
       "description": "The open source coding agent",
       "repository": "https://github.com/Kilo-Org/kilocode",
       "website": "https://kilo.ai/",
@@ -538,35 +538,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.0.51/kilo-darwin-arm64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.0/kilo-darwin-arm64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.0.51/kilo-darwin-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.0/kilo-darwin-x64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.0.51/kilo-linux-arm64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.0/kilo-linux-arm64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.0.51/kilo-linux-x64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.0/kilo-linux-x64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.0.51/kilo-windows-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.0/kilo-windows-x64.zip",
             "cmd": "./kilo.exe",
             "args": [
               "acp"
@@ -574,7 +574,7 @@
           }
         },
         "npx": {
-          "package": "@kilocode/cli@7.0.51",
+          "package": "@kilocode/cli@7.1.0",
           "args": [
             "acp"
           ]
