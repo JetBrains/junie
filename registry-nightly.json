@@ -359,7 +359,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.6.3",
+      "version": "0.6.6",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "website": "https://fast-agent.ai",
@@ -369,7 +369,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.6.3",
+          "package": "fast-agent-acp==0.6.6",
           "args": [
             "-x"
           ]
@@ -474,7 +474,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1189.1",
+      "version": "1191.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -485,35 +485,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1189.1/junie-nightly-1189.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1191.1/junie-nightly-1191.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1189.1/junie-nightly-1189.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1191.1/junie-nightly-1191.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1189.1/junie-nightly-1189.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1191.1/junie-nightly-1191.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1189.1/junie-nightly-1189.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1191.1/junie-nightly-1191.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1189.1/junie-nightly-1189.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1191.1/junie-nightly-1191.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -690,7 +690,7 @@
     {
       "id": "nova",
       "name": "Nova",
-      "version": "1.0.83",
+      "version": "1.0.84",
       "description": "Nova by Compass AI - a fully-fledged software engineer at your command",
       "repository": "https://github.com/Compass-Agentic-Platform/nova",
       "website": "https://www.compassap.ai/portfolio/nova.html",
@@ -701,7 +701,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/nova.svg",
       "distribution": {
         "npx": {
-          "package": "@compass-ai/nova@1.0.83",
+          "package": "@compass-ai/nova@1.0.84",
           "args": [
             "acp"
           ]
@@ -780,7 +780,7 @@
     {
       "id": "qoder",
       "name": "Qoder CLI",
-      "version": "0.1.33",
+      "version": "0.1.34",
       "description": "AI coding assistant with agentic capabilities",
       "website": "https://qoder.com",
       "authors": [
@@ -790,7 +790,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
-          "package": "@qoder-ai/qodercli@0.1.33",
+          "package": "@qoder-ai/qodercli@0.1.34",
           "args": [
             "--acp"
           ]
