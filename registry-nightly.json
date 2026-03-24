@@ -120,7 +120,7 @@
     {
       "id": "codebuddy-code",
       "name": "Codebuddy Code",
-      "version": "2.64.1",
+      "version": "2.64.2",
       "description": "Tencent Cloud's official intelligent coding tool",
       "website": "https://www.codebuddy.cn/cli/",
       "authors": [
@@ -129,7 +129,7 @@
       "license": "Proprietary",
       "distribution": {
         "npx": {
-          "package": "@tencent-ai/codebuddy-code@2.64.1",
+          "package": "@tencent-ai/codebuddy-code@2.64.2",
           "args": [
             "--acp"
           ]
@@ -295,7 +295,7 @@
     {
       "id": "deepagents",
       "name": "DeepAgents",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "description": "Batteries-included AI coding and general purpose agent powered by LangChain.",
       "repository": "https://github.com/langchain-ai/deepagentsjs",
       "website": "https://docs.langchain.com/oss/javascript/deepagents/overview",
@@ -305,7 +305,7 @@
       "license": "MIT",
       "distribution": {
         "npx": {
-          "package": "deepagents-acp@0.1.3",
+          "package": "deepagents-acp@0.1.4",
           "args": []
         }
       },
@@ -314,7 +314,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.0.18",
+      "version": "0.0.19",
       "description": "A coding agent that puts leading models at your command.",
       "authors": [
         "ArcShips"
@@ -322,7 +322,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.0.18",
+          "package": "dimcode@0.0.19",
           "args": [
             "acp"
           ]
@@ -333,7 +333,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.83.0",
+      "version": "0.84.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -342,7 +342,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.83.0",
+          "package": "droid@0.84.0",
           "args": [
             "exec",
             "--output-format",
@@ -474,7 +474,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1214.1",
+      "version": "1216.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -485,35 +485,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1214.1/junie-nightly-1214.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1216.1/junie-nightly-1216.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1214.1/junie-nightly-1214.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1216.1/junie-nightly-1216.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1214.1/junie-nightly-1214.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1216.1/junie-nightly-1216.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1214.1/junie-nightly-1214.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1216.1/junie-nightly-1216.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1214.1/junie-nightly-1214.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1216.1/junie-nightly-1216.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
