@@ -335,7 +335,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.88.0",
+      "version": "0.89.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -344,7 +344,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.88.0",
+          "package": "droid@0.89.0",
           "args": [
             "exec",
             "--output-format",
@@ -382,7 +382,7 @@
     {
       "id": "gemini",
       "name": "Gemini CLI",
-      "version": "0.35.2",
+      "version": "0.35.3",
       "description": "Google's official CLI for Gemini",
       "repository": "https://github.com/google-gemini/gemini-cli",
       "website": "https://geminicli.com",
@@ -392,7 +392,7 @@
       "license": "Apache-2.0",
       "distribution": {
         "npx": {
-          "package": "@google/gemini-cli@0.35.2",
+          "package": "@google/gemini-cli@0.35.3",
           "args": [
             "--acp"
           ]
@@ -476,7 +476,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1293.1",
+      "version": "1295.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -487,35 +487,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1293.1/junie-nightly-1293.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1295.1/junie-nightly-1295.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1293.1/junie-nightly-1293.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1295.1/junie-nightly-1295.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1293.1/junie-nightly-1293.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1295.1/junie-nightly-1295.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1293.1/junie-nightly-1293.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1295.1/junie-nightly-1295.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1293.1/junie-nightly-1293.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1295.1/junie-nightly-1295.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -528,7 +528,7 @@
     {
       "id": "kilo",
       "name": "Kilo",
-      "version": "7.1.8",
+      "version": "7.1.9",
       "description": "The open source coding agent",
       "repository": "https://github.com/Kilo-Org/kilocode",
       "website": "https://kilo.ai/",
@@ -540,35 +540,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.8/kilo-darwin-arm64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.9/kilo-darwin-arm64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.8/kilo-darwin-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.9/kilo-darwin-x64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.8/kilo-linux-arm64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.9/kilo-linux-arm64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.8/kilo-linux-x64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.9/kilo-linux-x64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.8/kilo-windows-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.1.9/kilo-windows-x64.zip",
             "cmd": "./kilo.exe",
             "args": [
               "acp"
@@ -576,7 +576,7 @@
           }
         },
         "npx": {
-          "package": "@kilocode/cli@7.1.8",
+          "package": "@kilocode/cli@7.1.9",
           "args": [
             "acp"
           ]
@@ -692,7 +692,7 @@
     {
       "id": "nova",
       "name": "Nova",
-      "version": "1.0.87",
+      "version": "1.0.88",
       "description": "Nova by Compass AI - a fully-fledged software engineer at your command",
       "repository": "https://github.com/Compass-Agentic-Platform/nova",
       "website": "https://www.compassap.ai/portfolio/nova.html",
@@ -703,7 +703,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/nova.svg",
       "distribution": {
         "npx": {
-          "package": "@compass-ai/nova@1.0.87",
+          "package": "@compass-ai/nova@1.0.88",
           "args": [
             "acp"
           ]
