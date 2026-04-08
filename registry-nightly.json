@@ -316,7 +316,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.96.1",
+      "version": "0.96.2",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -325,7 +325,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.96.1",
+          "package": "droid@0.96.2",
           "args": [
             "exec",
             "--output-format",
@@ -405,7 +405,7 @@
     {
       "id": "goose",
       "name": "goose",
-      "version": "1.29.1",
+      "version": "1.30.0",
       "description": "A local, extensible, open source AI agent that automates engineering tasks",
       "repository": "https://github.com/block/goose",
       "website": "https://block.github.io/goose/",
@@ -416,35 +416,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.29.1/goose-aarch64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.30.0/goose-aarch64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.29.1/goose-x86_64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.30.0/goose-x86_64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.29.1/goose-aarch64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.30.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.29.1/goose-x86_64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.30.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.29.1/goose-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/block/goose/releases/download/v1.30.0/goose-x86_64-pc-windows-msvc.zip",
             "cmd": "./goose-package\\goose.exe",
             "args": [
               "acp"
@@ -457,7 +457,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1372.1",
+      "version": "1373.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -468,35 +468,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1372.1/junie-nightly-1372.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1372.1/junie-nightly-1372.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1372.1/junie-nightly-1372.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1372.1/junie-nightly-1372.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1372.1/junie-nightly-1372.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
