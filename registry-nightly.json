@@ -316,7 +316,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.96.2",
+      "version": "0.97.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -325,7 +325,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.96.2",
+          "package": "droid@0.97.0",
           "args": [
             "exec",
             "--output-format",
@@ -342,7 +342,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.6.11",
+      "version": "0.6.12",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "website": "https://fast-agent.ai",
@@ -352,7 +352,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.6.11",
+          "package": "fast-agent-acp==0.6.12",
           "args": [
             "-x"
           ]
@@ -457,7 +457,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1373.1",
+      "version": "1375.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -468,35 +468,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1375.1/junie-nightly-1375.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1375.1/junie-nightly-1375.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1375.1/junie-nightly-1375.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1375.1/junie-nightly-1375.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1373.1/junie-nightly-1373.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1375.1/junie-nightly-1375.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
