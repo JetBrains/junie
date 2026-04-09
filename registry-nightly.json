@@ -457,7 +457,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1377.1",
+      "version": "1378.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -468,35 +468,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1377.1/junie-nightly-1377.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1378.1/junie-nightly-1378.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1377.1/junie-nightly-1377.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1378.1/junie-nightly-1378.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1377.1/junie-nightly-1377.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1378.1/junie-nightly-1378.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1377.1/junie-nightly-1377.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1378.1/junie-nightly-1378.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1377.1/junie-nightly-1377.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1378.1/junie-nightly-1378.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -763,7 +763,7 @@
     {
       "id": "qoder",
       "name": "Qoder CLI",
-      "version": "0.1.38",
+      "version": "0.1.39",
       "description": "AI coding assistant with agentic capabilities",
       "website": "https://qoder.com",
       "authors": [
@@ -773,7 +773,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
-          "package": "@qoder-ai/qodercli@0.1.38",
+          "package": "@qoder-ai/qodercli@0.1.39",
           "args": [
             "--acp"
           ]
