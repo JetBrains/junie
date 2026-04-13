@@ -101,7 +101,7 @@
     {
       "id": "cline",
       "name": "Cline",
-      "version": "2.13.0",
+      "version": "2.14.0",
       "description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
       "repository": "https://github.com/cline/cline",
       "website": "https://cline.bot/cli",
@@ -112,7 +112,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/cline.svg",
       "distribution": {
         "npx": {
-          "package": "cline@2.13.0",
+          "package": "cline@2.14.0",
           "args": [
             "--acp"
           ]
@@ -122,7 +122,7 @@
     {
       "id": "codebuddy-code",
       "name": "Codebuddy Code",
-      "version": "2.81.2",
+      "version": "2.85.0",
       "description": "Tencent Cloud's official intelligent coding tool",
       "website": "https://www.codebuddy.cn/cli/",
       "authors": [
@@ -131,7 +131,7 @@
       "license": "Proprietary",
       "distribution": {
         "npx": {
-          "package": "@tencent-ai/codebuddy-code@2.81.2",
+          "package": "@tencent-ai/codebuddy-code@2.85.0",
           "args": [
             "--acp"
           ]
@@ -348,7 +348,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.97.0",
+      "version": "0.99.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -357,7 +357,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.97.0",
+          "package": "droid@0.99.0",
           "args": [
             "exec",
             "--output-format",
@@ -374,7 +374,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.6.12",
+      "version": "0.6.15",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "website": "https://fast-agent.ai",
@@ -384,7 +384,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.6.12",
+          "package": "fast-agent-acp==0.6.15",
           "args": [
             "-x"
           ]
@@ -416,7 +416,7 @@
     {
       "id": "github-copilot-cli",
       "name": "GitHub Copilot",
-      "version": "1.0.21",
+      "version": "1.0.25",
       "description": "GitHub's AI pair programmer",
       "repository": "https://github.com/github/copilot-cli",
       "website": "https://github.com/features/copilot/cli/",
@@ -426,7 +426,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@github/copilot@1.0.21",
+          "package": "@github/copilot@1.0.25",
           "args": [
             "--acp"
           ]
@@ -489,7 +489,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1408.1",
+      "version": "1409.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -500,35 +500,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1408.1/junie-nightly-1408.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1409.1/junie-nightly-1409.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1408.1/junie-nightly-1408.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1409.1/junie-nightly-1409.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1408.1/junie-nightly-1408.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1409.1/junie-nightly-1409.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1408.1/junie-nightly-1408.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1409.1/junie-nightly-1409.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1408.1/junie-nightly-1408.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1409.1/junie-nightly-1409.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -599,7 +599,7 @@
     {
       "id": "kimi",
       "name": "Kimi CLI",
-      "version": "1.30.0",
+      "version": "1.32.0",
       "description": "Moonshot AI's coding assistant",
       "repository": "https://github.com/MoonshotAI/kimi-cli",
       "website": "https://moonshotai.github.io/kimi-cli/",
@@ -610,28 +610,28 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.30.0/kimi-1.30.0-aarch64-apple-darwin.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.32.0/kimi-1.32.0-aarch64-apple-darwin.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.30.0/kimi-1.30.0-aarch64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.32.0/kimi-1.32.0-aarch64-unknown-linux-gnu.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.30.0/kimi-1.30.0-x86_64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.32.0/kimi-1.32.0-x86_64-unknown-linux-gnu.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.30.0/kimi-1.30.0-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.32.0/kimi-1.32.0-x86_64-pc-windows-msvc.zip",
             "cmd": "./kimi.exe",
             "args": [
               "acp"
@@ -664,7 +664,7 @@
     {
       "id": "mistral-vibe",
       "name": "Mistral Vibe",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "description": "Mistral's open-source coding assistant",
       "repository": "https://github.com/mistralai/mistral-vibe",
       "website": "https://mistral.ai/products/vibe",
@@ -676,27 +676,27 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.3/vibe-acp-darwin-aarch64-2.7.3.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.4/vibe-acp-darwin-aarch64-2.7.4.zip",
             "cmd": "./vibe-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.3/vibe-acp-darwin-x86_64-2.7.3.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.4/vibe-acp-darwin-x86_64-2.7.4.zip",
             "cmd": "./vibe-acp"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.3/vibe-acp-linux-aarch64-2.7.3.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.4/vibe-acp-linux-aarch64-2.7.4.zip",
             "cmd": "./vibe-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.3/vibe-acp-linux-x86_64-2.7.3.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.4/vibe-acp-linux-x86_64-2.7.4.zip",
             "cmd": "./vibe-acp"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.3/vibe-acp-windows-aarch64-2.7.3.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.4/vibe-acp-windows-aarch64-2.7.4.zip",
             "cmd": "./vibe-acp.exe"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.3/vibe-acp-windows-x86_64-2.7.3.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.7.4/vibe-acp-windows-x86_64-2.7.4.zip",
             "cmd": "./vibe-acp.exe"
           }
         }
@@ -705,7 +705,7 @@
     {
       "id": "nova",
       "name": "Nova",
-      "version": "1.0.95",
+      "version": "1.0.96",
       "description": "Nova by Compass AI - a fully-fledged software engineer at your command",
       "repository": "https://github.com/Compass-Agentic-Platform/nova",
       "website": "https://www.compassap.ai/portfolio/nova.html",
@@ -716,7 +716,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/nova.svg",
       "distribution": {
         "npx": {
-          "package": "@compass-ai/nova@1.0.95",
+          "package": "@compass-ai/nova@1.0.96",
           "args": [
             "acp"
           ]
@@ -726,7 +726,7 @@
     {
       "id": "opencode",
       "name": "OpenCode",
-      "version": "1.4.1",
+      "version": "1.4.3",
       "description": "The open source coding agent",
       "repository": "https://github.com/anomalyco/opencode",
       "website": "https://opencode.ai",
@@ -738,35 +738,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.1/opencode-darwin-arm64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-darwin-arm64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.1/opencode-darwin-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-darwin-x64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.1/opencode-linux-arm64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-arm64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.1/opencode-linux-x64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-linux-x64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.1/opencode-windows-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.4.3/opencode-windows-x64.zip",
             "cmd": "./opencode.exe",
             "args": [
               "acp"
@@ -795,7 +795,7 @@
     {
       "id": "qoder",
       "name": "Qoder CLI",
-      "version": "0.1.39",
+      "version": "0.1.42",
       "description": "AI coding assistant with agentic capabilities",
       "website": "https://qoder.com",
       "authors": [
@@ -805,7 +805,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
-          "package": "@qoder-ai/qodercli@0.1.39",
+          "package": "@qoder-ai/qodercli@0.1.42",
           "args": [
             "--acp"
           ]
@@ -815,7 +815,7 @@
     {
       "id": "qwen-code",
       "name": "Qwen Code",
-      "version": "0.14.2",
+      "version": "0.14.4",
       "description": "Alibaba's Qwen coding assistant",
       "repository": "https://github.com/QwenLM/qwen-code",
       "website": "https://qwenlm.github.io/qwen-code-docs/en/users/overview",
@@ -825,7 +825,7 @@
       "license": "Apache-2.0",
       "distribution": {
         "npx": {
-          "package": "@qwen-code/qwen-code@0.14.2",
+          "package": "@qwen-code/qwen-code@0.14.4",
           "args": [
             "--acp",
             "--experimental-skills"
