@@ -186,7 +186,7 @@
     {
       "id": "corust-agent",
       "name": "Corust Agent",
-      "version": "0.4.2",
+      "version": "0.5.0",
       "description": "Co-building with a seasoned Rust partner.",
       "repository": "https://github.com/Corust-ai/corust-agent-release",
       "website": "https://corust.ai/",
@@ -197,19 +197,19 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.4.2/agent-darwin-arm64.tar.gz",
+            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.5.0/agent-darwin-arm64.tar.gz",
             "cmd": "./corust-agent-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.4.2/agent-darwin-x64.tar.gz",
+            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.5.0/agent-darwin-x64.tar.gz",
             "cmd": "./corust-agent-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.4.2/agent-linux-x64.tar.gz",
+            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.5.0/agent-linux-x64.tar.gz",
             "cmd": "./corust-agent-acp"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.4.2/agent-windows-x64.zip",
+            "archive": "https://github.com/Corust-ai/corust-agent-release/releases/download/v0.5.0/agent-windows-x64.zip",
             "cmd": "./corust-agent-acp.exe"
           }
         }
@@ -348,7 +348,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.104.0",
+      "version": "0.105.1",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -357,7 +357,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.104.0",
+          "package": "droid@0.105.1",
           "args": [
             "exec",
             "--output-format",
@@ -489,7 +489,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1472.1",
+      "version": "1474.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -500,35 +500,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1472.1/junie-nightly-1472.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1474.1/junie-nightly-1474.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1472.1/junie-nightly-1472.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1474.1/junie-nightly-1474.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1472.1/junie-nightly-1472.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1474.1/junie-nightly-1474.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1472.1/junie-nightly-1472.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1474.1/junie-nightly-1474.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1472.1/junie-nightly-1472.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1474.1/junie-nightly-1474.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
