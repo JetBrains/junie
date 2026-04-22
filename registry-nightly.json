@@ -101,7 +101,7 @@
     {
       "id": "cline",
       "name": "Cline",
-      "version": "2.15.0",
+      "version": "2.16.0",
       "description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
       "repository": "https://github.com/cline/cline",
       "website": "https://cline.bot/cli",
@@ -112,7 +112,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/cline.svg",
       "distribution": {
         "npx": {
-          "package": "cline@2.15.0",
+          "package": "cline@2.16.0",
           "args": [
             "--acp"
           ]
@@ -374,7 +374,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.6.22",
+      "version": "0.6.23",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "website": "https://fast-agent.ai",
@@ -384,7 +384,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.6.22",
+          "package": "fast-agent-acp==0.6.23",
           "args": [
             "-x"
           ]
@@ -489,7 +489,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1496.1",
+      "version": "1497.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -500,35 +500,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1496.1/junie-nightly-1496.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1496.1/junie-nightly-1496.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1496.1/junie-nightly-1496.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1496.1/junie-nightly-1496.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1496.1/junie-nightly-1496.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -599,7 +599,7 @@
     {
       "id": "kimi",
       "name": "Kimi CLI",
-      "version": "1.37.0",
+      "version": "1.38.0",
       "description": "Moonshot AI's coding assistant",
       "repository": "https://github.com/MoonshotAI/kimi-cli",
       "website": "https://moonshotai.github.io/kimi-cli/",
@@ -610,28 +610,28 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.37.0/kimi-1.37.0-aarch64-apple-darwin.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.38.0/kimi-1.38.0-aarch64-apple-darwin.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.37.0/kimi-1.37.0-aarch64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.38.0/kimi-1.38.0-aarch64-unknown-linux-gnu.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.37.0/kimi-1.37.0-x86_64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.38.0/kimi-1.38.0-x86_64-unknown-linux-gnu.tar.gz",
             "cmd": "./kimi",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.37.0/kimi-1.37.0-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.38.0/kimi-1.38.0-x86_64-pc-windows-msvc.zip",
             "cmd": "./kimi.exe",
             "args": [
               "acp"
