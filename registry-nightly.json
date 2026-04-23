@@ -348,7 +348,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.106.0",
+      "version": "0.108.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -357,7 +357,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.106.0",
+          "package": "droid@0.108.0",
           "args": [
             "exec",
             "--output-format",
@@ -395,7 +395,7 @@
     {
       "id": "gemini",
       "name": "Gemini CLI",
-      "version": "0.38.2",
+      "version": "0.39.0",
       "description": "Google's official CLI for Gemini",
       "repository": "https://github.com/google-gemini/gemini-cli",
       "website": "https://geminicli.com",
@@ -405,7 +405,7 @@
       "license": "Apache-2.0",
       "distribution": {
         "npx": {
-          "package": "@google/gemini-cli@0.38.2",
+          "package": "@google/gemini-cli@0.39.0",
           "args": [
             "--acp"
           ]
@@ -489,7 +489,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1497.1",
+      "version": "1499.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -500,35 +500,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1499.1/junie-nightly-1499.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1499.1/junie-nightly-1499.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1499.1/junie-nightly-1499.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1499.1/junie-nightly-1499.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1497.1/junie-nightly-1497.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1499.1/junie-nightly-1499.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -726,7 +726,7 @@
     {
       "id": "opencode",
       "name": "OpenCode",
-      "version": "1.14.20",
+      "version": "1.14.21",
       "description": "The open source coding agent",
       "repository": "https://github.com/anomalyco/opencode",
       "website": "https://opencode.ai",
@@ -738,35 +738,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.20/opencode-darwin-arm64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.21/opencode-darwin-arm64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.20/opencode-darwin-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.21/opencode-darwin-x64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.20/opencode-linux-arm64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.21/opencode-linux-arm64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.20/opencode-linux-x64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.21/opencode-linux-x64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.20/opencode-windows-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.21/opencode-windows-x64.zip",
             "cmd": "./opencode.exe",
             "args": [
               "acp"
@@ -815,7 +815,7 @@
     {
       "id": "qwen-code",
       "name": "Qwen Code",
-      "version": "0.15.0",
+      "version": "0.15.1",
       "description": "Alibaba's Qwen coding assistant",
       "repository": "https://github.com/QwenLM/qwen-code",
       "website": "https://qwenlm.github.io/qwen-code-docs/en/users/overview",
@@ -825,7 +825,7 @@
       "license": "Apache-2.0",
       "distribution": {
         "npx": {
-          "package": "@qwen-code/qwen-code@0.15.0",
+          "package": "@qwen-code/qwen-code@0.15.1",
           "args": [
             "--acp",
             "--experimental-skills"
