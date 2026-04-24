@@ -142,7 +142,7 @@
     {
       "id": "codex-acp",
       "name": "Codex CLI",
-      "version": "0.11.1",
+      "version": "0.12.0",
       "description": "ACP adapter for OpenAI's coding assistant",
       "repository": "https://github.com/zed-industries/codex-acp",
       "authors": [
@@ -153,32 +153,32 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.11.1/codex-acp-0.11.1-aarch64-apple-darwin.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.12.0/codex-acp-0.12.0-aarch64-apple-darwin.tar.gz",
             "cmd": "./codex-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.11.1/codex-acp-0.11.1-x86_64-apple-darwin.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.12.0/codex-acp-0.12.0-x86_64-apple-darwin.tar.gz",
             "cmd": "./codex-acp"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.11.1/codex-acp-0.11.1-aarch64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.12.0/codex-acp-0.12.0-aarch64-unknown-linux-gnu.tar.gz",
             "cmd": "./codex-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.11.1/codex-acp-0.11.1-x86_64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.12.0/codex-acp-0.12.0-x86_64-unknown-linux-gnu.tar.gz",
             "cmd": "./codex-acp"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.11.1/codex-acp-0.11.1-aarch64-pc-windows-msvc.zip",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.12.0/codex-acp-0.12.0-aarch64-pc-windows-msvc.zip",
             "cmd": "./codex-acp.exe"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.11.1/codex-acp-0.11.1-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.12.0/codex-acp-0.12.0-x86_64-pc-windows-msvc.zip",
             "cmd": "./codex-acp.exe"
           }
         },
         "npx": {
-          "package": "@zed-industries/codex-acp@0.11.1"
+          "package": "@zed-industries/codex-acp@0.12.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/codex-acp.svg"
@@ -489,7 +489,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1519.1",
+      "version": "1520.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -500,35 +500,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1519.1/junie-nightly-1519.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1520.1/junie-nightly-1520.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1519.1/junie-nightly-1519.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1520.1/junie-nightly-1520.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1519.1/junie-nightly-1519.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1520.1/junie-nightly-1520.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1519.1/junie-nightly-1519.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1520.1/junie-nightly-1520.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1519.1/junie-nightly-1519.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1520.1/junie-nightly-1520.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -726,7 +726,7 @@
     {
       "id": "opencode",
       "name": "OpenCode",
-      "version": "1.14.22",
+      "version": "1.14.23",
       "description": "The open source coding agent",
       "repository": "https://github.com/anomalyco/opencode",
       "website": "https://opencode.ai",
@@ -738,42 +738,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.22/opencode-darwin-arm64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.23/opencode-darwin-arm64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.22/opencode-darwin-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.23/opencode-darwin-x64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.22/opencode-linux-arm64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.23/opencode-linux-arm64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.22/opencode-linux-x64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.23/opencode-linux-x64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.22/opencode-windows-arm64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.23/opencode-windows-arm64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.22/opencode-windows-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v1.14.23/opencode-windows-x64.zip",
             "cmd": "./opencode.exe",
             "args": [
               "acp"
@@ -802,7 +802,7 @@
     {
       "id": "qoder",
       "name": "Qoder CLI",
-      "version": "0.1.47",
+      "version": "0.1.48",
       "description": "AI coding assistant with agentic capabilities",
       "website": "https://qoder.com",
       "authors": [
@@ -812,7 +812,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
-          "package": "@qoder-ai/qodercli@0.1.47",
+          "package": "@qoder-ai/qodercli@0.1.48",
           "args": [
             "--acp"
           ]
