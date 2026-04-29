@@ -2,6 +2,27 @@
   "version": "1.0.0",
   "agents": [
     {
+      "id": "agoragentic-acp",
+      "name": "Agoragentic",
+      "version": "1.3.0",
+      "description": "Agent marketplace with 174+ AI capabilities. Browse, invoke, and pay for agent services settled in USDC on Base L2.",
+      "repository": "https://github.com/rhein1/agoragentic-integrations",
+      "website": "https://agoragentic.com",
+      "authors": [
+        "ACRE / Agoragentic"
+      ],
+      "license": "MIT",
+      "distribution": {
+        "npx": {
+          "package": "agoragentic-mcp@1.3.0",
+          "args": [
+            "--acp"
+          ]
+        }
+      },
+      "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/agoragentic-acp.svg"
+    },
+    {
       "id": "amp-acp",
       "name": "Amp",
       "version": "0.7.0",
@@ -184,6 +205,70 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/codex-acp.svg"
     },
     {
+      "id": "cortex-code",
+      "name": "Snowflake Cortex Code",
+      "version": "1.0.58",
+      "description": "Snowflake's Cortex Code coding agent",
+      "repository": "https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code",
+      "authors": [
+        "Snowflake"
+      ],
+      "license": "proprietary",
+      "distribution": {
+        "binary": {
+          "darwin-aarch64": {
+            "archive": "https://sfc-repo.snowflakecomputing.com/cortex-code-cli/a4643c4278/1.0.58%2B183258.b9d8c6466577/coco-1.0.58%2B183258.b9d8c6466577-darwin-arm64.tar.gz",
+            "cmd": "./cortex",
+            "args": [
+              "acp",
+              "serve"
+            ]
+          },
+          "darwin-x86_64": {
+            "archive": "https://sfc-repo.snowflakecomputing.com/cortex-code-cli/a4643c4278/1.0.58%2B183258.b9d8c6466577/coco-1.0.58%2B183258.b9d8c6466577-darwin-amd64.tar.gz",
+            "cmd": "./cortex",
+            "args": [
+              "acp",
+              "serve"
+            ]
+          },
+          "linux-x86_64": {
+            "archive": "https://sfc-repo.snowflakecomputing.com/cortex-code-cli/a4643c4278/1.0.58%2B183258.b9d8c6466577/coco-1.0.58%2B183258.b9d8c6466577-linux-amd64.tar.gz",
+            "cmd": "./cortex",
+            "args": [
+              "acp",
+              "serve"
+            ]
+          },
+          "linux-aarch64": {
+            "archive": "https://sfc-repo.snowflakecomputing.com/cortex-code-cli/a4643c4278/1.0.58%2B183258.b9d8c6466577/coco-1.0.58%2B183258.b9d8c6466577-linux-arm64.tar.gz",
+            "cmd": "./cortex",
+            "args": [
+              "acp",
+              "serve"
+            ]
+          },
+          "windows-x86_64": {
+            "archive": "https://sfc-repo.snowflakecomputing.com/cortex-code-cli/a4643c4278/1.0.58%2B183258.b9d8c6466577/coco-1.0.58%2B183258.b9d8c6466577-windows-amd64.tar.gz",
+            "cmd": "./cortex.exe",
+            "args": [
+              "acp",
+              "serve"
+            ]
+          },
+          "windows-aarch64": {
+            "archive": "https://sfc-repo.snowflakecomputing.com/cortex-code-cli/a4643c4278/1.0.58%2B183258.b9d8c6466577/coco-1.0.58%2B183258.b9d8c6466577-windows-arm64.tar.gz",
+            "cmd": "./cortex.exe",
+            "args": [
+              "acp",
+              "serve"
+            ]
+          }
+        }
+      },
+      "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/cortex-code.svg"
+    },
+    {
       "id": "corust-agent",
       "name": "Corust Agent",
       "version": "0.5.1",
@@ -346,6 +431,27 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/deepagents.svg"
     },
     {
+      "id": "dirac",
+      "name": "Dirac",
+      "version": "0.3.1",
+      "description": "Reduces API costs by more than 50%, produces better and faster work. Uses Hash anchored parallel edits, AST manipulation and a whole lot of neat optimizations. Fully Open Source.",
+      "repository": "https://github.com/dirac-run/dirac",
+      "website": "https://dirac.run",
+      "authors": [
+        "Dirac Delta Labs"
+      ],
+      "license": "Apache-2.0",
+      "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/dirac.svg",
+      "distribution": {
+        "npx": {
+          "package": "dirac-cli@0.3.1",
+          "args": [
+            "--acp"
+          ]
+        }
+      }
+    },
+    {
       "id": "factory-droid",
       "name": "Factory Droid",
       "version": "0.109.3",
@@ -489,7 +595,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1550.1",
+      "version": "1552.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -500,35 +606,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1550.1/junie-nightly-1550.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1552.1/junie-nightly-1552.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1550.1/junie-nightly-1550.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1552.1/junie-nightly-1552.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1550.1/junie-nightly-1550.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1552.1/junie-nightly-1552.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1550.1/junie-nightly-1550.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1552.1/junie-nightly-1552.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1550.1/junie-nightly-1550.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1552.1/junie-nightly-1552.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -798,6 +904,65 @@
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/pi-acp.svg"
+    },
+    {
+      "id": "poolside",
+      "name": "Poolside",
+      "version": "1.0.0",
+      "description": "Poolside's coding agent",
+      "repository": "https://github.com/poolsideai/pool",
+      "website": "https://poolside.ai",
+      "authors": [
+        "Poolside <feedback@poolside.ai>"
+      ],
+      "license": "proprietary",
+      "distribution": {
+        "binary": {
+          "darwin-aarch64": {
+            "archive": "https://downloads.poolside.ai/pool/v1.0.0/pool-darwin-arm64.tar.gz",
+            "cmd": "./pool-darwin-arm64",
+            "args": [
+              "acp"
+            ]
+          },
+          "darwin-x86_64": {
+            "archive": "https://downloads.poolside.ai/pool/v1.0.0/pool-darwin-amd64.tar.gz",
+            "cmd": "./pool-darwin-amd64",
+            "args": [
+              "acp"
+            ]
+          },
+          "linux-aarch64": {
+            "archive": "https://downloads.poolside.ai/pool/v1.0.0/pool-linux-arm64.tar.gz",
+            "cmd": "./pool-linux-arm64",
+            "args": [
+              "acp"
+            ]
+          },
+          "linux-x86_64": {
+            "archive": "https://downloads.poolside.ai/pool/v1.0.0/pool-linux-amd64.tar.gz",
+            "cmd": "./pool-linux-amd64",
+            "args": [
+              "acp"
+            ]
+          },
+          "windows-aarch64": {
+            "archive": "https://downloads.poolside.ai/pool/v1.0.0/pool-windows-arm64.tar.gz",
+            "cmd": "./pool-windows-arm64.exe",
+            "args": [
+              "acp"
+            ]
+          },
+          "windows-x86_64": {
+            "archive": "https://downloads.poolside.ai/pool/v1.0.0/pool-windows-amd64.tar.gz",
+            "cmd": "./pool-windows-amd64.exe",
+            "args": [
+              "acp"
+            ]
+          }
+        }
+      },
+      "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/poolside.svg"
     },
     {
       "id": "qoder",
