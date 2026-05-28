@@ -20,6 +20,33 @@ set "VERSIONS_DIR=%JUNIE_DATA%\versions"
 set "UPDATES_DIR=%JUNIE_DATA%\updates"
 set "CURRENT_FILE=%JUNIE_DATA%\current"
 set "PENDING_UPDATE=%UPDATES_DIR%\pending-update.json"
+set "PROCESSING=%UPDATES_DIR%\pending-update.json.processing"
+
+::: === Defensive Sanitization ===
+:::
+::: JUNIE-2957 defense: drop pending-update.json / pending-update.json.processing
+::: if they are empty or unparseable BEFORE the atomic-claim rename below. A
+::: legitimate in-flight update writes the manifest fully and then renames it,
+::: so a zero-byte file or one missing `version`/`zipPath` can only be junk --
+::: a leftover from a prior crash or content planted by mistake. Without this,
+::: a stale .processing blocks all future updates AND can be inherited by the
+::: binary's own update path with CWD as a working-dir hint.
+if exist "%PENDING_UPDATE%" (
+  set "PEND_OK="
+  for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "try { $c = Get-Content -Raw -LiteralPath '%PENDING_UPDATE%' -ErrorAction Stop; if ([string]::IsNullOrWhiteSpace($c)) { 'bad' } else { $j = $c ^| ConvertFrom-Json; if ($j.version -and $j.zipPath) { 'ok' } else { 'bad' } } } catch { 'bad' }"`) do set "PEND_OK=%%V"
+  if /i not "!PEND_OK!"=="ok" (
+    echo [Junie] Removing invalid update artifact: %PENDING_UPDATE% 1>&2
+    del /f /q "%PENDING_UPDATE%" 2>nul
+  )
+)
+if exist "!PROCESSING!" (
+  set "PROC_OK="
+  for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "try { $c = Get-Content -Raw -LiteralPath '!PROCESSING!' -ErrorAction Stop; if ([string]::IsNullOrWhiteSpace($c)) { 'bad' } else { $j = $c ^| ConvertFrom-Json; if ($j.version -and $j.zipPath) { 'ok' } else { 'bad' } } } catch { 'bad' }"`) do set "PROC_OK=%%V"
+  if /i not "!PROC_OK!"=="ok" (
+    echo [Junie] Removing invalid update artifact: !PROCESSING! 1>&2
+    del /f /q "!PROCESSING!" 2>nul
+  )
+)
 
 :: === Apply Pending Update ===
 if not exist "%PENDING_UPDATE%" goto :resolve_version

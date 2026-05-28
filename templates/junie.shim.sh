@@ -130,6 +130,40 @@ detect_archive_type() {
   esac
 }
 
+# === Defensive Sanitization ===
+#
+# JUNIE-2957 defense: drop update artifacts that are empty or unparseable
+# BEFORE we (or the binary's own update path) act on them.
+#
+# A legitimate in-flight update writes the manifest fully and only then renames
+# it into place, so an existing `pending-update.json` or
+# `pending-update.json.processing` that is zero bytes, or that lacks the
+# required `version` / `zipPath` fields, can only be junk -- a leftover from a
+# prior crash, a partial write, or content planted by mistake. We must not feed
+# that to either `apply_pending_update` below or to the launched binary, which
+# may otherwise try to "resolve" paths derived from CWD/EJ_RUNNER_PWD.
+#
+# Best-effort: any rm failure is swallowed; the regular `apply_pending_update`
+# path will then handle the file conservatively or skip it.
+sanitize_pending_updates() {
+  [[ -d "$UPDATES_DIR" ]] || return 0
+  local f v z
+  for f in "$PENDING_UPDATE" "$UPDATES_DIR/pending-update.json.processing"; do
+    [[ -f "$f" ]] || continue
+    if [[ ! -s "$f" ]]; then
+      log_both "Removing zero-byte update artifact: $f"
+      rm -f "$f" 2>/dev/null || true
+      continue
+    fi
+    v=$(get_json_field "$f" "version")
+    z=$(get_json_field "$f" "zipPath")
+    if [[ -z "$v" || -z "$z" ]]; then
+      log_both "Removing unparseable update artifact (missing version/zipPath): $f"
+      rm -f "$f" 2>/dev/null || true
+    fi
+  done
+}
+
 # === Apply Pending Update ===
 #
 # Atomic extraction strategy:
@@ -430,6 +464,10 @@ handle_shim_commands() {
 main() {
   # Handle shim-specific commands
   handle_shim_commands "$@"
+
+  # Defense-in-depth (JUNIE-2957): drop empty / unparseable update artifacts
+  # before either we or the launched binary react to them.
+  sanitize_pending_updates
 
   # Apply pending update if present. On failure we deliberately do NOT abort:
   # the previous version is still on disk (via the `current` symlink) and should run.
