@@ -1,4 +1,5 @@
 #
+# DO NOT EDIT — generated from templates/install.ps1.template by templates/generate.sh
 # Junie CLI Installer for Windows
 # Usage: irm https://junie.jetbrains.com/install.ps1 | iex
 #
@@ -96,14 +97,33 @@ if (-not (Test-Path $TARGET_DIR)) {
     Log "Checksum verified"
   }
 
-  New-Item -ItemType Directory -Force -Path $TARGET_DIR | Out-Null
+  # Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
+  # resolved binary, then atomically rename into place. This mirrors the shim's
+  # robust extraction so an interrupted install never leaves a half-extracted tree.
+  $STAGING = Join-Path "$JUNIE_DATA\versions" (".$VERSION.tmp." + $PID)
+  if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
+  New-Item -ItemType Directory -Force -Path $STAGING | Out-Null
 
-  $oldProgress = $global:ProgressPreference
-  $global:ProgressPreference = 'SilentlyContinue'
-  Expand-Archive -Path $TMP_ZIP -DestinationPath $TARGET_DIR -Force
-  $global:ProgressPreference = $oldProgress
+  try {
+    $oldProgress = $global:ProgressPreference
+    $global:ProgressPreference = 'SilentlyContinue'
+    Expand-Archive -Path $TMP_ZIP -DestinationPath $STAGING -Force
+    $global:ProgressPreference = $oldProgress
 
-  Remove-Item -Force $TMP_ZIP
+    # Validate that the expected binary is present in the staging tree.
+    $StagedExe = Join-Path $STAGING "junie\junie.exe"
+    if (-not (Test-Path $StagedExe)) {
+      Log-Error "No junie binary found in downloaded payload"
+      exit 1
+    }
+
+    Move-Item -Path $STAGING -Destination $TARGET_DIR
+  } catch {
+    if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
+    throw
+  } finally {
+    Remove-Item -Force $TMP_ZIP -ErrorAction SilentlyContinue
+  }
 }
 
 # Write current version pointer file (plain text, not symlink)
@@ -181,22 +201,54 @@ if defined UPD_SHA256 (
   )
 )
 
-:: Extract to versions directory
+:: Extract to a staging dir on the same filesystem as %VERSIONS_DIR%, validate
+:: the resolved binary, then atomically rename into place. On any failure we
+:: rename the claimed manifest back to pending-update.json so the next launch
+:: retries (keeping the zip), and continue with the previously installed version.
 set "UPD_TARGET=%VERSIONS_DIR%\!UPD_VERSION!"
-if not exist "!UPD_TARGET!" mkdir "!UPD_TARGET!"
+set "UPD_RND=!RANDOM!"
+set "UPD_STAGING_NAME=.!UPD_VERSION!.tmp.!UPD_RND!"
+set "UPD_OLD_NAME=.!UPD_VERSION!.old.!UPD_RND!"
+set "UPD_STAGING=%VERSIONS_DIR%\!UPD_STAGING_NAME!"
+set "UPD_OLD=%VERSIONS_DIR%\!UPD_OLD_NAME!"
+if exist "!UPD_STAGING!" rmdir /s /q "!UPD_STAGING!" 2>nul
+mkdir "!UPD_STAGING!" 2>nul
 
 echo [Junie] Applying pending update to version !UPD_VERSION!... 1>&2
-powershell -NoProfile -Command "Expand-Archive -Path '!UPD_ZIP!' -DestinationPath '!UPD_TARGET!' -Force" 2>nul
+powershell -NoProfile -Command "Expand-Archive -Path '!UPD_ZIP!' -DestinationPath '!UPD_STAGING!' -Force" 2>nul
 if errorlevel 1 (
-  echo [Junie] Failed to extract update 1>&2
-  del /f /q "!CLAIMED_UPDATE!" 2>nul
+  echo [Junie] Failed to extract update; preserving for retry 1>&2
+  rmdir /s /q "!UPD_STAGING!" 2>nul
+  rename "!CLAIMED_UPDATE!" "pending-update.json" 2>nul
   goto :resolve_version
 )
 
-:: Update current pointer file (plain text, not symlink)
+:: Validate extracted binary
+if not exist "!UPD_STAGING!\junie\junie.exe" (
+  echo [Junie] Extracted payload missing junie\junie.exe; preserving for retry 1>&2
+  rmdir /s /q "!UPD_STAGING!" 2>nul
+  rename "!CLAIMED_UPDATE!" "pending-update.json" 2>nul
+  goto :resolve_version
+)
+
+:: Atomic swap: move any existing version aside, then rename staging into place.
+if exist "!UPD_TARGET!" rename "!UPD_TARGET!" "!UPD_OLD_NAME!" 2>nul
+move "!UPD_STAGING!" "!UPD_TARGET!" >nul 2>nul
+if errorlevel 1 (
+  echo [Junie] Failed to install new version; preserving for retry 1>&2
+  if exist "!UPD_OLD!" if not exist "!UPD_TARGET!" rename "!UPD_OLD!" "!UPD_VERSION!" 2>nul
+  rmdir /s /q "!UPD_STAGING!" 2>nul
+  rename "!CLAIMED_UPDATE!" "pending-update.json" 2>nul
+  goto :resolve_version
+)
+
+:: Best-effort cleanup of the previous tree
+if exist "!UPD_OLD!" rmdir /s /q "!UPD_OLD!" 2>nul
+
+:: Update current pointer file (plain text, not symlink) after a successful swap.
 >"%CURRENT_FILE%" (echo|set /p="!UPD_VERSION!")
 
-:: Cleanup downloaded zip and manifest
+:: Cleanup downloaded zip and manifest only after a successful swap
 del /f /q "!UPD_ZIP!" 2>nul
 del /f /q "!CLAIMED_UPDATE!" 2>nul
 echo [Junie] Updated to version !UPD_VERSION! 1>&2

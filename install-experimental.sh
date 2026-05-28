@@ -19,6 +19,36 @@ JUNIE_DATA="$HOME/.local/share/junie"
 log() { echo "[Junie] $*"; }
 log_error() { echo "[Junie] ERROR: $*" >&2; }
 
+# Ensure required tools are available before we start downloading anything.
+# We fail early with an actionable, OS-aware install hint so users on minimal
+# images (containers, fresh VPS, etc.) aren't stuck staring at a cryptic
+# `unzip: command not found` halfway through the install.
+require_unzip() {
+  if command -v unzip > /dev/null 2>&1; then
+    return 0
+  fi
+  log_error "'unzip' is required to install Junie, but it was not found in PATH."
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    log_error "Install it with: brew install unzip"
+  elif command -v apt-get > /dev/null 2>&1; then
+    log_error "Install it with: sudo apt-get update && sudo apt-get install -y unzip"
+  elif command -v dnf > /dev/null 2>&1; then
+    log_error "Install it with: sudo dnf install -y unzip"
+  elif command -v yum > /dev/null 2>&1; then
+    log_error "Install it with: sudo yum install -y unzip"
+  elif command -v apk > /dev/null 2>&1; then
+    log_error "Install it with: sudo apk add unzip"
+  elif command -v pacman > /dev/null 2>&1; then
+    log_error "Install it with: sudo pacman -S --noconfirm unzip"
+  elif command -v zypper > /dev/null 2>&1; then
+    log_error "Install it with: sudo zypper install -y unzip"
+  else
+    log_error "Install the 'unzip' package using your system package manager, then re-run this installer."
+  fi
+  exit 1
+}
+require_unzip
+
 # Calculate SHA-256 checksum
 sha256sum_file() {
   local file="$1"
