@@ -149,11 +149,32 @@ UPDATES_DIR="$JUNIE_DATA/updates"
 CURRENT_LINK="$JUNIE_DATA/current"
 PENDING_UPDATE="$UPDATES_DIR/pending-update.json"
 
+# Persistent upgrade log. Lives under ~/.junie/logs (separate from the data dir,
+# so wiping ~/.local/share/junie during reinstall does not lose update history).
+# Always APPEND -- never truncate.
+UPGRADE_LOG_DIR="${JUNIE_LOG_DIR:-$HOME/.junie/logs}"
+UPGRADE_LOG="$UPGRADE_LOG_DIR/upgrade.log"
+
 # === Utility Functions ===
 
 # Log message to stderr
 log() {
   echo "[Junie] $*" >&2
+}
+
+# Append a timestamped line to the upgrade log. Best-effort: failure to write
+# (e.g. read-only HOME) must never break the update flow itself, so all errors
+# are swallowed. Always opens the file in append mode (>>).
+log_upgrade() {
+  local ts
+  ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo "-")
+  { mkdir -p "$UPGRADE_LOG_DIR" 2>/dev/null && printf '%s [pid=%s] %s\n' "$ts" "$$" "$*" >> "$UPGRADE_LOG"; } 2>/dev/null || true
+}
+
+# Convenience: echo to stderr AND append to upgrade.log.
+log_both() {
+  log "$*"
+  log_upgrade "$*"
 }
 
 # Check if a command exists
@@ -258,51 +279,66 @@ apply_pending_update() {
     return 0
   fi
 
-  log "Applying pending update..."
+  log_both "Applying pending update (manifest=$PENDING_UPDATE)"
 
   # Parse manifest
   local version zip_path sha256
   version=$(get_json_field "$PENDING_UPDATE" "version")
   zip_path=$(get_json_field "$PENDING_UPDATE" "zipPath")
   sha256=$(get_json_field "$PENDING_UPDATE" "sha256")
+  log_upgrade "manifest parsed: version='$version' zipPath='$zip_path' sha256='${sha256:-<none>}'"
 
   if [[ -z "$version" || -z "$zip_path" ]]; then
-    log "Invalid pending update manifest, skipping"
+    log_both "Invalid pending update manifest, skipping"
     rm -f "$PENDING_UPDATE"
     return 1
   fi
 
   if [[ ! -f "$zip_path" ]]; then
-    log "Update file not found: $zip_path"
+    log_both "Update file not found: $zip_path"
     rm -f "$PENDING_UPDATE"
     return 1
   fi
 
+  local zip_size=""
+  zip_size=$(wc -c < "$zip_path" 2>/dev/null | tr -d ' ' || echo "?")
+  log_upgrade "archive present: path='$zip_path' size_bytes=$zip_size"
+
   # Verify checksum if available
   if [[ -n "$sha256" ]]; then
+    log_upgrade "checksum: starting SHA-256 validation (expected=$sha256)"
     local actual_sha256
     actual_sha256=$(sha256sum_file "$zip_path")
+    log_upgrade "checksum: computed actual='${actual_sha256:-<unavailable>}'"
 
-    # Case-insensitive comparison (compatible with bash 3.x on macOS)
-    if [[ -n "$actual_sha256" ]] && ! echo "$actual_sha256" | grep -qi "^${sha256}$"; then
-      log "Checksum mismatch, skipping update"
-      log "Expected: $sha256"
-      log "Got: $actual_sha256"
+    if [[ -z "$actual_sha256" ]]; then
+      log_upgrade "checksum: skipped (no SHA-256 tool available)"
+    elif ! echo "$actual_sha256" | grep -qi "^${sha256}$"; then
+      # Case-insensitive comparison (compatible with bash 3.x on macOS)
+      log_both "Checksum mismatch, skipping update"
+      log_both "Expected: $sha256"
+      log_both "Got: $actual_sha256"
+      log_upgrade "checksum: FAIL -- dropping manifest and archive"
       rm -f "$PENDING_UPDATE" "$zip_path"
       return 1
+    else
+      log_upgrade "checksum: OK"
     fi
+  else
+    log_upgrade "checksum: skipped (manifest has no sha256)"
   fi
 
   # Pick the right extractor by archive type. No silent wrong-tool fallback
   # (don't run tar on a zip).
   local extractor
   extractor=$(detect_archive_type "$zip_path")
+  log_upgrade "extractor: detected='${extractor:-<unknown>}' for '$zip_path'"
   if [[ -z "$extractor" ]]; then
-    log "Error: Unknown archive type for $zip_path; preserving update for retry"
+    log_both "Error: Unknown archive type for $zip_path; preserving update for retry"
     return 1
   fi
   if ! has_command "$extractor"; then
-    log "Error: Required extraction tool '$extractor' not found; install it and retry"
+    log_both "Error: Required extraction tool '$extractor' not found; install it and retry"
     return 1
   fi
 
@@ -318,41 +354,47 @@ apply_pending_update() {
 
   rm -rf "$staging"
   if ! mkdir -p "$staging"; then
-    log "Error: Failed to create staging directory $staging"
+    log_both "Error: Failed to create staging directory $staging"
     trap - INT TERM
     return 1
   fi
+  log_upgrade "staging: created '$staging'"
 
-  log "Extracting to $staging..."
+  log_both "Extracting to $staging..."
+  log_upgrade "extract: starting tool='$extractor' src='$zip_path' dst='$staging'"
 
   if [[ "$extractor" == "unzip" ]]; then
     if ! unzip -q "$zip_path" -d "$staging"; then
-      log "Error: Failed to extract $zip_path; preserving update for retry"
+      log_both "Error: Failed to extract $zip_path; preserving update for retry"
+      log_upgrade "extract: FAIL (unzip exit non-zero)"
       rm -rf "$staging"
       trap - INT TERM
       return 1
     fi
   else
     if ! tar -xzf "$zip_path" -C "$staging"; then
-      log "Error: Failed to extract $zip_path; preserving update for retry"
+      log_both "Error: Failed to extract $zip_path; preserving update for retry"
+      log_upgrade "extract: FAIL (tar exit non-zero)"
       rm -rf "$staging"
       trap - INT TERM
       return 1
     fi
   fi
+  log_upgrade "extract: OK"
 
   # Resolve the binary against the staging dir and ensure it is executable.
   local staged_binary
   staged_binary=$(get_binary_path_in "$staging")
   if [[ -z "$staged_binary" ]]; then
-    log "Error: No junie binary found in extracted payload; preserving update for retry"
+    log_both "Error: No junie binary found in extracted payload; preserving update for retry"
     rm -rf "$staging"
     trap - INT TERM
     return 1
   fi
+  log_upgrade "binary: resolved '$staged_binary'"
   chmod +x "$staged_binary" 2>/dev/null || true
   if [[ ! -x "$staged_binary" ]]; then
-    log "Error: Extracted binary is not executable: $staged_binary"
+    log_both "Error: Extracted binary is not executable: $staged_binary"
     rm -rf "$staging"
     trap - INT TERM
     return 1
@@ -363,10 +405,13 @@ apply_pending_update() {
 
   # Atomic swap: move existing version aside, then rename staging into place.
   # We replace the whole tree so macOS .app bundles stay code-sign-consistent.
+  log_upgrade "atomic-move: target='$VERSIONS_DIR/$version'"
   if [[ -e "$VERSIONS_DIR/$version" ]]; then
     rm -rf "$old_dir"
+    log_upgrade "atomic-move: moving existing tree aside -> '$old_dir'"
     if ! mv "$VERSIONS_DIR/$version" "$old_dir"; then
-      log "Error: Failed to move existing version aside"
+      log_both "Error: Failed to move existing version aside"
+      log_upgrade "atomic-move: FAIL (mv existing -> old_dir)"
       rm -rf "$staging"
       trap - INT TERM
       return 1
@@ -374,28 +419,34 @@ apply_pending_update() {
   fi
 
   if ! mv "$staging" "$VERSIONS_DIR/$version"; then
-    log "Error: Failed to install new version into $VERSIONS_DIR/$version"
+    log_both "Error: Failed to install new version into $VERSIONS_DIR/$version"
+    log_upgrade "atomic-move: FAIL (mv staging -> target); attempting rollback"
     # Try to restore previous version if we moved it aside
     if [[ -e "$old_dir" && ! -e "$VERSIONS_DIR/$version" ]]; then
-      mv "$old_dir" "$VERSIONS_DIR/$version" 2>/dev/null || true
+      mv "$old_dir" "$VERSIONS_DIR/$version" 2>/dev/null \
+        && log_upgrade "atomic-move: rollback OK" \
+        || log_upgrade "atomic-move: rollback FAILED"
     fi
     rm -rf "$staging" "$old_dir"
     trap - INT TERM
     return 1
   fi
+  log_upgrade "atomic-move: rename OK ('$staging' -> '$VERSIONS_DIR/$version')"
 
   # Best-effort cleanup of the previous tree
   rm -rf "$old_dir" 2>/dev/null || true
 
   # Flip the current symlink atomically.
   ln -sfn "$VERSIONS_DIR/$version" "$CURRENT_LINK"
+  log_upgrade "symlink: 'current' -> '$VERSIONS_DIR/$version'"
 
   # Drop pending artifacts only after a fully successful swap.
   rm -f "$zip_path" "$PENDING_UPDATE"
+  log_upgrade "cleanup: removed zip='$zip_path' and manifest='$PENDING_UPDATE'"
 
   trap - INT TERM
 
-  log "Updated to version $version"
+  log_both "Updated to version $version"
   return 0
 }
 
