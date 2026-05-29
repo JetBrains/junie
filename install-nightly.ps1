@@ -26,7 +26,7 @@ function Get-Sha256($file) {
 $ARCH = $env:PROCESSOR_ARCHITECTURE
 switch ($ARCH) {
   "AMD64"   {$ARCH_NAME = "amd64" }
-  "ARM64"   {$ARCH_NAME = "amd64" }
+  "ARM64"   {$ARCH_NAME = "aarch64" }
   default   { Log-Error "Unsupported architecture: $ARCH"; exit 1 }
 }
 
