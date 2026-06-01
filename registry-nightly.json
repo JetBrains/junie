@@ -696,7 +696,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1895.1",
+      "version": "1896.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -707,35 +707,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1895.1/junie-nightly-1895.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1896.1/junie-nightly-1896.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1895.1/junie-nightly-1895.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1896.1/junie-nightly-1896.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1895.1/junie-nightly-1895.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1896.1/junie-nightly-1896.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1895.1/junie-nightly-1895.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1896.1/junie-nightly-1896.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1895.1/junie-nightly-1895.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1896.1/junie-nightly-1896.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -833,6 +833,13 @@
           "linux-x86_64": {
             "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.46.0/kimi-1.46.0-x86_64-unknown-linux-gnu.tar.gz",
             "cmd": "./kimi",
+            "args": [
+              "acp"
+            ]
+          },
+          "windows-aarch64": {
+            "archive": "https://github.com/MoonshotAI/kimi-cli/releases/download/1.46.0/kimi-1.46.0-aarch64-pc-windows-msvc.zip",
+            "cmd": "./kimi.exe",
             "args": [
               "acp"
             ]
