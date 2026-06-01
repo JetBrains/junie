@@ -87,6 +87,24 @@ fetch_latest_version() {
   fi
 }
 
+# Look up the SHA-256 checksum for a specific version+platform from the
+# update-info JSONL so that explicit JUNIE_VERSION requests can still be
+# integrity-checked. Echoes the checksum if found, or an empty string otherwise.
+# Best-effort: network/parse failures or a version that isn't listed simply
+# result in an empty checksum (the caller decides how to proceed).
+fetch_version_sha256() {
+  local want_version="$1"
+  local jsonl entry
+  jsonl=$(curl -fsSL "$UPDATE_INFO_URL" 2> /dev/null) || return 0
+
+  # Match the entry for the exact version (trailing quote anchors the match so
+  # "1.1" does not match "1.12") and our platform.
+  entry=$(echo "$jsonl" | grep "\"version\":\"$want_version\"" | grep "\"platform\":\"$PLATFORM\"" | tail -1)
+  [[ -z "$entry" ]] && return 0
+
+  echo "$entry" | grep -o '"sha256":"[^"]*"' | sed 's/"sha256":"\([^"]*\)"/\1/'
+}
+
 # Detect platform
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -109,8 +127,16 @@ PLATFORM="${OS_NAME}-${ARCH_NAME}"
 if [[ -n "${JUNIE_VERSION:-}" ]]; then
   VERSION="$JUNIE_VERSION"
   DOWNLOAD_URL="$GITHUB_RELEASES/download/${VERSION}/junie-${CHANNEL}-${VERSION}-${PLATFORM}.zip"
-  SHA256=""  # No checksum verification for specific version requests
   log "Using specified version: $VERSION"
+  # Even for an explicitly requested version, try to look up its published
+  # checksum so the download is still integrity-checked. If the version isn't
+  # listed in update-info we proceed without a checksum (best-effort).
+  SHA256=$(fetch_version_sha256 "$VERSION")
+  if [[ -n "$SHA256" ]]; then
+    log "Found published checksum for version $VERSION"
+  else
+    log "Warning: No checksum found for version $VERSION; proceeding without integrity verification"
+  fi
 else
   fetch_latest_version
 fi
@@ -129,64 +155,67 @@ SHIM_EOF
 chmod +x "$JUNIE_BIN/junie"
 
 # Download and install binary
+# Always re-download and overwrite the target version directory, regardless of
+# whether it already exists. This avoids reusing a previously cached broken or
+# partial install for the same version.
 TARGET_DIR="$JUNIE_DATA/versions/$VERSION"
-if [[ ! -d "$TARGET_DIR" ]]; then
-  TMP_ZIP=$(mktemp)
+TMP_ZIP=$(mktemp)
 
-  log "Downloading $DOWNLOAD_URL"
-  curl -fSL --progress-bar -o "$TMP_ZIP" "$DOWNLOAD_URL"
+log "Downloading $DOWNLOAD_URL"
+curl -fSL --progress-bar -o "$TMP_ZIP" "$DOWNLOAD_URL"
 
-  # Verify checksum
-  if [[ -n "$SHA256" ]]; then
-    actual_sha256=$(sha256sum_file "$TMP_ZIP")
-    if [[ -n "$actual_sha256" ]]; then
-      if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
-        log_error "Checksum verification failed!"
-        log_error "Expected: $SHA256"
-        log_error "Got: $actual_sha256"
-        rm -f "$TMP_ZIP"
-        exit 1
-      fi
-      log "Checksum verified"
+# Verify checksum
+if [[ -n "$SHA256" ]]; then
+  actual_sha256=$(sha256sum_file "$TMP_ZIP")
+  if [[ -n "$actual_sha256" ]]; then
+    if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
+      log_error "Checksum verification failed!"
+      log_error "Expected: $SHA256"
+      log_error "Got: $actual_sha256"
+      rm -f "$TMP_ZIP"
+      exit 1
     fi
+    log "Checksum verified"
   fi
-
-  # Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
-  # resolved binary, then atomically rename into place. This mirrors the shim's
-  # robust extraction so an interrupted install never leaves a half-extracted tree.
-  STAGING="$JUNIE_DATA/versions/.$VERSION.tmp.$$"
-  trap 'rm -rf "$STAGING"' EXIT INT TERM
-  rm -rf "$STAGING"
-  mkdir -p "$STAGING"
-  unzip -q "$TMP_ZIP" -d "$STAGING"
-  rm -f "$TMP_ZIP"
-
-  # Validate the extracted binary (inline equivalent of get_binary_path_in).
-  if [[ -d "$STAGING/Applications/junie.app" ]]; then
-    STAGED_BIN="$STAGING/Applications/junie.app/Contents/MacOS/junie"
-  elif [[ -f "$STAGING/junie/bin/junie" ]]; then
-    STAGED_BIN="$STAGING/junie/bin/junie"
-  elif [[ -f "$STAGING/junie" ]]; then
-    STAGED_BIN="$STAGING/junie"
-  else
-    STAGED_BIN=""
-  fi
-  if [[ -z "$STAGED_BIN" ]]; then
-    log_error "No junie binary found in downloaded payload"
-    exit 1
-  fi
-  chmod +x "$STAGED_BIN" 2>/dev/null || true
-  if [[ ! -x "$STAGED_BIN" ]]; then
-    log_error "Extracted binary is not executable: $STAGED_BIN"
-    exit 1
-  fi
-
-  [[ "$OS_NAME" == "macos" ]] && xattr -dr com.apple.quarantine "$STAGING" 2>/dev/null || true
-
-  # Atomic rename into the final version directory.
-  mv "$STAGING" "$TARGET_DIR"
-  trap - EXIT INT TERM
 fi
+
+# Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
+# resolved binary, then atomically rename into place. This mirrors the shim's
+# robust extraction so an interrupted install never leaves a half-extracted tree.
+STAGING="$JUNIE_DATA/versions/.$VERSION.tmp.$$"
+trap 'rm -rf "$STAGING"' EXIT INT TERM
+rm -rf "$STAGING"
+mkdir -p "$STAGING"
+unzip -q "$TMP_ZIP" -d "$STAGING"
+rm -f "$TMP_ZIP"
+
+# Validate the extracted binary (inline equivalent of get_binary_path_in).
+if [[ -d "$STAGING/Applications/junie.app" ]]; then
+  STAGED_BIN="$STAGING/Applications/junie.app/Contents/MacOS/junie"
+elif [[ -f "$STAGING/junie/bin/junie" ]]; then
+  STAGED_BIN="$STAGING/junie/bin/junie"
+elif [[ -f "$STAGING/junie" ]]; then
+  STAGED_BIN="$STAGING/junie"
+else
+  STAGED_BIN=""
+fi
+if [[ -z "$STAGED_BIN" ]]; then
+  log_error "No junie binary found in downloaded payload"
+  exit 1
+fi
+chmod +x "$STAGED_BIN" 2>/dev/null || true
+if [[ ! -x "$STAGED_BIN" ]]; then
+  log_error "Extracted binary is not executable: $STAGED_BIN"
+  exit 1
+fi
+
+[[ "$OS_NAME" == "macos" ]] && xattr -dr com.apple.quarantine "$STAGING" 2>/dev/null || true
+
+# Remove any existing (possibly broken) version directory, then atomically
+# rename the validated staging tree into the final version directory.
+rm -rf "$TARGET_DIR"
+mv "$STAGING" "$TARGET_DIR"
+trap - EXIT INT TERM
 
 # Set current version
 ln -sfn "$TARGET_DIR" "$JUNIE_DATA/current"

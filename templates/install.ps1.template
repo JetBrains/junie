@@ -54,12 +54,46 @@ function Fetch-LatestVersion {
   }
 }
 
+# Look up the SHA-256 checksum for a specific version+platform from the
+# update-info JSONL so that explicit JUNIE_VERSION requests can still be
+# integrity-checked. Returns the checksum if found, or an empty string otherwise.
+# Best-effort: network/parse failures or a version that isn't listed simply
+# result in an empty checksum (the caller decides how to proceed).
+function Fetch-VersionSha256($wantVersion) {
+  try {
+    $jsonl = Invoke-RestMethod -Uri $UPDATE_INFO_URL
+  } catch {
+    return ""
+  }
+
+  $lines = $jsonl -split "`n" | Where-Object { $_ -match "`"platform`":`"$PLATFORM`"" }
+  foreach ($line in $lines) {
+    try {
+      $parsed = $line | ConvertFrom-Json
+    } catch {
+      continue
+    }
+    if ($parsed.version -eq $wantVersion) {
+      return $parsed.sha256
+    }
+  }
+  return ""
+}
+
 # Determine version: use JUNIE_VERSION env var if set, otherwise fetch latest
 if ($env:JUNIE_VERSION) {
   $VERSION = $env:JUNIE_VERSION
   $DOWNLOAD_URL = "$GITHUB_RELEASES/download/$VERSION/junie-$CHANNEL-$VERSION-$PLATFORM.zip"
-  $SHA256 = ""
   Log "Using specified version: $VERSION"
+  # Even for an explicitly requested version, try to look up its published
+  # checksum so the download is still integrity-checked. If the version isn't
+  # listed in update-info we proceed without a checksum (best-effort).
+  $SHA256 = Fetch-VersionSha256 $VERSION
+  if ($SHA256) {
+    Log "Found published checksum for version $VERSION"
+  } else {
+    Log "Warning: No checksum found for version $VERSION; proceeding without integrity verification"
+  }
 } else {
   Fetch-LatestVersion
 }
@@ -72,57 +106,60 @@ New-Item -ItemType Directory -Force -Path "$JUNIE_DATA\versions" | Out-Null
 New-Item -ItemType Directory -Force -Path "$JUNIE_DATA\updates" | Out-Null
 
 # Download and install binary
+# Always re-download and overwrite the target version directory, regardless of
+# whether it already exists. This avoids reusing a previously cached broken or
+# partial install for the same version.
 $TARGET_DIR = Join-Path "$JUNIE_DATA\versions" $VERSION
 
-if (-not (Test-Path $TARGET_DIR)) {
-  $TMP_ZIP = Join-Path $env:TEMP "junie-$VERSION.zip"
+$TMP_ZIP = Join-Path $env:TEMP "junie-$VERSION.zip"
 
-  Log "Downloading $DOWNLOAD_URL"
-  $oldProgress = $ProgressPreference
-  $ProgressPreference = 'SilentlyContinue'
-  Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TMP_ZIP -UseBasicParsing
-  $ProgressPreference = $oldProgress
+Log "Downloading $DOWNLOAD_URL"
+$oldProgress = $ProgressPreference
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TMP_ZIP -UseBasicParsing
+$ProgressPreference = $oldProgress
 
-  # Verify checksum
-  if ($SHA256) {
-    $actualSha256 = Get-Sha256 $TMP_ZIP
-    if ($actualSha256 -ne $SHA256.ToLower()) {
-      Log-Error "Checksum verification failed!"
-      Log-Error "Expected: $SHA256"
-      Log-Error "Got: $actualSha256"
-      Remove-Item -Force $TMP_ZIP
-      exit 1
-    }
-    Log "Checksum verified"
+# Verify checksum
+if ($SHA256) {
+  $actualSha256 = Get-Sha256 $TMP_ZIP
+  if ($actualSha256 -ne $SHA256.ToLower()) {
+    Log-Error "Checksum verification failed!"
+    Log-Error "Expected: $SHA256"
+    Log-Error "Got: $actualSha256"
+    Remove-Item -Force $TMP_ZIP
+    exit 1
+  }
+  Log "Checksum verified"
+}
+
+# Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
+# resolved binary, then atomically rename into place. This mirrors the shim's
+# robust extraction so an interrupted install never leaves a half-extracted tree.
+$STAGING = Join-Path "$JUNIE_DATA\versions" (".$VERSION.tmp." + $PID)
+if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
+New-Item -ItemType Directory -Force -Path $STAGING | Out-Null
+
+try {
+  $oldProgress = $global:ProgressPreference
+  $global:ProgressPreference = 'SilentlyContinue'
+  Expand-Archive -Path $TMP_ZIP -DestinationPath $STAGING -Force
+  $global:ProgressPreference = $oldProgress
+
+  # Validate that the expected binary is present in the staging tree.
+  $StagedExe = Join-Path $STAGING "junie\junie.exe"
+  if (-not (Test-Path $StagedExe)) {
+    Log-Error "No junie binary found in downloaded payload"
+    exit 1
   }
 
-  # Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
-  # resolved binary, then atomically rename into place. This mirrors the shim's
-  # robust extraction so an interrupted install never leaves a half-extracted tree.
-  $STAGING = Join-Path "$JUNIE_DATA\versions" (".$VERSION.tmp." + $PID)
+  # Remove any existing (possibly broken) version directory before the rename.
+  if (Test-Path $TARGET_DIR) { Remove-Item -Recurse -Force $TARGET_DIR }
+  Move-Item -Path $STAGING -Destination $TARGET_DIR
+} catch {
   if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
-  New-Item -ItemType Directory -Force -Path $STAGING | Out-Null
-
-  try {
-    $oldProgress = $global:ProgressPreference
-    $global:ProgressPreference = 'SilentlyContinue'
-    Expand-Archive -Path $TMP_ZIP -DestinationPath $STAGING -Force
-    $global:ProgressPreference = $oldProgress
-
-    # Validate that the expected binary is present in the staging tree.
-    $StagedExe = Join-Path $STAGING "junie\junie.exe"
-    if (-not (Test-Path $StagedExe)) {
-      Log-Error "No junie binary found in downloaded payload"
-      exit 1
-    }
-
-    Move-Item -Path $STAGING -Destination $TARGET_DIR
-  } catch {
-    if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
-    throw
-  } finally {
-    Remove-Item -Force $TMP_ZIP -ErrorAction SilentlyContinue
-  }
+  throw
+} finally {
+  Remove-Item -Force $TMP_ZIP -ErrorAction SilentlyContinue
 }
 
 # Write current version pointer file (plain text, not symlink)
