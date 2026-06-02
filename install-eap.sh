@@ -1,4 +1,5 @@
 #!/bin/bash
+# DO NOT EDIT — generated from templates/install.sh.template by templates/generate.sh
 #
 # Junie CLI Installer
 # Usage: curl -fsSL https://junie.jetbrains.com/install.sh | bash
@@ -17,6 +18,36 @@ JUNIE_DATA="$HOME/.local/share/junie"
 
 log() { echo "[Junie] $*"; }
 log_error() { echo "[Junie] ERROR: $*" >&2; }
+
+# Ensure required tools are available before we start downloading anything.
+# We fail early with an actionable, OS-aware install hint so users on minimal
+# images (containers, fresh VPS, etc.) aren't stuck staring at a cryptic
+# `unzip: command not found` halfway through the install.
+require_unzip() {
+  if command -v unzip > /dev/null 2>&1; then
+    return 0
+  fi
+  log_error "'unzip' is required to install Junie, but it was not found in PATH."
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    log_error "Install it with: brew install unzip"
+  elif command -v apt-get > /dev/null 2>&1; then
+    log_error "Install it with: sudo apt-get update && sudo apt-get install -y unzip"
+  elif command -v dnf > /dev/null 2>&1; then
+    log_error "Install it with: sudo dnf install -y unzip"
+  elif command -v yum > /dev/null 2>&1; then
+    log_error "Install it with: sudo yum install -y unzip"
+  elif command -v apk > /dev/null 2>&1; then
+    log_error "Install it with: sudo apk add unzip"
+  elif command -v pacman > /dev/null 2>&1; then
+    log_error "Install it with: sudo pacman -S --noconfirm unzip"
+  elif command -v zypper > /dev/null 2>&1; then
+    log_error "Install it with: sudo zypper install -y unzip"
+  else
+    log_error "Install the 'unzip' package using your system package manager, then re-run this installer."
+  fi
+  exit 1
+}
+require_unzip
 
 # Calculate SHA-256 checksum
 sha256sum_file() {
@@ -57,6 +88,24 @@ fetch_latest_version() {
   fi
 }
 
+# Look up the SHA-256 checksum for a specific version+platform from the
+# update-info JSONL so that explicit JUNIE_VERSION requests can still be
+# integrity-checked. Echoes the checksum if found, or an empty string otherwise.
+# Best-effort: network/parse failures or a version that isn't listed simply
+# result in an empty checksum (the caller decides how to proceed).
+fetch_version_sha256() {
+  local want_version="$1"
+  local jsonl entry
+  jsonl=$(curl -fsSL "$UPDATE_INFO_URL" 2> /dev/null) || return 0
+
+  # Match the entry for the exact version (trailing quote anchors the match so
+  # "1.1" does not match "1.12") and our platform.
+  entry=$(echo "$jsonl" | grep "\"version\":\"$want_version\"" | grep "\"platform\":\"$PLATFORM\"" | tail -1)
+  [[ -z "$entry" ]] && return 0
+
+  echo "$entry" | grep -o '"sha256":"[^"]*"' | sed 's/"sha256":"\([^"]*\)"/\1/'
+}
+
 # Detect platform
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -79,8 +128,16 @@ PLATFORM="${OS_NAME}-${ARCH_NAME}"
 if [[ -n "${JUNIE_VERSION:-}" ]]; then
   VERSION="$JUNIE_VERSION"
   DOWNLOAD_URL="$GITHUB_RELEASES/download/${VERSION}/junie-${CHANNEL}-${VERSION}-${PLATFORM}.zip"
-  SHA256=""  # No checksum verification for specific version requests
   log "Using specified version: $VERSION"
+  # Even for an explicitly requested version, try to look up its published
+  # checksum so the download is still integrity-checked. If the version isn't
+  # listed in update-info we proceed without a checksum (best-effort).
+  SHA256=$(fetch_version_sha256 "$VERSION")
+  if [[ -n "$SHA256" ]]; then
+    log "Found published checksum for version $VERSION"
+  else
+    log "Warning: No checksum found for version $VERSION; proceeding without integrity verification"
+  fi
 else
   fetch_latest_version
 fi
@@ -118,11 +175,32 @@ UPDATES_DIR="$JUNIE_DATA/updates"
 CURRENT_LINK="$JUNIE_DATA/current"
 PENDING_UPDATE="$UPDATES_DIR/pending-update.json"
 
+# Persistent upgrade log. Lives under ~/.junie/logs (separate from the data dir,
+# so wiping ~/.local/share/junie during reinstall does not lose update history).
+# Always APPEND -- never truncate.
+UPGRADE_LOG_DIR="${JUNIE_LOG_DIR:-$HOME/.junie/logs}"
+UPGRADE_LOG="$UPGRADE_LOG_DIR/upgrade.log"
+
 # === Utility Functions ===
 
 # Log message to stderr
 log() {
   echo "[Junie] $*" >&2
+}
+
+# Append a timestamped line to the upgrade log. Best-effort: failure to write
+# (e.g. read-only HOME) must never break the update flow itself, so all errors
+# are swallowed. Always opens the file in append mode (>>).
+log_upgrade() {
+  local ts
+  ts=$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo "-")
+  { mkdir -p "$UPGRADE_LOG_DIR" 2>/dev/null && printf '%s [pid=%s] %s\n' "$ts" "$$" "$*" >> "$UPGRADE_LOG"; } 2>/dev/null || true
+}
+
+# Convenience: echo to stderr AND append to upgrade.log.
+log_both() {
+  log "$*"
+  log_upgrade "$*"
 }
 
 # Check if a command exists
@@ -163,11 +241,10 @@ sha256sum_file() {
   fi
 }
 
-# Get binary path for a given version
-# Handles different package structures (macOS app bundle, Linux, direct binary)
-get_binary_path() {
-  local version="$1"
-  local version_dir="$VERSIONS_DIR/$version"
+# Get binary path for an arbitrary version directory.
+# Handles different package structures (macOS app bundle, Linux, direct binary).
+get_binary_path_in() {
+  local version_dir="$1"
 
   # macOS: look for .app bundle
   if [[ -d "$version_dir/Applications/junie.app" ]]; then
@@ -183,76 +260,254 @@ get_binary_path() {
   fi
 }
 
+# Get binary path for a given version (by name).
+get_binary_path() {
+  local version="$1"
+  get_binary_path_in "$VERSIONS_DIR/$version"
+}
+
+# Detect the archive type of $1 by extension or magic bytes.
+# Echoes "unzip", "tar", or "" if unknown.
+detect_archive_type() {
+  local file="$1"
+  case "$file" in
+    *.zip|*.ZIP) echo "unzip"; return 0 ;;
+    *.tar.gz|*.tgz|*.TAR.GZ|*.TGZ) echo "tar"; return 0 ;;
+  esac
+  local magic
+  magic=$(head -c 4 "$file" 2>/dev/null | od -An -tx1 | tr -d ' \n' 2>/dev/null || echo "")
+  case "$magic" in
+    504b0304*|504b0506*|504b0708*) echo "unzip" ;;
+    1f8b*)                          echo "tar"   ;;
+    *)                              echo ""      ;;
+  esac
+}
+
+# === Defensive Sanitization ===
+#
+# JUNIE-2957 defense: drop update artifacts that are empty or unparseable
+# BEFORE we (or the binary's own update path) act on them.
+#
+# A legitimate in-flight update writes the manifest fully and only then renames
+# it into place, so an existing `pending-update.json` or
+# `pending-update.json.processing` that is zero bytes, or that lacks the
+# required `version` / `zipPath` fields, can only be junk -- a leftover from a
+# prior crash, a partial write, or content planted by mistake. We must not feed
+# that to either `apply_pending_update` below or to the launched binary, which
+# may otherwise try to "resolve" paths derived from CWD/EJ_RUNNER_PWD.
+#
+# Best-effort: any rm failure is swallowed; the regular `apply_pending_update`
+# path will then handle the file conservatively or skip it.
+sanitize_pending_updates() {
+  [[ -d "$UPDATES_DIR" ]] || return 0
+  local f v z
+  for f in "$PENDING_UPDATE" "$UPDATES_DIR/pending-update.json.processing"; do
+    [[ -f "$f" ]] || continue
+    if [[ ! -s "$f" ]]; then
+      log_both "Removing zero-byte update artifact: $f"
+      rm -f "$f" 2>/dev/null || true
+      continue
+    fi
+    v=$(get_json_field "$f" "version")
+    z=$(get_json_field "$f" "zipPath")
+    if [[ -z "$v" || -z "$z" ]]; then
+      log_both "Removing unparseable update artifact (missing version/zipPath): $f"
+      rm -f "$f" 2>/dev/null || true
+    fi
+  done
+}
+
 # === Apply Pending Update ===
+#
+# Atomic extraction strategy:
+#   1. Verify manifest and checksum.
+#   2. Extract into a staging directory inside $VERSIONS_DIR (same FS, so `mv` is a rename).
+#   3. Validate the resolved binary in the staging tree is executable.
+#   4. Swap the staging dir into $VERSIONS_DIR/$version (replacing any previous tree
+#      wholesale -- important for macOS .app code-signing consistency).
+#   5. Flip the `current` symlink.
+#   6. Only then delete the zip + pending manifest.
+#
+# Failure modes:
+#   - Poisoned manifest (missing fields, missing zip, checksum mismatch):
+#       drop manifest + zip, return non-zero.
+#   - Retryable failure (extraction error, validation failure, missing extractor):
+#       preserve manifest + zip so the next launch retries, return non-zero.
+# In all failure cases $VERSIONS_DIR/$version is left untouched from before the attempt.
 apply_pending_update() {
   if [[ ! -f "$PENDING_UPDATE" ]]; then
     return 0
   fi
 
-  log "Applying pending update..."
+  log_both "Applying pending update (manifest=$PENDING_UPDATE)"
 
   # Parse manifest
   local version zip_path sha256
   version=$(get_json_field "$PENDING_UPDATE" "version")
   zip_path=$(get_json_field "$PENDING_UPDATE" "zipPath")
   sha256=$(get_json_field "$PENDING_UPDATE" "sha256")
+  log_upgrade "manifest parsed: version='$version' zipPath='$zip_path' sha256='${sha256:-<none>}'"
 
   if [[ -z "$version" || -z "$zip_path" ]]; then
-    log "Invalid pending update manifest, skipping"
+    log_both "Invalid pending update manifest, skipping"
     rm -f "$PENDING_UPDATE"
     return 1
   fi
 
   if [[ ! -f "$zip_path" ]]; then
-    log "Update file not found: $zip_path"
+    log_both "Update file not found: $zip_path"
     rm -f "$PENDING_UPDATE"
     return 1
   fi
 
+  local zip_size=""
+  zip_size=$(wc -c < "$zip_path" 2>/dev/null | tr -d ' ' || echo "?")
+  log_upgrade "archive present: path='$zip_path' size_bytes=$zip_size"
+
   # Verify checksum if available
   if [[ -n "$sha256" ]]; then
+    log_upgrade "checksum: starting SHA-256 validation (expected=$sha256)"
     local actual_sha256
     actual_sha256=$(sha256sum_file "$zip_path")
+    log_upgrade "checksum: computed actual='${actual_sha256:-<unavailable>}'"
 
-    # Case-insensitive comparison (compatible with bash 3.x on macOS)
-    if [[ -n "$actual_sha256" ]] && ! echo "$actual_sha256" | grep -qi "^${sha256}$"; then
-      log "Checksum mismatch, skipping update"
-      log "Expected: $sha256"
-      log "Got: $actual_sha256"
+    if [[ -z "$actual_sha256" ]]; then
+      log_upgrade "checksum: skipped (no SHA-256 tool available)"
+    elif ! echo "$actual_sha256" | grep -qi "^${sha256}$"; then
+      # Case-insensitive comparison (compatible with bash 3.x on macOS)
+      log_both "Checksum mismatch, skipping update"
+      log_both "Expected: $sha256"
+      log_both "Got: $actual_sha256"
+      log_upgrade "checksum: FAIL -- dropping manifest and archive"
       rm -f "$PENDING_UPDATE" "$zip_path"
+      return 1
+    else
+      log_upgrade "checksum: OK"
+    fi
+  else
+    log_upgrade "checksum: skipped (manifest has no sha256)"
+  fi
+
+  # Pick the right extractor by archive type. No silent wrong-tool fallback
+  # (don't run tar on a zip).
+  local extractor
+  extractor=$(detect_archive_type "$zip_path")
+  log_upgrade "extractor: detected='${extractor:-<unknown>}' for '$zip_path'"
+  if [[ -z "$extractor" ]]; then
+    log_both "Error: Unknown archive type for $zip_path; preserving update for retry"
+    return 1
+  fi
+  if ! has_command "$extractor"; then
+    log_both "Error: Required extraction tool '$extractor' not found; install it and retry"
+    return 1
+  fi
+
+  # Staging path lives inside $VERSIONS_DIR so the final `mv` is a same-filesystem rename.
+  local staging="$VERSIONS_DIR/.$version.tmp.$$"
+  local old_dir="$VERSIONS_DIR/.$version.old.$$"
+
+  # Catch signals during extraction so Ctrl-C / SIGTERM doesn't leave a partial
+  # staging dir behind. (EXIT trap is not reliable for *function* returns, so we
+  # also do explicit cleanup before every error return below.)
+  # shellcheck disable=SC2064
+  trap "rm -rf \"$staging\" \"$old_dir\"; trap - INT TERM; exit 130" INT TERM
+
+  rm -rf "$staging"
+  if ! mkdir -p "$staging"; then
+    log_both "Error: Failed to create staging directory $staging"
+    trap - INT TERM
+    return 1
+  fi
+  log_upgrade "staging: created '$staging'"
+
+  log_both "Extracting to $staging..."
+  log_upgrade "extract: starting tool='$extractor' src='$zip_path' dst='$staging'"
+
+  if [[ "$extractor" == "unzip" ]]; then
+    if ! unzip -q "$zip_path" -d "$staging"; then
+      log_both "Error: Failed to extract $zip_path; preserving update for retry"
+      log_upgrade "extract: FAIL (unzip exit non-zero)"
+      rm -rf "$staging"
+      trap - INT TERM
+      return 1
+    fi
+  else
+    if ! tar -xzf "$zip_path" -C "$staging"; then
+      log_both "Error: Failed to extract $zip_path; preserving update for retry"
+      log_upgrade "extract: FAIL (tar exit non-zero)"
+      rm -rf "$staging"
+      trap - INT TERM
+      return 1
+    fi
+  fi
+  log_upgrade "extract: OK"
+
+  # Resolve the binary against the staging dir and ensure it is executable.
+  local staged_binary
+  staged_binary=$(get_binary_path_in "$staging")
+  if [[ -z "$staged_binary" ]]; then
+    log_both "Error: No junie binary found in extracted payload; preserving update for retry"
+    rm -rf "$staging"
+    trap - INT TERM
+    return 1
+  fi
+  log_upgrade "binary: resolved '$staged_binary'"
+  chmod +x "$staged_binary" 2>/dev/null || true
+  if [[ ! -x "$staged_binary" ]]; then
+    log_both "Error: Extracted binary is not executable: $staged_binary"
+    rm -rf "$staging"
+    trap - INT TERM
+    return 1
+  fi
+
+  # Remove quarantine on macOS (best-effort)
+  xattr -dr com.apple.quarantine "$staging" 2>/dev/null || true
+
+  # Atomic swap: move existing version aside, then rename staging into place.
+  # We replace the whole tree so macOS .app bundles stay code-sign-consistent.
+  log_upgrade "atomic-move: target='$VERSIONS_DIR/$version'"
+  if [[ -e "$VERSIONS_DIR/$version" ]]; then
+    rm -rf "$old_dir"
+    log_upgrade "atomic-move: moving existing tree aside -> '$old_dir'"
+    if ! mv "$VERSIONS_DIR/$version" "$old_dir"; then
+      log_both "Error: Failed to move existing version aside"
+      log_upgrade "atomic-move: FAIL (mv existing -> old_dir)"
+      rm -rf "$staging"
+      trap - INT TERM
       return 1
     fi
   fi
 
-  # Extract to versions directory
-  local target_dir="$VERSIONS_DIR/$version"
-  mkdir -p "$target_dir"
-
-  log "Extracting to $target_dir..."
-
-  if has_command unzip; then
-    unzip -q -o "$zip_path" -d "$target_dir"
-  elif has_command tar; then
-    # Fallback for .tar.gz files
-    tar -xzf "$zip_path" -C "$target_dir"
-  else
-    log "Error: No extraction tool available (unzip or tar)"
+  if ! mv "$staging" "$VERSIONS_DIR/$version"; then
+    log_both "Error: Failed to install new version into $VERSIONS_DIR/$version"
+    log_upgrade "atomic-move: FAIL (mv staging -> target); attempting rollback"
+    # Try to restore previous version if we moved it aside
+    if [[ -e "$old_dir" && ! -e "$VERSIONS_DIR/$version" ]]; then
+      mv "$old_dir" "$VERSIONS_DIR/$version" 2>/dev/null \
+        && log_upgrade "atomic-move: rollback OK" \
+        || log_upgrade "atomic-move: rollback FAILED"
+    fi
+    rm -rf "$staging" "$old_dir"
+    trap - INT TERM
     return 1
   fi
+  log_upgrade "atomic-move: rename OK ('$staging' -> '$VERSIONS_DIR/$version')"
 
-  # Make binary executable
-  chmod +x "$target_dir/junie" 2>/dev/null || true
+  # Best-effort cleanup of the previous tree
+  rm -rf "$old_dir" 2>/dev/null || true
 
-  # Remove quarantine on macOS
-  xattr -dr com.apple.quarantine "$target_dir" 2>/dev/null || true
+  # Flip the current symlink atomically.
+  ln -sfn "$VERSIONS_DIR/$version" "$CURRENT_LINK"
+  log_upgrade "symlink: 'current' -> '$VERSIONS_DIR/$version'"
 
-  # Update current symlink atomically
-  ln -sfn "$target_dir" "$CURRENT_LINK"
-
-  # Cleanup
+  # Drop pending artifacts only after a fully successful swap.
   rm -f "$zip_path" "$PENDING_UPDATE"
+  log_upgrade "cleanup: removed zip='$zip_path' and manifest='$PENDING_UPDATE'"
 
-  log "Updated to version $version"
+  trap - INT TERM
+
+  log_both "Updated to version $version"
+  return 0
 }
 
 # === Resolve Version ===
@@ -330,7 +585,10 @@ handle_shim_commands() {
           current_version=$(basename "$(readlink "$CURRENT_LINK")")
         fi
         for v in "$VERSIONS_DIR"/*/; do
-          local vname=$(basename "$v")
+          local vname
+          vname=$(basename "$v")
+          # Skip transient staging dirs (.<v>.tmp.<pid>, .<v>.old.<pid>) defensively.
+          case "$vname" in .*) continue ;; esac
           if [[ "$vname" == "$current_version" ]]; then
             echo "  $vname (current)"
           else
@@ -360,8 +618,15 @@ main() {
   # Handle shim-specific commands
   handle_shim_commands "$@"
 
-  # Apply pending update if exists
-  apply_pending_update || true
+  # Defense-in-depth (JUNIE-2957): drop empty / unparseable update artifacts
+  # before either we or the launched binary react to them.
+  sanitize_pending_updates
+
+  # Apply pending update if present. On failure we deliberately do NOT abort:
+  # the previous version is still on disk (via the `current` symlink) and should run.
+  if ! apply_pending_update; then
+    log "Update not applied; continuing with current version"
+  fi
 
   # Resolve which version to run
   local version
@@ -393,34 +658,67 @@ SHIM_EOF
 chmod +x "$JUNIE_BIN/junie"
 
 # Download and install binary
+# Always re-download and overwrite the target version directory, regardless of
+# whether it already exists. This avoids reusing a previously cached broken or
+# partial install for the same version.
 TARGET_DIR="$JUNIE_DATA/versions/$VERSION"
-if [[ ! -d "$TARGET_DIR" ]]; then
-  TMP_ZIP=$(mktemp)
+TMP_ZIP=$(mktemp)
 
-  log "Downloading $DOWNLOAD_URL"
-  curl -fSL --progress-bar -o "$TMP_ZIP" "$DOWNLOAD_URL"
+log "Downloading $DOWNLOAD_URL"
+curl -fSL --progress-bar -o "$TMP_ZIP" "$DOWNLOAD_URL"
 
-  # Verify checksum
-  if [[ -n "$SHA256" ]]; then
-    actual_sha256=$(sha256sum_file "$TMP_ZIP")
-    if [[ -n "$actual_sha256" ]]; then
-      if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
-        log_error "Checksum verification failed!"
-        log_error "Expected: $SHA256"
-        log_error "Got: $actual_sha256"
-        rm -f "$TMP_ZIP"
-        exit 1
-      fi
-      log "Checksum verified"
+# Verify checksum
+if [[ -n "$SHA256" ]]; then
+  actual_sha256=$(sha256sum_file "$TMP_ZIP")
+  if [[ -n "$actual_sha256" ]]; then
+    if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
+      log_error "Checksum verification failed!"
+      log_error "Expected: $SHA256"
+      log_error "Got: $actual_sha256"
+      rm -f "$TMP_ZIP"
+      exit 1
     fi
+    log "Checksum verified"
   fi
-
-  mkdir -p "$TARGET_DIR"
-  unzip -q -o "$TMP_ZIP" -d "$TARGET_DIR"
-  rm -f "$TMP_ZIP"
-
-  [[ "$OS_NAME" == "macos" ]] && xattr -dr com.apple.quarantine "$TARGET_DIR" 2>/dev/null || true
 fi
+
+# Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
+# resolved binary, then atomically rename into place. This mirrors the shim's
+# robust extraction so an interrupted install never leaves a half-extracted tree.
+STAGING="$JUNIE_DATA/versions/.$VERSION.tmp.$$"
+trap 'rm -rf "$STAGING"' EXIT INT TERM
+rm -rf "$STAGING"
+mkdir -p "$STAGING"
+unzip -q "$TMP_ZIP" -d "$STAGING"
+rm -f "$TMP_ZIP"
+
+# Validate the extracted binary (inline equivalent of get_binary_path_in).
+if [[ -d "$STAGING/Applications/junie.app" ]]; then
+  STAGED_BIN="$STAGING/Applications/junie.app/Contents/MacOS/junie"
+elif [[ -f "$STAGING/junie/bin/junie" ]]; then
+  STAGED_BIN="$STAGING/junie/bin/junie"
+elif [[ -f "$STAGING/junie" ]]; then
+  STAGED_BIN="$STAGING/junie"
+else
+  STAGED_BIN=""
+fi
+if [[ -z "$STAGED_BIN" ]]; then
+  log_error "No junie binary found in downloaded payload"
+  exit 1
+fi
+chmod +x "$STAGED_BIN" 2>/dev/null || true
+if [[ ! -x "$STAGED_BIN" ]]; then
+  log_error "Extracted binary is not executable: $STAGED_BIN"
+  exit 1
+fi
+
+[[ "$OS_NAME" == "macos" ]] && xattr -dr com.apple.quarantine "$STAGING" 2>/dev/null || true
+
+# Remove any existing (possibly broken) version directory, then atomically
+# rename the validated staging tree into the final version directory.
+rm -rf "$TARGET_DIR"
+mv "$STAGING" "$TARGET_DIR"
+trap - EXIT INT TERM
 
 # Set current version
 ln -sfn "$TARGET_DIR" "$JUNIE_DATA/current"
