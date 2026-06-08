@@ -163,7 +163,7 @@
     {
       "id": "codex-acp",
       "name": "Codex CLI",
-      "version": "0.15.0",
+      "version": "0.16.0",
       "description": "ACP adapter for OpenAI's coding assistant",
       "repository": "https://github.com/zed-industries/codex-acp",
       "authors": [
@@ -174,32 +174,32 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.15.0/codex-acp-0.15.0-aarch64-apple-darwin.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-aarch64-apple-darwin.tar.gz",
             "cmd": "./codex-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.15.0/codex-acp-0.15.0-x86_64-apple-darwin.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-x86_64-apple-darwin.tar.gz",
             "cmd": "./codex-acp"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.15.0/codex-acp-0.15.0-aarch64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-aarch64-unknown-linux-gnu.tar.gz",
             "cmd": "./codex-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.15.0/codex-acp-0.15.0-x86_64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-x86_64-unknown-linux-gnu.tar.gz",
             "cmd": "./codex-acp"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.15.0/codex-acp-0.15.0-aarch64-pc-windows-msvc.zip",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-aarch64-pc-windows-msvc.zip",
             "cmd": "./codex-acp.exe"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.15.0/codex-acp-0.15.0-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-x86_64-pc-windows-msvc.zip",
             "cmd": "./codex-acp.exe"
           }
         },
         "npx": {
-          "package": "@zed-industries/codex-acp@0.15.0"
+          "package": "@zed-industries/codex-acp@0.16.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/codex-acp.svg"
@@ -696,7 +696,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "1962.1",
+      "version": "1963.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -707,35 +707,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1962.1/junie-nightly-1962.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1963.1/junie-nightly-1963.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1962.1/junie-nightly-1962.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1963.1/junie-nightly-1963.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1962.1/junie-nightly-1962.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1963.1/junie-nightly-1963.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1962.1/junie-nightly-1962.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1963.1/junie-nightly-1963.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/1962.1/junie-nightly-1962.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/1963.1/junie-nightly-1963.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -878,7 +878,7 @@
     {
       "id": "mistral-vibe",
       "name": "Mistral Vibe",
-      "version": "2.14.0",
+      "version": "2.14.1",
       "description": "Mistral's open-source coding assistant",
       "repository": "https://github.com/mistralai/mistral-vibe",
       "website": "https://mistral.ai/products/vibe",
@@ -890,23 +890,23 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.0/vibe-acp-darwin-aarch64-2.14.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.1/vibe-acp-darwin-aarch64-2.14.1.zip",
             "cmd": "./vibe-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.0/vibe-acp-darwin-x86_64-2.14.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.1/vibe-acp-darwin-x86_64-2.14.1.zip",
             "cmd": "./vibe-acp"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.0/vibe-acp-linux-aarch64-2.14.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.1/vibe-acp-linux-aarch64-2.14.1.zip",
             "cmd": "./vibe-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.0/vibe-acp-linux-x86_64-2.14.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.1/vibe-acp-linux-x86_64-2.14.1.zip",
             "cmd": "./vibe-acp"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.0/vibe-acp-windows-x86_64-2.14.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.14.1/vibe-acp-windows-x86_64-2.14.1.zip",
             "cmd": "./vibe-acp.exe"
           }
         }
