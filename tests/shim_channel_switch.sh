@@ -108,6 +108,13 @@ test_detect_channel_flag() {
   detect_channel_flag --help
   assert "[[ -z \"\$REQUESTED_CHANNEL\" ]]" "no channel flag -> empty" || { teardown_env; return; }
 
+  # Regression: a non-channel arg must NOT leave a non-zero exit status. The
+  # function is called as a bare command under `set -e` in main(); if its last
+  # command is a failing `[[ ]]` test the whole shim aborts silently (no output,
+  # exit 1) — e.g. `junie --help` or any normal launch.
+  detect_channel_flag --help; local rc=$?
+  assert "[[ $rc -eq 0 ]]" "non-channel arg must return success (set -e safety)" || { teardown_env; return; }
+
   detect_channel_flag --eap
   assert "[[ \"\$REQUESTED_CHANNEL\" == eap ]]" "--eap -> eap" || { teardown_env; return; }
 

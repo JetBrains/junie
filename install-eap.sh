@@ -717,6 +717,10 @@ detect_channel_flag() {
         ;;
     esac
   done
+  # Always succeed: the loop's last command is a `[[ ]]` test that returns 1 for
+  # any non-channel arg (e.g. `--help`). Since this function is called as a bare
+  # command under `set -e`, that stray exit status would abort the whole shim.
+  return 0
 }
 
 is_known_channel() {
