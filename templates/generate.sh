@@ -44,15 +44,16 @@ done
 
 # render <template> <shim_file> <template_basename> <channel> <url> -> stdout
 render() {
-  local template="$1" shim_file="$2" template_name="$3" channel="$4" url="$5"
+  local template="$1" shim_file="$2" template_name="$3" channel="$4" url="$5" channels="$6"
   CHANNEL="$channel" URL="$url" SHIM_FILE="$shim_file" \
-  TEMPLATE_NAME="$template_name" \
+  TEMPLATE_NAME="$template_name" CHANNELS="$channels" \
   awk '
     BEGIN {
       channel       = ENVIRON["CHANNEL"]
       url           = ENVIRON["URL"]
       shim_file     = ENVIRON["SHIM_FILE"]
       template_name = ENVIRON["TEMPLATE_NAME"]
+      channels      = ENVIRON["CHANNELS"]
     }
     NR == 1 {
       print
@@ -60,13 +61,19 @@ render() {
       next
     }
     $0 == "{{SHIM}}" {
-      while ((getline line < shim_file) > 0) print line
+      # The shim is inlined verbatim except for {{CHANNELS}}, which lets the
+      # shim derive its channel list from channels.tsv (single source of truth).
+      while ((getline line < shim_file) > 0) {
+        gsub(/\{\{CHANNELS\}\}/, channels, line)
+        print line
+      }
       close(shim_file)
       next
     }
     {
       gsub(/\{\{CHANNEL\}\}/, channel)
       gsub(/\{\{UPDATE_INFO_URL\}\}/, url)
+      gsub(/\{\{CHANNELS\}\}/, channels)
       print
     }
   ' "$template"
@@ -105,6 +112,10 @@ if [[ ${#channel_names[@]} -eq 0 ]]; then
   exit 1
 fi
 
+# Space-separated channel list injected into the shims as {{CHANNELS}} so the
+# channel set has a single source of truth (channels.tsv).
+channels_list="${channel_names[*]}"
+
 # Workspace for rendered output (always used; in --check mode this is the
 # comparison source, in write mode files are mv'd into place).
 WORK_DIR="$(mktemp -d)"
@@ -122,7 +133,7 @@ for i in "${!channel_names[@]}"; do
     out_name="$(output_basename "$shell" "$channel")"
     out_path="$WORK_DIR/$out_name"
 
-    render "$template" "$shim" "$template_name" "$channel" "$url" > "$out_path"
+    render "$template" "$shim" "$template_name" "$channel" "$url" "$channels_list" > "$out_path"
 
     # Detect any unresolved placeholders.
     if LC_ALL=C grep -nE '\{\{[A-Z_][A-Z0-9_]*\}\}' "$out_path" >/dev/null; then

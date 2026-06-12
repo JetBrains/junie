@@ -43,6 +43,30 @@ npm install -g @jetbrains/junie
 
 </details>
 
+### 🔀 Try another update channel
+
+If Junie is already installed, you can run the latest build of a different channel
+**for a single launch** without changing your installed default. The shim fetches
+and installs that channel's latest build (if not already present), then launches it:
+
+```bash
+junie --eap            # run the latest EAP build, just this once
+junie --nightly        # latest nightly
+junie --experimental   # latest experimental
+junie --release        # latest stable release
+junie --channel=eap    # equivalent explicit form
+```
+
+Pin a specific build of a channel with `--use-version`:
+
+```bash
+junie --eap --use-version=122.1          # run EAP build 122.1
+junie --channel=nightly --use-version=1998.1
+```
+
+A plain `junie` afterwards still launches (and auto-updates) your default channel —
+nothing about your existing install is changed.
+
 ### 🔑 Authentication
 
 You can use Junie with one of the following methods:
