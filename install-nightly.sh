@@ -634,7 +634,9 @@ filter_args() {
       --*)
         # Skip bareword channel flags (--eap, --nightly, ...), data-driven.
         for c in $KNOWN_CHANNELS; do
-          [[ "$arg" == "--$c" ]] && skip=1
+          if [[ "$arg" == "--$c" ]]; then
+            skip=1
+          fi
         done
         ;;
     esac
@@ -712,7 +714,9 @@ detect_channel_flag() {
         ;;
       --*)
         for c in $KNOWN_CHANNELS; do
-          [[ "$arg" == "--$c" ]] && REQUESTED_CHANNEL="$c"
+          if [[ "$arg" == "--$c" ]]; then
+            REQUESTED_CHANNEL="$c"
+          fi
         done
         ;;
     esac
@@ -811,6 +815,13 @@ run_channel_oneshot() {
 
   export EJ_RUNNER_PWD="${EJ_RUNNER_PWD:-$(pwd)}"
   export JUNIE_DATA="$JUNIE_DATA"
+
+  # Disable the binary's auto-update for one-shot channel runs. This build is
+  # launched only for the current invocation, so it must never check for,
+  # download, or stage an update -- doing so would race with and clobber the
+  # user's persisted default channel. The binary honors JUNIE_SKIP_UPDATE_CHECK
+  # (see SystemOptionsGroup / AutoUpdateService).
+  export JUNIE_SKIP_UPDATE_CHECK=1
 
   filter_args "$@"
   exec "$binary" ${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}

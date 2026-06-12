@@ -147,7 +147,11 @@ for %%A in (%*) do (
     )
   )
 )
-endlocal & "%JUNIE_EXE%" %FILTERED_ARGS%
+:: One-shot launch: force JUNIE_SKIP_UPDATE_CHECK=1 across endlocal so this
+:: temporary channel build never checks for, downloads, or stages an update that
+:: would clobber the user's persisted default channel (the binary honors it via
+:: SystemOptionsGroup).
+endlocal & set "JUNIE_SKIP_UPDATE_CHECK=1" & "%JUNIE_EXE%" %FILTERED_ARGS%
 goto :eof
 
 :after_channel_oneshot
