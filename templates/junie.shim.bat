@@ -1,6 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: JUNIE_MANAGED_SHIM
+::
 :: Junie CLI Shim for Windows
 ::
 :: This script is the entry point for Junie CLI. It handles:
@@ -33,6 +35,140 @@ set "UPGRADE_LOG=%UPGRADE_LOG_DIR%\upgrade.log"
 set "LOG_SID=%RANDOM%%RANDOM%"
 if not exist "%UPGRADE_LOG_DIR%" mkdir "%UPGRADE_LOG_DIR%" 2>nul
 
+:: === Channel Switching (one-shot) ===
+::
+:: `junie --eap` (also --nightly / --release / --experimental, or --channel=<name>)
+:: fetches and launches the latest build of another channel for this run only.
+:: It runs that channel's published installer in one-shot mode, which installs
+:: the build WITHOUT touching the shim, the `current` pointer, or PATH. We then
+:: launch that build directly, leaving the default channel completely intact.
+:: Channel list, injected from templates/channels.tsv by generate.sh.
+set "KNOWN_CHANNELS={{CHANNELS}}"
+set "REQUESTED_CHANNEL="
+
+:: Bareword flags (--eap, --nightly, ...). These contain no '=', so cmd's FOR
+:: tokenizer leaves them whole; match them data-driven from KNOWN_CHANNELS.
+for %%A in (%*) do (
+  set "ARG=%%A"
+  for %%C in (!KNOWN_CHANNELS!) do if "!ARG!"=="--%%C" set "REQUESTED_CHANNEL=%%C"
+)
+
+:: --channel=<name>: cmd's FOR (and %1) tokenizes on '=', splitting this form
+:: into two tokens, so we cannot rely on the loop above. Parse it out of the
+:: raw argument string (%*) instead. `%*:*--channel=%` drops everything up to
+:: and including `--channel`, leaving `=<name> ...`; we then strip the `=` and
+:: take the first whitespace-delimited token as the channel name.
+set "ALL_ARGS=%*"
+set "CH_AFTER=!ALL_ARGS:*--channel=!"
+if not "!CH_AFTER!"=="!ALL_ARGS!" if "!CH_AFTER:~0,1!"=="=" (
+  set "CH_AFTER=!CH_AFTER:~1!"
+  for /f "tokens=1" %%V in ("!CH_AFTER!") do set "REQUESTED_CHANNEL=%%V"
+)
+
+if defined REQUESTED_CHANNEL goto :channel_oneshot
+goto :after_channel_oneshot
+
+:channel_oneshot
+set "INSTALL_BASE_URL=https://junie.jetbrains.com"
+if defined JUNIE_INSTALL_BASE_URL set "INSTALL_BASE_URL=%JUNIE_INSTALL_BASE_URL%"
+
+:: Optional pinned build via --use-version=<build>. Parsed from %* for the same
+:: reason as --channel= (cmd tokenizes on '='). Empty => the channel's latest.
+set "REQUESTED_BUILD="
+set "UV_AFTER=!ALL_ARGS:*--use-version=!"
+if not "!UV_AFTER!"=="!ALL_ARGS!" if "!UV_AFTER:~0,1!"=="=" (
+  set "UV_AFTER=!UV_AFTER:~1!"
+  for /f "tokens=1" %%V in ("!UV_AFTER!") do set "REQUESTED_BUILD=%%V"
+)
+
+:: Validate channel against the injected list.
+set "CH_OK="
+for %%C in (!KNOWN_CHANNELS!) do if /i "%%C"=="!REQUESTED_CHANNEL!" set "CH_OK=1"
+if not defined CH_OK (
+  echo [Junie] Error: Unknown channel '!REQUESTED_CHANNEL!' 1>&2
+  exit /b 1
+)
+
+if /i "!REQUESTED_CHANNEL!"=="release" (
+  set "INSTALLER_URL=!INSTALL_BASE_URL!/install.ps1"
+) else (
+  set "INSTALLER_URL=!INSTALL_BASE_URL!/install-!REQUESTED_CHANNEL!.ps1"
+)
+
+set "ONESHOT_VFILE=%TEMP%\junie-oneshot-!RANDOM!.txt"
+if defined REQUESTED_BUILD (
+  echo [Junie] Fetching '!REQUESTED_CHANNEL!' build !REQUESTED_BUILD!... 1>&2
+) else (
+  echo [Junie] Fetching latest '!REQUESTED_CHANNEL!' build... 1>&2
+)
+:: JUNIE_VERSION='' lets the installer pick the channel's latest build.
+powershell -NoProfile -Command "$env:JUNIE_ONESHOT='1'; $env:JUNIE_ONESHOT_VERSION_FILE='!ONESHOT_VFILE!'; $env:JUNIE_VERSION='!REQUESTED_BUILD!'; iex (irm '!INSTALLER_URL!')"
+if errorlevel 1 (
+  echo [Junie] Error: Failed to install '!REQUESTED_CHANNEL!' build 1>&2
+  del /f /q "!ONESHOT_VFILE!" 2>nul
+  exit /b 1
+)
+if not exist "!ONESHOT_VFILE!" (
+  echo [Junie] Error: Channel installer did not report a version 1>&2
+  exit /b 1
+)
+set "CH_VERSION="
+set /p CH_VERSION=<"!ONESHOT_VFILE!"
+del /f /q "!ONESHOT_VFILE!" 2>nul
+if not defined CH_VERSION (
+  echo [Junie] Error: Channel installer did not report a version 1>&2
+  exit /b 1
+)
+if not exist "%VERSIONS_DIR%\!CH_VERSION!" (
+  echo [Junie] Error: Channel build !CH_VERSION! not found after install 1>&2
+  exit /b 1
+)
+set "JUNIE_EXE=%VERSIONS_DIR%\!CH_VERSION!\junie\junie.exe"
+if not exist "!JUNIE_EXE!" (
+  echo [Junie] Error: Binary not found: !JUNIE_EXE! 1>&2
+  exit /b 1
+)
+if not defined EJ_RUNNER_PWD set "EJ_RUNNER_PWD=%CD%"
+
+:: Filter out channel flags from args and launch the requested build directly.
+:: cmd splits `--channel=<name>` into the tokens `--channel` and `<name>`, so
+:: when we drop `--channel` we also drop the token that follows it (DROP_NEXT).
+set "FILTERED_ARGS="
+set "DROP_NEXT="
+for %%A in (%*) do (
+  set "ARG=%%A"
+  set "SKIP="
+  if defined DROP_NEXT (
+    set "SKIP=1"
+    set "DROP_NEXT="
+  )
+  if "!ARG!"=="--channel" (
+    set "SKIP=1"
+    set "DROP_NEXT=1"
+  )
+  if "!ARG!"=="--use-version" (
+    set "SKIP=1"
+    set "DROP_NEXT=1"
+  )
+  for %%C in (!KNOWN_CHANNELS!) do if "!ARG!"=="--%%C" set "SKIP=1"
+  if not defined SKIP (
+    if defined FILTERED_ARGS (
+      set "FILTERED_ARGS=!FILTERED_ARGS! %%A"
+    ) else (
+      set "FILTERED_ARGS=%%A"
+    )
+  )
+)
+:: One-shot launch: pass EJ_RUNNER_PWD and JUNIE_DATA across endlocal, but NOT
+:: JUNIE_SHIM_PATH -- a temporary channel build must never adopt or self-update
+:: the default shim. Also force JUNIE_SKIP_UPDATE_CHECK=1 so this temporary build
+:: never checks for, downloads, or stages an update that would clobber the user's
+:: persisted default channel (the binary honors it via SystemOptionsGroup).
+endlocal & set "EJ_RUNNER_PWD=%EJ_RUNNER_PWD%" & set "JUNIE_DATA=%JUNIE_DATA%" & set "JUNIE_SKIP_UPDATE_CHECK=1" & "%JUNIE_EXE%" %FILTERED_ARGS%
+goto :eof
+
+:after_channel_oneshot
+
 ::: === Defensive Sanitization ===
 :::
 ::: JUNIE-2957 defense: drop pending-update.json / pending-update.json.processing
@@ -44,7 +180,7 @@ if not exist "%UPGRADE_LOG_DIR%" mkdir "%UPGRADE_LOG_DIR%" 2>nul
 ::: binary's own update path with CWD as a working-dir hint.
 if exist "%PENDING_UPDATE%" (
   set "PEND_OK="
-  for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "try { $c = Get-Content -Raw -LiteralPath '%PENDING_UPDATE%' -ErrorAction Stop; if ([string]::IsNullOrWhiteSpace($c)) { 'bad' } else { $j = $c ^| ConvertFrom-Json; if ($j.version -and $j.zipPath) { 'ok' } else { 'bad' } } } catch { 'bad' }"`) do set "PEND_OK=%%V"
+  for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "try { $c = Get-Content -Raw -LiteralPath '%PENDING_UPDATE%' -ErrorAction Stop; if ([string]::IsNullOrWhiteSpace($c)) { 'bad' } else { $j = $c | ConvertFrom-Json; if ($j.version -and $j.zipPath) { 'ok' } else { 'bad' } } } catch { 'bad' }"`) do set "PEND_OK=%%V"
   if /i not "!PEND_OK!"=="ok" (
     echo [Junie] Removing invalid update artifact: %PENDING_UPDATE% 1>&2
     call :log_upgrade "sanitize: removing invalid update artifact pending-update.json"
@@ -53,7 +189,7 @@ if exist "%PENDING_UPDATE%" (
 )
 if exist "!PROCESSING!" (
   set "PROC_OK="
-  for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "try { $c = Get-Content -Raw -LiteralPath '!PROCESSING!' -ErrorAction Stop; if ([string]::IsNullOrWhiteSpace($c)) { 'bad' } else { $j = $c ^| ConvertFrom-Json; if ($j.version -and $j.zipPath) { 'ok' } else { 'bad' } } } catch { 'bad' }"`) do set "PROC_OK=%%V"
+  for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "try { $c = Get-Content -Raw -LiteralPath '!PROCESSING!' -ErrorAction Stop; if ([string]::IsNullOrWhiteSpace($c)) { 'bad' } else { $j = $c | ConvertFrom-Json; if ($j.version -and $j.zipPath) { 'ok' } else { 'bad' } } } catch { 'bad' }"`) do set "PROC_OK=%%V"
   if /i not "!PROC_OK!"=="ok" (
     echo [Junie] Removing invalid update artifact: !PROCESSING! 1>&2
     call :log_upgrade "sanitize: removing invalid update artifact pending-update.json.processing"
@@ -245,7 +381,10 @@ for %%A in (%*) do (
   )
 )
 
-endlocal & "%JUNIE_EXE%" %FILTERED_ARGS%
+:: Restore environment but pass important variables to the exe.
+:: Export this shim's own absolute path (%~f0) so the binary can refresh it in
+:: place during auto-update (see ShimUpdater on the binary side).
+endlocal & set "EJ_RUNNER_PWD=%EJ_RUNNER_PWD%" & set "JUNIE_DATA=%JUNIE_DATA%" & set "JUNIE_SHIM_PATH=%~f0" & "%JUNIE_EXE%" %FILTERED_ARGS%
 
 :: Jump past the subroutines to end of file, preserving junie.exe's exit code.
 goto :eof

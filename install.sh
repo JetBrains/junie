@@ -16,6 +16,12 @@ GITHUB_RELEASES="https://github.com/jetbrains-junie/junie/releases"
 JUNIE_BIN="$HOME/.local/bin"
 JUNIE_DATA="$HOME/.local/share/junie"
 
+# One-shot mode (set by the shim for `junie --<channel>`): install/refresh this
+# channel's latest build but do NOT touch the existing shim, the `current`
+# symlink, or PATH -- the default channel must stay intact. When set, the
+# installed version is reported back via $JUNIE_ONESHOT_VERSION_FILE.
+ONESHOT="${JUNIE_ONESHOT:-}"
+
 log() { echo "[Junie] $*"; }
 log_error() { echo "[Junie] ERROR: $*" >&2; }
 
@@ -72,6 +78,21 @@ sha256sum_file() {
     log "Warning: No SHA-256 tool available, skipping checksum verification"
     echo ""
   fi
+}
+
+# Whether a version directory already contains a valid, executable binary.
+# Used in one-shot mode to skip a redundant re-download of an already-installed
+# latest build. (Inline equivalent of the shim's get_binary_path_in check.)
+oneshot_target_ready() {
+  local dir="$1" bin=""
+  if [[ -d "$dir/Applications/junie.app" ]]; then
+    bin="$dir/Applications/junie.app/Contents/MacOS/junie"
+  elif [[ -f "$dir/junie/bin/junie" ]]; then
+    bin="$dir/junie/bin/junie"
+  elif [[ -f "$dir/junie" ]]; then
+    bin="$dir/junie"
+  fi
+  [[ -n "$bin" && -x "$bin" ]]
 }
 
 # Fetch latest version info from update-info JSONL
@@ -161,9 +182,12 @@ mkdir -p "$JUNIE_BIN"
 mkdir -p "$JUNIE_DATA/versions"
 mkdir -p "$JUNIE_DATA/updates"
 
-# Install shim
+# Install shim (skipped in one-shot mode so the existing shim stays intact)
+if [[ -z "$ONESHOT" ]]; then
 cat > "$JUNIE_BIN/junie" << 'SHIM_EOF'
 #!/bin/bash
+#
+# JUNIE_MANAGED_SHIM
 #
 # Junie CLI Shim
 #
@@ -186,6 +210,12 @@ VERSIONS_DIR="$JUNIE_DATA/versions"
 UPDATES_DIR="$JUNIE_DATA/updates"
 CURRENT_LINK="$JUNIE_DATA/current"
 PENDING_UPDATE="$UPDATES_DIR/pending-update.json"
+
+# Base URL serving the channel installers (override for testing).
+INSTALL_BASE_URL="${JUNIE_INSTALL_BASE_URL:-https://junie.jetbrains.com}"
+# Known update channels. Injected from templates/channels.tsv by generate.sh,
+# so this list (and the flag matching derived from it) has a single source.
+KNOWN_CHANNELS="release eap nightly experimental"
 
 # Persistent upgrade log. Lives under ~/.junie/logs (separate from the data dir,
 # so wiping ~/.local/share/junie during reinstall does not lose update history).
@@ -600,10 +630,21 @@ FILTERED_ARGS=()
 filter_args() {
   FILTERED_ARGS=()
   for arg in "$@"; do
+    local skip="" c
     case "$arg" in
-      --use-version=*) ;; # Skip shim-specific flag
-      *) FILTERED_ARGS+=("$arg") ;;
+      --use-version=*|--channel=*) skip=1 ;;                # Skip shim-specific flags
+      --*)
+        # Skip bareword channel flags (--eap, --nightly, ...), data-driven.
+        for c in $KNOWN_CHANNELS; do
+          if [[ "$arg" == "--$c" ]]; then
+            skip=1
+            break
+          fi
+        done
+        ;;
     esac
+    [[ -n "$skip" ]] && continue
+    FILTERED_ARGS+=("$arg")
   done
 }
 
@@ -650,10 +691,157 @@ handle_shim_commands() {
   esac
 }
 
+# === Channel Switching (one-shot) ===
+#
+# `junie --eap` (also --nightly / --release / --experimental, or --channel=<name>)
+# fetches and launches the latest build of another channel *for this run only*.
+# It shells out to that channel's published installer in one-shot mode
+# (JUNIE_ONESHOT=1), which installs the build under $VERSIONS_DIR WITHOUT
+# touching the shim, the `current` symlink, or PATH. We then exec that build
+# directly. The persisted default channel is left completely intact, so a plain
+# `junie` afterwards still launches (and self-updates) the default channel.
+
+REQUESTED_CHANNEL=""
+CHANNEL_VERSION=""
+
+# Scan args for a channel flag, setting REQUESTED_CHANNEL (last one wins).
+# Both forms are derived from KNOWN_CHANNELS: bareword `--<channel>` and the
+# explicit `--channel=<name>`.
+detect_channel_flag() {
+  REQUESTED_CHANNEL=""
+  local arg c
+  for arg in "$@"; do
+    case "$arg" in
+      --channel=*)
+        REQUESTED_CHANNEL="${arg#--channel=}"
+        ;;
+      --*)
+        for c in $KNOWN_CHANNELS; do
+          if [[ "$arg" == "--$c" ]]; then
+            REQUESTED_CHANNEL="$c"
+            break
+          fi
+        done
+        ;;
+    esac
+  done
+  # Always succeed: the loop's last command is a `[[ ]]` test that returns 1 for
+  # any non-channel arg (e.g. `--help`). Since this function is called as a bare
+  # command under `set -e`, that stray exit status would abort the whole shim.
+  return 0
+}
+
+is_known_channel() {
+  local c="$1" k
+  for k in $KNOWN_CHANNELS; do
+    [[ "$c" == "$k" ]] && return 0
+  done
+  return 1
+}
+
+installer_url_for_channel() {
+  local c="$1"
+  if [[ "$c" == "release" ]]; then
+    echo "$INSTALL_BASE_URL/install.sh"
+  else
+    echo "$INSTALL_BASE_URL/install-$c.sh"
+  fi
+}
+
+# Install (if needed) a build of channel $1 and set CHANNEL_VERSION to the
+# installed version. If $2 (a build number) is given it is pinned via the
+# installer's JUNIE_VERSION; otherwise the channel's latest build is used.
+# Returns non-zero on any failure, in which case the caller aborts without
+# touching the default channel.
+install_channel_oneshot() {
+  local channel="$1" build="${2:-}"
+  if ! is_known_channel "$channel"; then
+    log "Error: Unknown channel '$channel' (known: $KNOWN_CHANNELS)"
+    return 1
+  fi
+  if ! has_command curl; then
+    log "Error: 'curl' is required to switch channels"
+    return 1
+  fi
+
+  local url version_file
+  url="$(installer_url_for_channel "$channel")"
+  version_file="$(mktemp)"
+
+  if [[ -n "$build" ]]; then
+    log "Fetching '$channel' build $build..."
+  else
+    log "Fetching latest '$channel' build..."
+  fi
+  # JUNIE_VERSION="" lets the installer pick the channel's latest build.
+  if ! curl -fsSL "$url" \
+        | JUNIE_ONESHOT=1 JUNIE_ONESHOT_VERSION_FILE="$version_file" JUNIE_VERSION="$build" bash; then
+    log "Error: Failed to install '$channel' build"
+    rm -f "$version_file"
+    return 1
+  fi
+
+  CHANNEL_VERSION="$(cat "$version_file" 2>/dev/null || true)"
+  rm -f "$version_file"
+
+  if [[ -z "$CHANNEL_VERSION" ]]; then
+    log "Error: Channel installer did not report a version"
+    return 1
+  fi
+  if [[ ! -d "$VERSIONS_DIR/$CHANNEL_VERSION" ]]; then
+    log "Error: Channel build $CHANNEL_VERSION not found after install"
+    return 1
+  fi
+  return 0
+}
+
+# Launch another channel's build for this run only, then exit. An optional
+# `--use-version=<build>` pins a specific build of the channel; otherwise the
+# channel's latest build is used.
+run_channel_oneshot() {
+  local requested_build="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      --use-version=*) requested_build="${arg#--use-version=}" ;;
+    esac
+  done
+
+  if ! install_channel_oneshot "$REQUESTED_CHANNEL" "$requested_build"; then
+    exit 1
+  fi
+
+  local binary
+  binary=$(get_binary_path "$CHANNEL_VERSION")
+  if [[ -z "$binary" || ! -x "$binary" ]]; then
+    log "Error: Binary not found or not executable for $REQUESTED_CHANNEL version $CHANNEL_VERSION"
+    exit 1
+  fi
+
+  export EJ_RUNNER_PWD="${EJ_RUNNER_PWD:-$(pwd)}"
+  export JUNIE_DATA="$JUNIE_DATA"
+
+  # Disable the binary's auto-update for one-shot channel runs. This build is
+  # launched only for the current invocation, so it must never check for,
+  # download, or stage an update -- doing so would race with and clobber the
+  # user's persisted default channel. The binary honors JUNIE_SKIP_UPDATE_CHECK
+  # (see SystemOptionsGroup / AutoUpdateService).
+  export JUNIE_SKIP_UPDATE_CHECK=1
+
+  filter_args "$@"
+  exec "$binary" ${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}
+}
+
 # === Main ===
 main() {
   # Handle shim-specific commands
   handle_shim_commands "$@"
+
+  # Channel one-shot (`junie --eap` etc.): launch another channel's latest build
+  # for this run only, leaving the default channel and its pending updates alone.
+  detect_channel_flag "$@"
+  if [[ -n "$REQUESTED_CHANNEL" ]]; then
+    run_channel_oneshot "$@"
+  fi
 
   # Defense-in-depth (JUNIE-2957): drop empty / unparseable update artifacts
   # before either we or the launched binary react to them.
@@ -685,6 +873,15 @@ main() {
   # Set JUNIE_DATA for the app to know where data is stored
   export JUNIE_DATA="$JUNIE_DATA"
 
+  # Resolve and export this shim's own absolute path so the binary can refresh
+  # it in place during auto-update (see ShimUpdater on the binary side).
+  local self="$0"
+  case "$self" in
+    /*) ;;
+    *) self="$(cd "$(dirname "$self")" && pwd)/$(basename "$self")" ;;
+  esac
+  export JUNIE_SHIM_PATH="$self"
+
   # Filter out shim-specific args and execute
   filter_args "$@"
   exec "$binary" ${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}
@@ -693,78 +890,89 @@ main() {
 main "$@"
 SHIM_EOF
 chmod +x "$JUNIE_BIN/junie"
+fi
 
 # Download and install binary
 # Always re-download and overwrite the target version directory, regardless of
 # whether it already exists. This avoids reusing a previously cached broken or
 # partial install for the same version.
 TARGET_DIR="$JUNIE_DATA/versions/$VERSION"
-TMP_ZIP=$(mktemp)
 
-log "Downloading $DOWNLOAD_URL"
-curl -fSL --progress-bar -o "$TMP_ZIP" "$DOWNLOAD_URL"
+# In one-shot mode we still re-resolved "latest" above; only the download itself
+# is skipped when that exact version is already installed and valid.
+if [[ -n "$ONESHOT" ]] && oneshot_target_ready "$TARGET_DIR"; then
+  log "Version $VERSION already installed; skipping download"
+else
+  TMP_ZIP=$(mktemp)
 
-# Verify checksum
-if [[ -n "$SHA256" ]]; then
-  actual_sha256=$(sha256sum_file "$TMP_ZIP")
-  if [[ -n "$actual_sha256" ]]; then
-    if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
-      log_error "Checksum verification failed!"
-      log_error "Expected: $SHA256"
-      log_error "Got: $actual_sha256"
-      rm -f "$TMP_ZIP"
-      exit 1
+  log "Downloading $DOWNLOAD_URL"
+  curl -fSL --progress-bar -o "$TMP_ZIP" "$DOWNLOAD_URL"
+
+  # Verify checksum
+  if [[ -n "$SHA256" ]]; then
+    actual_sha256=$(sha256sum_file "$TMP_ZIP")
+    if [[ -n "$actual_sha256" ]]; then
+      if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
+        log_error "Checksum verification failed!"
+        log_error "Expected: $SHA256"
+        log_error "Got: $actual_sha256"
+        rm -f "$TMP_ZIP"
+        exit 1
+      fi
+      log "Checksum verified"
     fi
-    log "Checksum verified"
   fi
+
+  # Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
+  # resolved binary, then atomically rename into place. This mirrors the shim's
+  # robust extraction so an interrupted install never leaves a half-extracted tree.
+  STAGING="$JUNIE_DATA/versions/.$VERSION.tmp.$$"
+  trap 'rm -rf "$STAGING"' EXIT INT TERM
+  rm -rf "$STAGING"
+  mkdir -p "$STAGING"
+  # On macOS use ditto so the signed .app bundle is reconstructed exactly;
+  # on Linux use unzip. (See require_extractor above for the rationale.)
+  if [[ "$OS_NAME" == "macos" ]]; then
+    ditto -x -k "$TMP_ZIP" "$STAGING"
+  else
+    unzip -q "$TMP_ZIP" -d "$STAGING"
+  fi
+  rm -f "$TMP_ZIP"
+
+  # Validate the extracted binary (inline equivalent of get_binary_path_in).
+  if [[ -d "$STAGING/Applications/junie.app" ]]; then
+    STAGED_BIN="$STAGING/Applications/junie.app/Contents/MacOS/junie"
+  elif [[ -f "$STAGING/junie/bin/junie" ]]; then
+    STAGED_BIN="$STAGING/junie/bin/junie"
+  elif [[ -f "$STAGING/junie" ]]; then
+    STAGED_BIN="$STAGING/junie"
+  else
+    STAGED_BIN=""
+  fi
+  if [[ -z "$STAGED_BIN" ]]; then
+    log_error "No junie binary found in downloaded payload"
+    exit 1
+  fi
+  chmod +x "$STAGED_BIN" 2>/dev/null || true
+  if [[ ! -x "$STAGED_BIN" ]]; then
+    log_error "Extracted binary is not executable: $STAGED_BIN"
+    exit 1
+  fi
+
+  [[ "$OS_NAME" == "macos" ]] && xattr -dr com.apple.quarantine "$STAGING" 2>/dev/null || true
+
+  # Remove any existing (possibly broken) version directory, then atomically
+  # rename the validated staging tree into the final version directory.
+  rm -rf "$TARGET_DIR"
+  mv "$STAGING" "$TARGET_DIR"
+  trap - EXIT INT TERM
 fi
 
-# Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
-# resolved binary, then atomically rename into place. This mirrors the shim's
-# robust extraction so an interrupted install never leaves a half-extracted tree.
-STAGING="$JUNIE_DATA/versions/.$VERSION.tmp.$$"
-trap 'rm -rf "$STAGING"' EXIT INT TERM
-rm -rf "$STAGING"
-mkdir -p "$STAGING"
-# On macOS use ditto so the signed .app bundle is reconstructed exactly;
-# on Linux use unzip. (See require_extractor above for the rationale.)
-if [[ "$OS_NAME" == "macos" ]]; then
-  ditto -x -k "$TMP_ZIP" "$STAGING"
-else
-  unzip -q "$TMP_ZIP" -d "$STAGING"
+# Set current version (the persisted default). Skipped in one-shot mode so a
+# `junie --<channel>` run does not change which channel plain `junie` launches.
+if [[ -z "$ONESHOT" ]]; then
+  ln -sfn "$TARGET_DIR" "$JUNIE_DATA/current"
 fi
-rm -f "$TMP_ZIP"
-
-# Validate the extracted binary (inline equivalent of get_binary_path_in).
-if [[ -d "$STAGING/Applications/junie.app" ]]; then
-  STAGED_BIN="$STAGING/Applications/junie.app/Contents/MacOS/junie"
-elif [[ -f "$STAGING/junie/bin/junie" ]]; then
-  STAGED_BIN="$STAGING/junie/bin/junie"
-elif [[ -f "$STAGING/junie" ]]; then
-  STAGED_BIN="$STAGING/junie"
-else
-  STAGED_BIN=""
-fi
-if [[ -z "$STAGED_BIN" ]]; then
-  log_error "No junie binary found in downloaded payload"
-  exit 1
-fi
-chmod +x "$STAGED_BIN" 2>/dev/null || true
-if [[ ! -x "$STAGED_BIN" ]]; then
-  log_error "Extracted binary is not executable: $STAGED_BIN"
-  exit 1
-fi
-
-[[ "$OS_NAME" == "macos" ]] && xattr -dr com.apple.quarantine "$STAGING" 2>/dev/null || true
-
-# Remove any existing (possibly broken) version directory, then atomically
-# rename the validated staging tree into the final version directory.
-rm -rf "$TARGET_DIR"
-mv "$STAGING" "$TARGET_DIR"
-trap - EXIT INT TERM
-
-# Set current version
-ln -sfn "$TARGET_DIR" "$JUNIE_DATA/current"
 
 log "Installed successfully!"
 
@@ -822,7 +1030,13 @@ add_to_path() {
   return 1
 }
 
-if add_to_path; then
+if [[ -n "$ONESHOT" ]]; then
+  # Report the installed version back to the caller (the shim) and skip any PATH
+  # changes -- one-shot installs must not modify the user's environment.
+  if [[ -n "${JUNIE_ONESHOT_VERSION_FILE:-}" ]]; then
+    printf '%s' "$VERSION" > "$JUNIE_ONESHOT_VERSION_FILE" 2>/dev/null || true
+  fi
+elif add_to_path; then
   case ":$PATH:" in
     *":$HOME/.local/bin:"*)
       echo ""

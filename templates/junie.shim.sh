@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# JUNIE_MANAGED_SHIM
+#
 # Junie CLI Shim
 #
 # This script is the entry point for Junie CLI. It handles:
@@ -21,6 +23,12 @@ VERSIONS_DIR="$JUNIE_DATA/versions"
 UPDATES_DIR="$JUNIE_DATA/updates"
 CURRENT_LINK="$JUNIE_DATA/current"
 PENDING_UPDATE="$UPDATES_DIR/pending-update.json"
+
+# Base URL serving the channel installers (override for testing).
+INSTALL_BASE_URL="${JUNIE_INSTALL_BASE_URL:-https://junie.jetbrains.com}"
+# Known update channels. Injected from templates/channels.tsv by generate.sh,
+# so this list (and the flag matching derived from it) has a single source.
+KNOWN_CHANNELS="{{CHANNELS}}"
 
 # Persistent upgrade log. Lives under ~/.junie/logs (separate from the data dir,
 # so wiping ~/.local/share/junie during reinstall does not lose update history).
@@ -435,10 +443,21 @@ FILTERED_ARGS=()
 filter_args() {
   FILTERED_ARGS=()
   for arg in "$@"; do
+    local skip="" c
     case "$arg" in
-      --use-version=*) ;; # Skip shim-specific flag
-      *) FILTERED_ARGS+=("$arg") ;;
+      --use-version=*|--channel=*) skip=1 ;;                # Skip shim-specific flags
+      --*)
+        # Skip bareword channel flags (--eap, --nightly, ...), data-driven.
+        for c in $KNOWN_CHANNELS; do
+          if [[ "$arg" == "--$c" ]]; then
+            skip=1
+            break
+          fi
+        done
+        ;;
     esac
+    [[ -n "$skip" ]] && continue
+    FILTERED_ARGS+=("$arg")
   done
 }
 
@@ -485,10 +504,157 @@ handle_shim_commands() {
   esac
 }
 
+# === Channel Switching (one-shot) ===
+#
+# `junie --eap` (also --nightly / --release / --experimental, or --channel=<name>)
+# fetches and launches the latest build of another channel *for this run only*.
+# It shells out to that channel's published installer in one-shot mode
+# (JUNIE_ONESHOT=1), which installs the build under $VERSIONS_DIR WITHOUT
+# touching the shim, the `current` symlink, or PATH. We then exec that build
+# directly. The persisted default channel is left completely intact, so a plain
+# `junie` afterwards still launches (and self-updates) the default channel.
+
+REQUESTED_CHANNEL=""
+CHANNEL_VERSION=""
+
+# Scan args for a channel flag, setting REQUESTED_CHANNEL (last one wins).
+# Both forms are derived from KNOWN_CHANNELS: bareword `--<channel>` and the
+# explicit `--channel=<name>`.
+detect_channel_flag() {
+  REQUESTED_CHANNEL=""
+  local arg c
+  for arg in "$@"; do
+    case "$arg" in
+      --channel=*)
+        REQUESTED_CHANNEL="${arg#--channel=}"
+        ;;
+      --*)
+        for c in $KNOWN_CHANNELS; do
+          if [[ "$arg" == "--$c" ]]; then
+            REQUESTED_CHANNEL="$c"
+            break
+          fi
+        done
+        ;;
+    esac
+  done
+  # Always succeed: the loop's last command is a `[[ ]]` test that returns 1 for
+  # any non-channel arg (e.g. `--help`). Since this function is called as a bare
+  # command under `set -e`, that stray exit status would abort the whole shim.
+  return 0
+}
+
+is_known_channel() {
+  local c="$1" k
+  for k in $KNOWN_CHANNELS; do
+    [[ "$c" == "$k" ]] && return 0
+  done
+  return 1
+}
+
+installer_url_for_channel() {
+  local c="$1"
+  if [[ "$c" == "release" ]]; then
+    echo "$INSTALL_BASE_URL/install.sh"
+  else
+    echo "$INSTALL_BASE_URL/install-$c.sh"
+  fi
+}
+
+# Install (if needed) a build of channel $1 and set CHANNEL_VERSION to the
+# installed version. If $2 (a build number) is given it is pinned via the
+# installer's JUNIE_VERSION; otherwise the channel's latest build is used.
+# Returns non-zero on any failure, in which case the caller aborts without
+# touching the default channel.
+install_channel_oneshot() {
+  local channel="$1" build="${2:-}"
+  if ! is_known_channel "$channel"; then
+    log "Error: Unknown channel '$channel' (known: $KNOWN_CHANNELS)"
+    return 1
+  fi
+  if ! has_command curl; then
+    log "Error: 'curl' is required to switch channels"
+    return 1
+  fi
+
+  local url version_file
+  url="$(installer_url_for_channel "$channel")"
+  version_file="$(mktemp)"
+
+  if [[ -n "$build" ]]; then
+    log "Fetching '$channel' build $build..."
+  else
+    log "Fetching latest '$channel' build..."
+  fi
+  # JUNIE_VERSION="" lets the installer pick the channel's latest build.
+  if ! curl -fsSL "$url" \
+        | JUNIE_ONESHOT=1 JUNIE_ONESHOT_VERSION_FILE="$version_file" JUNIE_VERSION="$build" bash; then
+    log "Error: Failed to install '$channel' build"
+    rm -f "$version_file"
+    return 1
+  fi
+
+  CHANNEL_VERSION="$(cat "$version_file" 2>/dev/null || true)"
+  rm -f "$version_file"
+
+  if [[ -z "$CHANNEL_VERSION" ]]; then
+    log "Error: Channel installer did not report a version"
+    return 1
+  fi
+  if [[ ! -d "$VERSIONS_DIR/$CHANNEL_VERSION" ]]; then
+    log "Error: Channel build $CHANNEL_VERSION not found after install"
+    return 1
+  fi
+  return 0
+}
+
+# Launch another channel's build for this run only, then exit. An optional
+# `--use-version=<build>` pins a specific build of the channel; otherwise the
+# channel's latest build is used.
+run_channel_oneshot() {
+  local requested_build="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      --use-version=*) requested_build="${arg#--use-version=}" ;;
+    esac
+  done
+
+  if ! install_channel_oneshot "$REQUESTED_CHANNEL" "$requested_build"; then
+    exit 1
+  fi
+
+  local binary
+  binary=$(get_binary_path "$CHANNEL_VERSION")
+  if [[ -z "$binary" || ! -x "$binary" ]]; then
+    log "Error: Binary not found or not executable for $REQUESTED_CHANNEL version $CHANNEL_VERSION"
+    exit 1
+  fi
+
+  export EJ_RUNNER_PWD="${EJ_RUNNER_PWD:-$(pwd)}"
+  export JUNIE_DATA="$JUNIE_DATA"
+
+  # Disable the binary's auto-update for one-shot channel runs. This build is
+  # launched only for the current invocation, so it must never check for,
+  # download, or stage an update -- doing so would race with and clobber the
+  # user's persisted default channel. The binary honors JUNIE_SKIP_UPDATE_CHECK
+  # (see SystemOptionsGroup / AutoUpdateService).
+  export JUNIE_SKIP_UPDATE_CHECK=1
+
+  filter_args "$@"
+  exec "$binary" ${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}
+}
+
 # === Main ===
 main() {
   # Handle shim-specific commands
   handle_shim_commands "$@"
+
+  # Channel one-shot (`junie --eap` etc.): launch another channel's latest build
+  # for this run only, leaving the default channel and its pending updates alone.
+  detect_channel_flag "$@"
+  if [[ -n "$REQUESTED_CHANNEL" ]]; then
+    run_channel_oneshot "$@"
+  fi
 
   # Defense-in-depth (JUNIE-2957): drop empty / unparseable update artifacts
   # before either we or the launched binary react to them.
@@ -519,6 +685,15 @@ main() {
 
   # Set JUNIE_DATA for the app to know where data is stored
   export JUNIE_DATA="$JUNIE_DATA"
+
+  # Resolve and export this shim's own absolute path so the binary can refresh
+  # it in place during auto-update (see ShimUpdater on the binary side).
+  local self="$0"
+  case "$self" in
+    /*) ;;
+    *) self="$(cd "$(dirname "$self")" && pwd)/$(basename "$self")" ;;
+  esac
+  export JUNIE_SHIM_PATH="$self"
 
   # Filter out shim-specific args and execute
   filter_args "$@"
