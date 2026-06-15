@@ -198,6 +198,8 @@ if ($ONESHOT) {
 @echo off
 setlocal enabledelayedexpansion
 
+:: JUNIE_MANAGED_SHIM
+::
 :: Junie CLI Shim for Windows
 ::
 :: This script is the entry point for Junie CLI. It handles:
@@ -313,7 +315,6 @@ if not exist "!JUNIE_EXE!" (
   exit /b 1
 )
 if not defined EJ_RUNNER_PWD set "EJ_RUNNER_PWD=%CD%"
-set "JUNIE_DATA=%JUNIE_DATA%"
 
 :: Filter out channel flags from args and launch the requested build directly.
 :: cmd splits `--channel=<name>` into the tokens `--channel` and `<name>`, so
@@ -344,11 +345,12 @@ for %%A in (%*) do (
     )
   )
 )
-:: One-shot launch: force JUNIE_SKIP_UPDATE_CHECK=1 across endlocal so this
-:: temporary channel build never checks for, downloads, or stages an update that
-:: would clobber the user's persisted default channel (the binary honors it via
-:: SystemOptionsGroup).
-endlocal & set "JUNIE_SKIP_UPDATE_CHECK=1" & "%JUNIE_EXE%" %FILTERED_ARGS%
+:: One-shot launch: pass EJ_RUNNER_PWD and JUNIE_DATA across endlocal, but NOT
+:: JUNIE_SHIM_PATH -- a temporary channel build must never adopt or self-update
+:: the default shim. Also force JUNIE_SKIP_UPDATE_CHECK=1 so this temporary build
+:: never checks for, downloads, or stages an update that would clobber the user's
+:: persisted default channel (the binary honors it via SystemOptionsGroup).
+endlocal & set "EJ_RUNNER_PWD=%EJ_RUNNER_PWD%" & set "JUNIE_DATA=%JUNIE_DATA%" & set "JUNIE_SKIP_UPDATE_CHECK=1" & "%JUNIE_EXE%" %FILTERED_ARGS%
 goto :eof
 
 :after_channel_oneshot
@@ -537,7 +539,10 @@ for %%A in (%*) do (
   )
 )
 
-endlocal & "%JUNIE_EXE%" %FILTERED_ARGS%
+:: Restore environment but pass important variables to the exe.
+:: Export this shim's own absolute path (%~f0) so the binary can refresh it in
+:: place during auto-update (see ShimUpdater on the binary side).
+endlocal & set "EJ_RUNNER_PWD=%EJ_RUNNER_PWD%" & set "JUNIE_DATA=%JUNIE_DATA%" & set "JUNIE_SHIM_PATH=%~f0" & "%JUNIE_EXE%" %FILTERED_ARGS%
 '@
   [System.IO.File]::WriteAllText($SHIM_PATH, $SHIM_CONTENT)
 

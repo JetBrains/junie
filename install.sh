@@ -187,6 +187,8 @@ if [[ -z "$ONESHOT" ]]; then
 cat > "$JUNIE_BIN/junie" << 'SHIM_EOF'
 #!/bin/bash
 #
+# JUNIE_MANAGED_SHIM
+#
 # Junie CLI Shim
 #
 # This script is the entry point for Junie CLI. It handles:
@@ -636,6 +638,7 @@ filter_args() {
         for c in $KNOWN_CHANNELS; do
           if [[ "$arg" == "--$c" ]]; then
             skip=1
+            break
           fi
         done
         ;;
@@ -716,6 +719,7 @@ detect_channel_flag() {
         for c in $KNOWN_CHANNELS; do
           if [[ "$arg" == "--$c" ]]; then
             REQUESTED_CHANNEL="$c"
+            break
           fi
         done
         ;;
@@ -868,6 +872,15 @@ main() {
 
   # Set JUNIE_DATA for the app to know where data is stored
   export JUNIE_DATA="$JUNIE_DATA"
+
+  # Resolve and export this shim's own absolute path so the binary can refresh
+  # it in place during auto-update (see ShimUpdater on the binary side).
+  local self="$0"
+  case "$self" in
+    /*) ;;
+    *) self="$(cd "$(dirname "$self")" && pwd)/$(basename "$self")" ;;
+  esac
+  export JUNIE_SHIM_PATH="$self"
 
   # Filter out shim-specific args and execute
   filter_args "$@"
