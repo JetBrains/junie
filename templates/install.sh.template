@@ -256,7 +256,37 @@ else
     exit 1
   fi
 
+{{#channels:nightly,experimental}}
+  # macOS Gatekeeper handling. We sign AND notarize, so the bundle normally
+  # passes Gatekeeper with quarantine intact and nothing needs to be stripped.
+  # As a defensive fallback we verify acceptance during install and only strip
+  # quarantine if Gatekeeper would actually reject this copy (e.g. a browser
+  # re-download that got re-quarantined). Gating the strip behind a *failed*
+  # assessment preserves Gatekeeper's protection in the normal case while still
+  # producing a working install in the edge case.
+  if [[ "$OS_NAME" == "macos" && -d "$STAGING/Applications/junie.app" ]]; then
+    APP="$STAGING/Applications/junie.app"
+    # Is the signature structurally valid? (Informational only; never abort.)
+    if ! /usr/bin/codesign --verify --deep --strict "$APP" > /dev/null 2>&1; then
+      log "Warning: code signature could not be verified for $APP"
+    fi
+    # Would Gatekeeper let it execute? This also checks notarization, so it
+    # reflects the real first-launch user experience.
+    if /usr/sbin/spctl --assess --type execute "$APP" > /dev/null 2>&1; then
+      log "Gatekeeper assessment passed"
+    else
+      log "Gatekeeper assessment failed; stripping quarantine as a fallback"
+      # Call Apple's xattr by absolute path so a foreign `xattr` earlier on PATH
+      # cannot shadow it (that binary may lack -r; see JUNIE-2906), and fully
+      # silence it (Apple's xattr prints its usage text to stdout, so 2>/dev/null
+      # alone would still leak noise). `|| true` keeps `set -e` from aborting.
+      [[ -x /usr/bin/xattr ]] && /usr/bin/xattr -dr com.apple.quarantine "$APP" > /dev/null 2>&1 || true
+    fi
+  fi
+{{/channels}}
+{{^channels:nightly,experimental}}
   [[ "$OS_NAME" == "macos" ]] && xattr -dr com.apple.quarantine "$STAGING" 2>/dev/null || true
+{{/channels}}
 
   # Remove any existing (possibly broken) version directory, then atomically
   # rename the validated staging tree into the final version directory.

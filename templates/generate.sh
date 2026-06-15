@@ -48,18 +48,52 @@ render() {
   CHANNEL="$channel" URL="$url" SHIM_FILE="$shim_file" \
   TEMPLATE_NAME="$template_name" CHANNELS="$channels" \
   awk '
+    # Return 1 if channel "ch" is in the comma-separated list "lst".
+    function in_channel_list(ch, lst,    n, arr, i) {
+      n = split(lst, arr, ",")
+      for (i = 1; i <= n; i++) {
+        gsub(/[ \t]/, "", arr[i])
+        if (arr[i] == ch) return 1
+      }
+      return 0
+    }
     BEGIN {
       channel       = ENVIRON["CHANNEL"]
       url           = ENVIRON["URL"]
       shim_file     = ENVIRON["SHIM_FILE"]
       template_name = ENVIRON["TEMPLATE_NAME"]
       channels      = ENVIRON["CHANNELS"]
+      include       = 1
     }
     NR == 1 {
       print
       print "# DO NOT EDIT — generated from templates/" template_name " by templates/generate.sh"
       next
     }
+    # Channel-conditional blocks (single source for all channels, but selective
+    # output): {{#channels:a,b}} ... {{/channels}} includes the body only for
+    # the listed channels; {{^channels:a,b}} ... {{/channels}} includes it only
+    # for the others. Blocks must not be nested. The directive lines themselves
+    # are never emitted.
+    /^[ \t]*\{\{#channels:.*\}\}[ \t]*$/ {
+      list = $0
+      sub(/^[ \t]*\{\{#channels:/, "", list)
+      sub(/\}\}[ \t]*$/, "", list)
+      include = in_channel_list(channel, list)
+      next
+    }
+    /^[ \t]*\{\{\^channels:.*\}\}[ \t]*$/ {
+      list = $0
+      sub(/^[ \t]*\{\{\^channels:/, "", list)
+      sub(/\}\}[ \t]*$/, "", list)
+      include = in_channel_list(channel, list) ? 0 : 1
+      next
+    }
+    /^[ \t]*\{\{\/channels\}\}[ \t]*$/ {
+      include = 1
+      next
+    }
+    include == 0 { next }
     $0 == "{{SHIM}}" {
       # The shim is inlined verbatim except for {{CHANNELS}}, which lets the
       # shim derive its channel list from channels.tsv (single source of truth).
