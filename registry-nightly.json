@@ -103,7 +103,7 @@
     {
       "id": "claude-acp",
       "name": "Claude Agent",
-      "version": "0.44.0",
+      "version": "0.45.0",
       "description": "ACP wrapper for Anthropic's Claude",
       "repository": "https://github.com/agentclientprotocol/claude-agent-acp",
       "authors": [
@@ -114,7 +114,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@agentclientprotocol/claude-agent-acp@0.44.0"
+          "package": "@agentclientprotocol/claude-agent-acp@0.45.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/claude-acp.svg"
@@ -143,7 +143,7 @@
     {
       "id": "codebuddy-code",
       "name": "Codebuddy Code",
-      "version": "2.106.4",
+      "version": "2.106.5",
       "description": "Tencent Cloud's official intelligent coding tool",
       "website": "https://www.codebuddy.cn/cli/",
       "authors": [
@@ -152,7 +152,7 @@
       "license": "Proprietary",
       "distribution": {
         "npx": {
-          "package": "@tencent-ai/codebuddy-code@2.106.4",
+          "package": "@tencent-ai/codebuddy-code@2.106.5",
           "args": [
             "--acp"
           ]
@@ -532,7 +532,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.148.0",
+      "version": "0.149.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -541,7 +541,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.148.0",
+          "package": "droid@0.149.0",
           "args": [
             "exec",
             "--output-format",
@@ -600,7 +600,7 @@
     {
       "id": "github-copilot-cli",
       "name": "GitHub Copilot",
-      "version": "1.0.62",
+      "version": "1.0.63",
       "description": "GitHub's AI pair programmer",
       "repository": "https://github.com/github/copilot-cli",
       "website": "https://github.com/features/copilot/cli/",
@@ -610,7 +610,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@github/copilot@1.0.62",
+          "package": "@github/copilot@1.0.63",
           "args": [
             "--acp"
           ]
@@ -690,7 +690,7 @@
     {
       "id": "grok-build",
       "name": "Grok Build",
-      "version": "0.2.39",
+      "version": "0.2.54",
       "description": "xAI's coding agent and CLI",
       "website": "https://x.ai/cli",
       "authors": [
@@ -699,7 +699,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@xai-official/grok@0.2.39",
+          "package": "@xai-official/grok@0.2.54",
           "args": [
             "agent",
             "stdio"
@@ -711,7 +711,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "2038.1",
+      "version": "2040.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -722,42 +722,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2038.1/junie-nightly-2038.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2040.1/junie-nightly-2040.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2038.1/junie-nightly-2038.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2040.1/junie-nightly-2040.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2038.1/junie-nightly-2038.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2040.1/junie-nightly-2040.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2038.1/junie-nightly-2038.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2040.1/junie-nightly-2040.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2038.1/junie-nightly-2038.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2040.1/junie-nightly-2040.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2038.1/junie-nightly-2038.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2040.1/junie-nightly-2040.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -900,7 +900,7 @@
     {
       "id": "mistral-vibe",
       "name": "Mistral Vibe",
-      "version": "2.15.0",
+      "version": "2.16.0",
       "description": "Mistral's open-source coding assistant",
       "repository": "https://github.com/mistralai/mistral-vibe",
       "website": "https://mistral.ai/products/vibe",
@@ -912,23 +912,23 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.15.0/vibe-acp-darwin-aarch64-2.15.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.16.0/vibe-acp-darwin-aarch64-2.16.0.zip",
             "cmd": "./vibe-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.15.0/vibe-acp-darwin-x86_64-2.15.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.16.0/vibe-acp-darwin-x86_64-2.16.0.zip",
             "cmd": "./vibe-acp"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.15.0/vibe-acp-linux-aarch64-2.15.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.16.0/vibe-acp-linux-aarch64-2.16.0.zip",
             "cmd": "./vibe-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.15.0/vibe-acp-linux-x86_64-2.15.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.16.0/vibe-acp-linux-x86_64-2.16.0.zip",
             "cmd": "./vibe-acp"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.15.0/vibe-acp-windows-x86_64-2.15.0.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.16.0/vibe-acp-windows-x86_64-2.16.0.zip",
             "cmd": "./vibe-acp.exe"
           }
         }
