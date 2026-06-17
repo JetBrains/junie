@@ -433,7 +433,7 @@
     {
       "id": "devin",
       "name": "Devin",
-      "version": "2026.5.26",
+      "version": "2026.7.16",
       "description": "Devin CLI coding agent by Cognition",
       "website": "https://docs.devin.ai/cli",
       "authors": [
@@ -443,42 +443,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://static.devin.ai/cli/2026.5.26-8/devin-2026.5.26-8-aarch64-apple-darwin.tar.gz",
+            "archive": "https://static.devin.ai/cli/2026.7.16/devin-2026.7.16-aarch64-apple-darwin.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://static.devin.ai/cli/2026.5.26-8/devin-2026.5.26-8-x86_64-apple-darwin.tar.gz",
+            "archive": "https://static.devin.ai/cli/2026.7.16/devin-2026.7.16-x86_64-apple-darwin.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://static.devin.ai/cli/2026.5.26-8/devin-2026.5.26-8-aarch64-unknown-linux.tar.gz",
+            "archive": "https://static.devin.ai/cli/2026.7.16/devin-2026.7.16-aarch64-unknown-linux.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://static.devin.ai/cli/2026.5.26-8/devin-2026.5.26-8-x86_64-unknown-linux.tar.gz",
+            "archive": "https://static.devin.ai/cli/2026.7.16/devin-2026.7.16-x86_64-unknown-linux.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://static.devin.ai/cli/2026.5.26-8/devin-2026.5.26-8-aarch64-pc-windows.zip",
+            "archive": "https://static.devin.ai/cli/2026.7.16/devin-2026.7.16-aarch64-pc-windows.zip",
             "cmd": "./bin\\devin.exe",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://static.devin.ai/cli/2026.5.26-8/devin-2026.5.26-8-x86_64-pc-windows.zip",
+            "archive": "https://static.devin.ai/cli/2026.7.16/devin-2026.7.16-x86_64-pc-windows.zip",
             "cmd": "./bin\\devin.exe",
             "args": [
               "acp"
@@ -532,7 +532,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.149.0",
+      "version": "0.150.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -541,7 +541,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.149.0",
+          "package": "droid@0.150.0",
           "args": [
             "exec",
             "--output-format",
@@ -690,7 +690,7 @@
     {
       "id": "grok-build",
       "name": "Grok Build",
-      "version": "0.2.54",
+      "version": "0.2.55",
       "description": "xAI's coding agent and CLI",
       "website": "https://x.ai/cli",
       "authors": [
@@ -699,7 +699,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@xai-official/grok@0.2.54",
+          "package": "@xai-official/grok@0.2.55",
           "args": [
             "agent",
             "stdio"
@@ -711,7 +711,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "2059.1",
+      "version": "2061.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -722,42 +722,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2059.1/junie-nightly-2059.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2061.1/junie-nightly-2061.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2059.1/junie-nightly-2059.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2061.1/junie-nightly-2061.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2059.1/junie-nightly-2059.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2061.1/junie-nightly-2061.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2059.1/junie-nightly-2059.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2061.1/junie-nightly-2061.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2059.1/junie-nightly-2059.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2061.1/junie-nightly-2061.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2059.1/junie-nightly-2059.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2061.1/junie-nightly-2061.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1017,7 +1017,7 @@
     {
       "id": "pi-acp",
       "name": "pi ACP",
-      "version": "0.0.29",
+      "version": "0.0.30",
       "description": "ACP adapter for pi coding agent",
       "repository": "https://github.com/svkozak/pi-acp",
       "authors": [
@@ -1026,7 +1026,7 @@
       "license": "MIT",
       "distribution": {
         "npx": {
-          "package": "pi-acp@0.0.29"
+          "package": "pi-acp@0.0.30"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/pi-acp.svg"
