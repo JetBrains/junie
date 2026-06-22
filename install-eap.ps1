@@ -144,7 +144,7 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
       Log-Error "Checksum verification failed!"
       Log-Error "Expected: $SHA256"
       Log-Error "Got: $actualSha256"
-      Remove-Item -Force $TMP_ZIP
+      Remove-Item -Force -LiteralPath $TMP_ZIP
       exit 1
     }
     Log "Checksum verified"
@@ -154,7 +154,7 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
   # resolved binary, then atomically rename into place. This mirrors the shim's
   # robust extraction so an interrupted install never leaves a half-extracted tree.
   $STAGING = Join-Path "$JUNIE_DATA\versions" (".$VERSION.tmp." + $PID)
-  if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
+  if (Test-Path -LiteralPath $STAGING) { Remove-Item -Recurse -Force -LiteralPath $STAGING }
   New-Item -ItemType Directory -Force -Path $STAGING | Out-Null
 
   try {
@@ -171,13 +171,13 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
     }
 
     # Remove any existing (possibly broken) version directory before the rename.
-    if (Test-Path $TARGET_DIR) { Remove-Item -Recurse -Force $TARGET_DIR }
+    if (Test-Path -LiteralPath $TARGET_DIR) { Remove-Item -Recurse -Force -LiteralPath $TARGET_DIR }
     Move-Item -Path $STAGING -Destination $TARGET_DIR
   } catch {
-    if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
+    if (Test-Path -LiteralPath $STAGING) { Remove-Item -Recurse -Force -LiteralPath $STAGING }
     throw
   } finally {
-    Remove-Item -Force $TMP_ZIP -ErrorAction SilentlyContinue
+    Remove-Item -Force -LiteralPath $TMP_ZIP -ErrorAction SilentlyContinue
   }
 }
 
