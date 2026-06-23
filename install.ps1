@@ -28,6 +28,17 @@ function Get-Sha256($file) {
   (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLower()
 }
 
+# Delete a file by its literal path via the .NET API. PowerShell's path provider
+# (Remove-Item/Test-Path/Set-Location/...) mishandles 8.3 short paths whose short
+# name is LONGER than the long name -- e.g. %TEMP% on dotted usernames such as
+# "a.lastname" resolving to C:\Users\A####~1.LAS\... -- throwing a terminating
+# PSArgumentException ("An object at the specified path ... does not exist") that
+# -ErrorAction cannot suppress (PowerShell issue #17359). The .NET API resolves
+# such paths correctly. [System.IO.File]::Delete is a no-op if the file is gone.
+function Remove-TempFile($file) {
+  try { [System.IO.File]::Delete($file) } catch { }
+}
+
 # Whether a version directory already contains the expected binary. Used in
 # one-shot mode to skip a redundant re-download of an already-installed build.
 function Test-OneshotTargetReady($dir) {
@@ -144,7 +155,7 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
       Log-Error "Checksum verification failed!"
       Log-Error "Expected: $SHA256"
       Log-Error "Got: $actualSha256"
-      Remove-Item -Force -LiteralPath $TMP_ZIP
+      Remove-TempFile $TMP_ZIP
       exit 1
     }
     Log "Checksum verified"
@@ -154,7 +165,7 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
   # resolved binary, then atomically rename into place. This mirrors the shim's
   # robust extraction so an interrupted install never leaves a half-extracted tree.
   $STAGING = Join-Path "$JUNIE_DATA\versions" (".$VERSION.tmp." + $PID)
-  if (Test-Path -LiteralPath $STAGING) { Remove-Item -Recurse -Force -LiteralPath $STAGING }
+  if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
   New-Item -ItemType Directory -Force -Path $STAGING | Out-Null
 
   try {
@@ -171,13 +182,13 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
     }
 
     # Remove any existing (possibly broken) version directory before the rename.
-    if (Test-Path -LiteralPath $TARGET_DIR) { Remove-Item -Recurse -Force -LiteralPath $TARGET_DIR }
+    if (Test-Path $TARGET_DIR) { Remove-Item -Recurse -Force $TARGET_DIR }
     Move-Item -Path $STAGING -Destination $TARGET_DIR
   } catch {
-    if (Test-Path -LiteralPath $STAGING) { Remove-Item -Recurse -Force -LiteralPath $STAGING }
+    if (Test-Path $STAGING) { Remove-Item -Recurse -Force $STAGING }
     throw
   } finally {
-    Remove-Item -Force -LiteralPath $TMP_ZIP -ErrorAction SilentlyContinue
+    Remove-TempFile $TMP_ZIP
   }
 }
 
