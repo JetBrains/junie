@@ -162,44 +162,19 @@
     },
     {
       "id": "codex-acp",
-      "name": "Codex CLI",
-      "version": "0.16.0",
+      "name": "Codex",
+      "version": "1.0.0",
       "description": "ACP adapter for OpenAI's coding assistant",
-      "repository": "https://github.com/zed-industries/codex-acp",
+      "repository": "https://github.com/agentclientprotocol/codex-acp",
       "authors": [
         "OpenAI",
+        "JetBrains s.r.o",
         "Zed Industries"
       ],
       "license": "Apache-2.0",
       "distribution": {
-        "binary": {
-          "darwin-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-aarch64-apple-darwin.tar.gz",
-            "cmd": "./codex-acp"
-          },
-          "darwin-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-x86_64-apple-darwin.tar.gz",
-            "cmd": "./codex-acp"
-          },
-          "linux-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-aarch64-unknown-linux-gnu.tar.gz",
-            "cmd": "./codex-acp"
-          },
-          "linux-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-x86_64-unknown-linux-gnu.tar.gz",
-            "cmd": "./codex-acp"
-          },
-          "windows-aarch64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-aarch64-pc-windows-msvc.zip",
-            "cmd": "./codex-acp.exe"
-          },
-          "windows-x86_64": {
-            "archive": "https://github.com/zed-industries/codex-acp/releases/download/v0.16.0/codex-acp-0.16.0-x86_64-pc-windows-msvc.zip",
-            "cmd": "./codex-acp.exe"
-          }
-        },
         "npx": {
-          "package": "@zed-industries/codex-acp@0.16.0"
+          "package": "@agentclientprotocol/codex-acp@1.0.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/codex-acp.svg"
@@ -492,7 +467,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimcode.dev/docs/acp.html",
       "authors": [
@@ -501,7 +476,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.2.8",
+          "package": "dimcode@0.2.9",
           "args": [
             "acp"
           ]
@@ -712,7 +687,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "2141.1",
+      "version": "2142.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -723,42 +698,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2141.1/junie-nightly-2141.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2142.1/junie-nightly-2142.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2141.1/junie-nightly-2141.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2142.1/junie-nightly-2142.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2141.1/junie-nightly-2141.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2142.1/junie-nightly-2142.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2141.1/junie-nightly-2141.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2142.1/junie-nightly-2142.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2141.1/junie-nightly-2141.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2142.1/junie-nightly-2142.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2141.1/junie-nightly-2141.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2142.1/junie-nightly-2142.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1114,7 +1089,7 @@
     {
       "id": "qwen-code",
       "name": "Qwen Code",
-      "version": "0.19.0",
+      "version": "0.19.1",
       "description": "Alibaba's Qwen coding assistant",
       "repository": "https://github.com/QwenLM/qwen-code",
       "website": "https://qwenlm.github.io/qwen-code-docs/en/users/overview",
@@ -1124,7 +1099,7 @@
       "license": "Apache-2.0",
       "distribution": {
         "npx": {
-          "package": "@qwen-code/qwen-code@0.19.0",
+          "package": "@qwen-code/qwen-code@0.19.1",
           "args": [
             "--acp",
             "--experimental-skills"
