@@ -11,6 +11,7 @@ $ErrorActionPreference = 'Stop'
 
 $CHANNEL = "eap"
 $UPDATE_INFO_URL = "https://raw.githubusercontent.com/jetbrains-junie/junie/main/update-info-eap.jsonl"
+$INSTALL_TAG = "<install_tag>"
 $GITHUB_RELEASES = "https://github.com/JetBrains/junie/releases"
 $JUNIE_BIN = Join-Path $HOME ".local\bin"
 $JUNIE_DATA = Join-Path $HOME ".local\share\junie"
@@ -128,6 +129,11 @@ Log "Installing Junie $VERSION for $PLATFORM..."
 New-Item -ItemType Directory -Force -Path $JUNIE_BIN | Out-Null
 New-Item -ItemType Directory -Force -Path "$JUNIE_DATA\versions" | Out-Null
 New-Item -ItemType Directory -Force -Path "$JUNIE_DATA\updates" | Out-Null
+
+if ($INSTALL_TAG -and $INSTALL_TAG -ne "<install_tag>") {
+  New-Item -ItemType Directory -Force -Path "$JUNIE_DATA\misc" | Out-Null
+  [System.IO.File]::WriteAllText("$JUNIE_DATA\misc\install_tag", $INSTALL_TAG)
+}
 
 # Download and install binary
 # Always re-download and overwrite the target version directory, regardless of
