@@ -61,7 +61,7 @@
     {
       "id": "auggie",
       "name": "Auggie CLI",
-      "version": "0.30.0",
+      "version": "0.31.0",
       "description": "Augment Code's powerful software agent, backed by industry-leading context engine",
       "repository": "https://github.com/augmentcode/auggie",
       "website": "https://www.augmentcode.com/",
@@ -72,7 +72,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/auggie.svg",
       "distribution": {
         "npx": {
-          "package": "@augmentcode/auggie@0.30.0",
+          "package": "@augmentcode/auggie@0.31.0",
           "args": [
             "--acp"
           ],
@@ -103,7 +103,7 @@
     {
       "id": "claude-acp",
       "name": "Claude Agent",
-      "version": "0.51.0",
+      "version": "0.52.0",
       "description": "ACP wrapper for Anthropic's Claude",
       "repository": "https://github.com/agentclientprotocol/claude-agent-acp",
       "authors": [
@@ -114,7 +114,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@agentclientprotocol/claude-agent-acp@0.51.0"
+          "package": "@agentclientprotocol/claude-agent-acp@0.52.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/claude-acp.svg"
@@ -122,7 +122,7 @@
     {
       "id": "cline",
       "name": "Cline",
-      "version": "3.0.29",
+      "version": "3.0.30",
       "description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
       "repository": "https://github.com/cline/cline",
       "website": "https://cline.bot/cli",
@@ -133,7 +133,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/cline.svg",
       "distribution": {
         "npx": {
-          "package": "cline@3.0.29",
+          "package": "cline@3.0.30",
           "args": [
             "--acp"
           ]
@@ -508,7 +508,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.158.0",
+      "version": "0.159.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -517,7 +517,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "droid@0.158.0",
+          "package": "droid@0.159.0",
           "args": [
             "exec",
             "--output-format",
@@ -555,7 +555,7 @@
     {
       "id": "gemini",
       "name": "Gemini CLI",
-      "version": "0.47.0",
+      "version": "0.49.0",
       "description": "Google's official CLI for Gemini",
       "repository": "https://github.com/google-gemini/gemini-cli",
       "website": "https://geminicli.com",
@@ -565,7 +565,7 @@
       "license": "Apache-2.0",
       "distribution": {
         "npx": {
-          "package": "@google/gemini-cli@0.47.0",
+          "package": "@google/gemini-cli@0.49.0",
           "args": [
             "--acp"
           ]
@@ -614,7 +614,7 @@
     {
       "id": "goose",
       "name": "goose",
-      "version": "1.38.0",
+      "version": "1.39.0",
       "description": "A local, extensible, open source AI agent that automates engineering tasks",
       "repository": "https://github.com/block/goose",
       "website": "https://block.github.io/goose/",
@@ -625,35 +625,35 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.38.0/goose-aarch64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.39.0/goose-aarch64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.38.0/goose-x86_64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.39.0/goose-x86_64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.38.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.39.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.38.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.39.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.38.0/goose-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/block/goose/releases/download/v1.39.0/goose-x86_64-pc-windows-msvc.zip",
             "cmd": "./goose-package\\goose.exe",
             "args": [
               "acp"
@@ -666,7 +666,7 @@
     {
       "id": "grok-build",
       "name": "Grok Build",
-      "version": "0.2.65",
+      "version": "0.2.68",
       "description": "xAI's coding agent and CLI",
       "website": "https://x.ai/cli",
       "authors": [
@@ -675,7 +675,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@xai-official/grok@0.2.65",
+          "package": "@xai-official/grok@0.2.68",
           "args": [
             "agent",
             "stdio"
@@ -687,7 +687,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "2182.1",
+      "version": "2183.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -698,42 +698,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2182.1/junie-nightly-2182.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2183.1/junie-nightly-2183.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2182.1/junie-nightly-2182.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2183.1/junie-nightly-2183.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2182.1/junie-nightly-2182.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2183.1/junie-nightly-2183.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2182.1/junie-nightly-2182.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2183.1/junie-nightly-2183.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2182.1/junie-nightly-2182.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2183.1/junie-nightly-2183.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2182.1/junie-nightly-2182.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2183.1/junie-nightly-2183.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -876,7 +876,7 @@
     {
       "id": "mistral-vibe",
       "name": "Mistral Vibe",
-      "version": "2.17.1",
+      "version": "2.18.0",
       "description": "Mistral's open-source coding assistant",
       "repository": "https://github.com/mistralai/mistral-vibe",
       "website": "https://mistral.ai/products/vibe",
@@ -888,23 +888,23 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.17.1/vibe-acp-darwin-aarch64-2.17.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.18.0/vibe-acp-darwin-aarch64-2.18.0.zip",
             "cmd": "./vibe-acp"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.17.1/vibe-acp-darwin-x86_64-2.17.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.18.0/vibe-acp-darwin-x86_64-2.18.0.zip",
             "cmd": "./vibe-acp"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.17.1/vibe-acp-linux-aarch64-2.17.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.18.0/vibe-acp-linux-aarch64-2.18.0.zip",
             "cmd": "./vibe-acp"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.17.1/vibe-acp-linux-x86_64-2.17.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.18.0/vibe-acp-linux-x86_64-2.18.0.zip",
             "cmd": "./vibe-acp"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.17.1/vibe-acp-windows-x86_64-2.17.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.18.0/vibe-acp-windows-x86_64-2.18.0.zip",
             "cmd": "./vibe-acp.exe"
           }
         }
@@ -913,7 +913,7 @@
     {
       "id": "nova",
       "name": "Nova",
-      "version": "1.1.20",
+      "version": "1.1.21",
       "description": "Nova by Compass AI - a fully-fledged software engineer at your command",
       "repository": "https://github.com/Compass-Agentic-Platform/nova",
       "website": "https://www.compassap.ai/portfolio/nova.html",
@@ -924,7 +924,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/nova.svg",
       "distribution": {
         "npx": {
-          "package": "@compass-ai/nova@1.1.20",
+          "package": "@compass-ai/nova@1.1.21",
           "args": [
             "acp"
           ]
