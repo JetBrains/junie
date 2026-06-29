@@ -143,6 +143,15 @@ stub_macos_uname() {
   }
 }
 
+# Stub `uname` so zip extraction follows the Linux `unzip` path, even when the
+# test is running on macOS.
+stub_linux_uname() {
+  uname() {
+    if [[ "${1:-}" == "-s" ]]; then echo "Linux"; return 0; fi
+    command uname "$@"
+  }
+}
+
 # Stub `ditto -x -k SRC DST` to extract via unzip (which CI has), emulating a
 # working macOS ditto. Any other ditto invocation is a no-op success.
 stub_ditto_ok() {
@@ -270,6 +279,7 @@ test_corrupt_zip_preserves_artifacts() {
 # 5. Missing unzip on a zip payload -> no silent tar fallback, artifacts preserved
 test_missing_unzip_tool() {
   setup_env "missing_unzip"
+  stub_linux_uname
   seed_version "1.0"
   local zip="$JUNIE_DATA/updates/u.zip"
   make_linux_zip "$zip"
@@ -285,6 +295,7 @@ test_missing_unzip_tool() {
   local rc=$?
 
   unset -f has_command
+  unset -f uname 2>/dev/null || true
 
   assert "[[ $rc -ne 0 ]]" "apply_pending_update must fail when unzip missing on zip payload" || { teardown_env; return; }
   assert "[[ ! -d \"$JUNIE_DATA/versions/1.1\" ]]" "no new version dir on failure" || { teardown_env; return; }

@@ -12,6 +12,7 @@ set -euo pipefail
 
 CHANNEL="eap"
 UPDATE_INFO_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/update-info-eap.jsonl"
+INSTALL_TAG="<install_tag>"
 GITHUB_RELEASES="https://github.com/jetbrains-junie/junie/releases"
 JUNIE_BIN="$HOME/.local/bin"
 JUNIE_DATA="$HOME/.local/share/junie"
@@ -181,6 +182,11 @@ log "Installing Junie $VERSION for $PLATFORM..."
 mkdir -p "$JUNIE_BIN"
 mkdir -p "$JUNIE_DATA/versions"
 mkdir -p "$JUNIE_DATA/updates"
+
+if [[ -n "$INSTALL_TAG" && "$INSTALL_TAG" != "<install_tag>" ]]; then
+  mkdir -p "$JUNIE_DATA/misc"
+  printf '%s' "$INSTALL_TAG" > "$JUNIE_DATA/misc/install_tag"
+fi
 
 # Install shim (skipped in one-shot mode so the existing shim stays intact)
 if [[ -z "$ONESHOT" ]]; then
