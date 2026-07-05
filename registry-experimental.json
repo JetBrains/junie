@@ -534,7 +534,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "website": "https://fast-agent.ai",
@@ -544,7 +544,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.9.0",
+          "package": "fast-agent-acp==0.9.1",
           "args": [
             "-x"
           ]
@@ -666,7 +666,7 @@
     {
       "id": "grok-build",
       "name": "Grok Build",
-      "version": "0.2.86",
+      "version": "0.2.87",
       "description": "xAI's coding agent and CLI",
       "website": "https://x.ai/cli",
       "authors": [
@@ -675,7 +675,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@xai-official/grok@0.2.86",
+          "package": "@xai-official/grok@0.2.87",
           "args": [
             "agent",
             "stdio"
@@ -687,7 +687,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "163.1",
+      "version": "171.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -698,42 +698,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/163.1/junie-experimental-163.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/171.1/junie-experimental-171.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/163.1/junie-experimental-163.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/171.1/junie-experimental-171.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/163.1/junie-experimental-163.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/171.1/junie-experimental-171.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/163.1/junie-experimental-163.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/171.1/junie-experimental-171.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/163.1/junie-experimental-163.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/171.1/junie-experimental-171.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/163.1/junie-experimental-163.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/171.1/junie-experimental-171.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1111,7 +1111,7 @@
     {
       "id": "sigit",
       "name": "siGit Code",
-      "version": "1.3.1",
+      "version": "1.3.2",
       "description": "Local-first coding agent. Runs entirely on your machine with optional on-device LLM inference via Onde.",
       "repository": "https://github.com/getsigit/sigit",
       "website": "https://github.com/getsigit/sigit",
@@ -1122,32 +1122,32 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.1/sigit-macos-arm64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.2/sigit-macos-arm64.tar.gz",
             "cmd": "./sigit"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.1/sigit-macos-amd64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.2/sigit-macos-amd64.tar.gz",
             "cmd": "./sigit"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.1/sigit-linux-arm64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.2/sigit-linux-arm64",
             "cmd": "./sigit-linux-arm64"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.1/sigit-linux-amd64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.2/sigit-linux-amd64",
             "cmd": "./sigit-linux-amd64"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.1/sigit-win-arm64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.2/sigit-win-arm64.exe",
             "cmd": "./sigit-win-arm64.exe"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.1/sigit-win-amd64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.3.2/sigit-win-amd64.exe",
             "cmd": "./sigit-win-amd64.exe"
           }
         },
         "npx": {
-          "package": "@smbcloud/sigit@1.3.1"
+          "package": "@smbcloud/sigit@1.3.2"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/sigit.svg"
