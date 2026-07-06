@@ -103,7 +103,7 @@
     {
       "id": "claude-acp",
       "name": "Claude Agent",
-      "version": "0.55.0",
+      "version": "0.56.0",
       "description": "ACP wrapper for Anthropic's Claude",
       "repository": "https://github.com/agentclientprotocol/claude-agent-acp",
       "authors": [
@@ -114,7 +114,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "@agentclientprotocol/claude-agent-acp@0.55.0"
+          "package": "@agentclientprotocol/claude-agent-acp@0.56.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/claude-acp.svg"
@@ -467,7 +467,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.2.19",
+      "version": "0.2.20",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimcode.dev/docs/acp.html",
       "authors": [
@@ -476,7 +476,7 @@
       "license": "proprietary",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.2.19",
+          "package": "dimcode@0.2.20",
           "args": [
             "acp"
           ]
@@ -534,7 +534,7 @@
     {
       "id": "fast-agent",
       "name": "fast-agent",
-      "version": "0.9.1",
+      "version": "0.9.2",
       "description": "Code and build agents with comprehensive multi-provider support",
       "repository": "https://github.com/evalstate/fast-agent",
       "website": "https://fast-agent.ai",
@@ -544,7 +544,7 @@
       "license": "Apache 2.0",
       "distribution": {
         "uvx": {
-          "package": "fast-agent-acp==0.9.1",
+          "package": "fast-agent-acp==0.9.2",
           "args": [
             "-x"
           ]
@@ -685,9 +685,66 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/grok-build.svg"
     },
     {
+      "id": "harn",
+      "name": "Harn",
+      "version": "0.9.17",
+      "description": "Harn runs .harn agent pipelines as a native ACP coding agent over stdio.",
+      "repository": "https://github.com/burin-labs/harn",
+      "website": "https://harnlang.com",
+      "authors": [
+        "Burin Labs"
+      ],
+      "license": "Apache-2.0",
+      "distribution": {
+        "binary": {
+          "darwin-aarch64": {
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.9.17/harn-aarch64-apple-darwin.tar.gz",
+            "cmd": "./harn",
+            "args": [
+              "serve",
+              "acp"
+            ]
+          },
+          "darwin-x86_64": {
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.9.17/harn-x86_64-apple-darwin.tar.gz",
+            "cmd": "./harn",
+            "args": [
+              "serve",
+              "acp"
+            ]
+          },
+          "linux-aarch64": {
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.9.17/harn-aarch64-unknown-linux-gnu.tar.gz",
+            "cmd": "./harn",
+            "args": [
+              "serve",
+              "acp"
+            ]
+          },
+          "linux-x86_64": {
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.9.17/harn-x86_64-unknown-linux-gnu.tar.gz",
+            "cmd": "./harn",
+            "args": [
+              "serve",
+              "acp"
+            ]
+          },
+          "windows-x86_64": {
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.9.17/harn-x86_64-pc-windows-msvc.zip",
+            "cmd": "harn.exe",
+            "args": [
+              "serve",
+              "acp"
+            ]
+          }
+        }
+      },
+      "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/harn.svg"
+    },
+    {
       "id": "junie",
       "name": "Junie",
-      "version": "2252.1",
+      "version": "2253.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -698,42 +755,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2252.1/junie-nightly-2252.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2253.1/junie-nightly-2253.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2252.1/junie-nightly-2252.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2253.1/junie-nightly-2253.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2252.1/junie-nightly-2252.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2253.1/junie-nightly-2253.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2252.1/junie-nightly-2252.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2253.1/junie-nightly-2253.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2252.1/junie-nightly-2252.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2253.1/junie-nightly-2253.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2252.1/junie-nightly-2252.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2253.1/junie-nightly-2253.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
