@@ -66,8 +66,8 @@ function Fetch-LatestVersion {
     exit 1
   }
 
-  $entry = $lines | Select-Object -Last 1
-  $parsed = $entry | ConvertFrom-Json
+  $parsed = $lines | ForEach-Object { $_ | ConvertFrom-Json } |
+    Sort-Object { [Version]$_.version } | Select-Object -Last 1
 
   $script:VERSION = $parsed.version
   $script:DOWNLOAD_URL = $parsed.downloadUrl

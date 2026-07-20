@@ -102,9 +102,11 @@ fetch_latest_version() {
   local jsonl
   jsonl=$(curl -fsSL "$UPDATE_INFO_URL")
 
-  # Find the latest entry for our platform (last matching line)
+  # Find the entry with the greatest numeric version for our platform.
   local entry
-  entry=$(echo "$jsonl" | grep "\"platform\":\"$PLATFORM\"" | tail -1)
+  entry=$(echo "$jsonl" | grep "\"platform\":\"$PLATFORM\"" |
+    sed 's/.*"version":"\([^"]*\)".*/\1\	&/' |
+    LC_ALL=C sort -t. -k1,1n -k2,2n | tail -1 | cut -f2-)
 
   if [[ -z "$entry" ]]; then
     log_error "No release found for platform: $PLATFORM"
