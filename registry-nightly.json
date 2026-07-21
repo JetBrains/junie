@@ -163,7 +163,7 @@
     {
       "id": "codex-acp",
       "name": "Codex",
-      "version": "1.1.4",
+      "version": "1.1.5",
       "description": "ACP adapter for OpenAI's coding assistant",
       "repository": "https://github.com/agentclientprotocol/codex-acp",
       "authors": [
@@ -174,7 +174,7 @@
       "license": "Apache-2.0",
       "distribution": {
         "npx": {
-          "package": "@agentclientprotocol/codex-acp@1.1.4"
+          "package": "@agentclientprotocol/codex-acp@1.1.5"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/codex-acp.svg"
@@ -754,7 +754,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "2458.1",
+      "version": "2459.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie",
       "website": "https://junie.jetbrains.com",
@@ -765,42 +765,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2458.1/junie-nightly-2458.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2459.1/junie-nightly-2459.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2458.1/junie-nightly-2458.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2459.1/junie-nightly-2459.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2458.1/junie-nightly-2458.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2459.1/junie-nightly-2459.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2458.1/junie-nightly-2458.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2459.1/junie-nightly-2459.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2458.1/junie-nightly-2458.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2459.1/junie-nightly-2459.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2458.1/junie-nightly-2458.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2459.1/junie-nightly-2459.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
