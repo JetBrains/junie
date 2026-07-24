@@ -487,7 +487,7 @@
     {
       "id": "dirac",
       "name": "Dirac",
-      "version": "0.4.22",
+      "version": "0.4.23",
       "description": "Reduces API costs by more than 50%, produces better and faster work. Uses Hash anchored parallel edits, AST manipulation and a whole lot of neat optimizations. Fully Open Source.",
       "repository": "https://github.com/dirac-run/dirac",
       "website": "https://dirac.run",
@@ -498,7 +498,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/dirac.svg",
       "distribution": {
         "npx": {
-          "package": "dirac-cli@0.4.22",
+          "package": "dirac-cli@0.4.23",
           "args": [
             "--acp"
           ]
@@ -754,7 +754,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "2510.1",
+      "version": "2511.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -765,42 +765,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2510.1/junie-nightly-2510.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2511.1/junie-nightly-2511.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2510.1/junie-nightly-2510.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2511.1/junie-nightly-2511.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2510.1/junie-nightly-2510.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2511.1/junie-nightly-2511.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2510.1/junie-nightly-2510.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2511.1/junie-nightly-2511.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2510.1/junie-nightly-2510.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2511.1/junie-nightly-2511.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/2510.1/junie-nightly-2510.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/2511.1/junie-nightly-2511.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -813,7 +813,7 @@
     {
       "id": "kilo",
       "name": "Kilo",
-      "version": "7.4.15",
+      "version": "7.4.16",
       "description": "The open source coding agent",
       "repository": "https://github.com/Kilo-Org/kilocode",
       "website": "https://kilo.ai/",
@@ -825,48 +825,48 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.15/kilo-darwin-arm64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.16/kilo-darwin-arm64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "a6009d19037ea9e34f35e5cce5553f504a0f535669f518210ee94aa398316179"
+            "sha256": "09617440c98987418401c719f2884b4f5b35cac0518c8fbaf88f027ee7f6a704"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.15/kilo-darwin-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.16/kilo-darwin-x64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "33735f700efdc4a510ceb9fa75c323b320e6b52b69a212d41cba90e96a929452"
+            "sha256": "cdcec1e0aabee3712071af1772e611a7d118e0782fcc7074c66212c92ab1ccac"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.15/kilo-linux-arm64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.16/kilo-linux-arm64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "59b013cfa8ddadea264e3510029a09a282d0ef6e988dea85a28ba59798a30602"
+            "sha256": "625653aa0cf3bc2096525b61faffc513fe089beeabf4c10b9aa94c1ec7d0e1cf"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.15/kilo-linux-x64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.16/kilo-linux-x64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "d9c2ce0835efc1d8ba9de006b7e7cc7ae673a705076e1a58ed1c28d3f5210543"
+            "sha256": "dd233dbee98d19f35a62ad3fdc8bd4ed912a8300f0ddd61f432633fe148f136b"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.15/kilo-windows-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.4.16/kilo-windows-x64.zip",
             "cmd": "./kilo.exe",
             "args": [
               "acp"
             ],
-            "sha256": "505d7194163c3cc101501a476fe1fdf4c6153691c8e85c28b8fb8bf4ff9313c6"
+            "sha256": "10552edc9a50232267becee068d942ca599e18bfe9f942e1a8320c08256e30a5"
           }
         },
         "npx": {
-          "package": "@kilocode/cli@7.4.15",
+          "package": "@kilocode/cli@7.4.16",
           "args": [
             "acp"
           ]
