@@ -919,16 +919,23 @@ else
   # Verify checksum
   if [[ -n "$SHA256" ]]; then
     actual_sha256=$(sha256sum_file "$TMP_ZIP")
-    if [[ -n "$actual_sha256" ]]; then
-      if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
-        log_error "Checksum verification failed!"
-        log_error "Expected: $SHA256"
-        log_error "Got: $actual_sha256"
-        rm -f "$TMP_ZIP"
-        exit 1
-      fi
-      log "Checksum verified"
+    if [[ -z "$actual_sha256" ]]; then
+      # A checksum was published for this version but no SHA-256 tool
+      # (shasum/sha256sum) is available to compute the download's hash.
+      # Refuse rather than install a binary we cannot verify.
+      log_error "Cannot verify download: a checksum is published for $VERSION"
+      log_error "but no SHA-256 tool (shasum/sha256sum) is available. Aborting."
+      rm -f "$TMP_ZIP"
+      exit 1
     fi
+    if ! echo "$actual_sha256" | grep -qi "^${SHA256}$"; then
+      log_error "Checksum verification failed!"
+      log_error "Expected: $SHA256"
+      log_error "Got: $actual_sha256"
+      rm -f "$TMP_ZIP"
+      exit 1
+    fi
+    log "Checksum verified"
   fi
 
   # Extract to a staging dir on the same filesystem as $TARGET_DIR, validate the
