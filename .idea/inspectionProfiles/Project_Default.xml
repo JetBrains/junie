@@ -1,0 +1,27 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="mlx" />
+          <option value="transformers" />
+          <option value="miniaudio" />
+          <option value="tqdm" />
+          <option value="Pillow" />
+          <option value="requests" />
+          <option value="llguidance" />
+          <option value="mlx-lm" />
+          <option value="mlx-audio" />
+          <option value="opencv-python" />
+          <option value="fastapi" />
+          <option value="httpx" />
+          <option value="python-multipart" />
+          <option value="starlette" />
+          <option value="uvicorn" />
+          <option value="numpy" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
