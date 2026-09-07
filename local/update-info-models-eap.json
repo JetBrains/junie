@@ -1,6 +1,6 @@
 {
   "models": {
-    "qwen3.6": {
+    "qwen3_6": {
       "default": true,
       "displayName": "Qwen 3.6",
       "junieModelId": "local-qwen3.6-27b-4bit",
@@ -29,7 +29,7 @@
         }
       }
     },
-    "qwen3.8": {
+    "qwen3_8": {
       "default": false,
       "displayName": "Qwen 3.8",
       "junieModelId": "local-qwen3.8-27b-4bit",

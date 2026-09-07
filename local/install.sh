@@ -10,14 +10,14 @@ PROTOCOL_VERSION=1
 MACHINE_OUTPUT=false
 CHECK_ONLY=false
 KEEP_CONFIG=false
-MODEL="qwen3.6"
+MODEL="qwen3_6"
 CHANNEL="main"
 
 usage() {
   echo "Usage: install.sh [options]"
   echo ""
   echo "Options:"
-  echo "  --model <name>     Model to install: qwen3.6 (default) or qwen3.8"
+  echo "  --model <name>     Model to install: qwen3_6 (default) or qwen3_8"
   echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
@@ -95,61 +95,9 @@ PLATFORM="${OS_NAME}-${ARCH_NAME}"
 # Model update metadata is published per channel as a JSON file. Fetch the
 # file for the requested channel and extract the entry for the selected model
 # and our platform.
+# Note: model keys must not contain dots, as plutil uses dots as path
+# separators (e.g. use qwen3_6 instead of qwen3.6).
 MODELS_UPDATE_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/update-info-models-${CHANNEL}.json"
-
-# Extract a nested JSON block for a specific model key from the models object.
-# Model names contain dots (e.g. qwen3.6) which plutil interprets as path
-# separators, so we first extract the whole models object, then use awk to
-# pull out the matching block by counting braces.
-extract_model_block() {
-  local models_json="$1"
-  local model="$2"
-  local models_section
-  models_section=$(printf '%s' "$models_json" | plutil -extract models json -o - -- -) || return 1
-
-  # Check that the model key exists.
-  if ! printf '%s' "$models_section" | grep -q "\"$model\":"; then
-    return 1
-  fi
-
-  printf '%s' "$models_section" | awk -v model="\"$model\":" '
-    BEGIN { found=0; depth=0; result="" }
-    {
-      if (!found && index($0, model)) {
-        found=1
-        pos = index($0, model) + length(model)
-        rest = substr($0, pos)
-        brace_pos = index(rest, "{")
-        result = substr(rest, brace_pos)
-        n = length(result)
-        for (i=1; i<=n; i++) {
-          c = substr(result, i, 1)
-          if (c == "{") depth++
-          else if (c == "}") {
-            depth--
-            if (depth == 0) {
-              print substr(result, 1, i)
-              exit
-            }
-          }
-        }
-      } else if (found) {
-        result = result $0
-        n = length($0)
-        for (i=1; i<=n; i++) {
-          c = substr($0, i, 1)
-          if (c == "{") depth++
-          else if (c == "}") {
-            depth--
-            if (depth == 0) {
-              print result substr($0, 1, i)
-              exit
-            }
-          }
-        }
-      }
-    }'
-}
 
 fetch_models_config() {
   models_json=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
@@ -158,11 +106,12 @@ fetch_models_config() {
   }
 
   # Validate the requested model exists and extract its block.
-  model_section=$(extract_model_block "$models_json" "$MODEL") || {
+  model_section=$(printf '%s' "$models_json" | plutil -extract "models.$MODEL" json -o - -- - 2>/dev/null || true)
+  if [ -z "$model_section" ]; then
     supported=$(printf '%s' "$models_json" | plutil -extract models raw -o - -- - | tr '\n' ',' | sed 's/,$//')
     echo "ERROR: Unknown model: $MODEL (supported: $supported)"
     exit 1
-  }
+  fi
 
   # Validate the requested platform exists for this model.
   platform_section=$(printf '%s' "$model_section" | plutil -extract "platforms.$PLATFORM" json -o - -- - 2>/dev/null || true)

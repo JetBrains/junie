@@ -18,7 +18,7 @@ curl -fsSL https://... | sh
 
 Supported options:
 
-- `--model <name>` — Model to install: `qwen3.6` (default) or `qwen3.8`
+- `--model <name>` — Model to install: `qwen3_6` (default) or `qwen3_8`
 - `--check-only` — Report system information and exit without installing
 - `--json` — Emit machine-readable events on stdout
 - `--keep-config` — Preserve an existing `server-config.json`
@@ -57,12 +57,14 @@ Fields:
 - `update-info-models-main.json`
 - `update-info-models-eap.json`
 
-Hierarchical JSON with models grouped by platform:
+Hierarchical JSON with models grouped by platform.
+
+**Important:** Model keys (the identifiers used with `--model`) must not contain dots (`.`), because `plutil` uses dots as path separators. Use underscores instead (e.g. `qwen3_6` instead of `qwen3.6`).
 
 ```json
 {
   "models": {
-    "qwen3.6": {
+    "qwen3_6": {
       "default": true,
       "displayName": "Qwen 3.6",
       "junieModelId": "local-qwen3.6-27b-4bit",
