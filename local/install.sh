@@ -61,7 +61,6 @@ fi
 # Configuration
 # ============================================================
 
-BASE_URL="https://download.jetbrains.com/resources/junie-local"
 BASE_DIR="$HOME/.local/share/junie-local"
 # Junie configuration directory; the caller (Junie CLI) overrides it when it
 # runs with a non-default home so the model config lands where that instance
@@ -1200,12 +1199,13 @@ emit_step_start "models" "Installing models"
 
 # Function to download and verify a model archive
 download_and_verify() {
-  archive="$1"
-  expected_sha256="$2"
-  archive_label="$3"
+  download_url="$1"
+  archive="$2"
+  expected_sha256="$3"
+  archive_label="$4"
 
   echo "  Downloading $archive..."
-  download_with_retry "$BASE_URL/$archive" "$DOWNLOAD_DIR/$archive" 3 "$archive_label"
+  download_with_retry "$download_url" "$DOWNLOAD_DIR/$archive" 3 "$archive_label"
   printf '  %sChecking SHA256...%s\n' "$GRAY" "$RESET"
 
   emit_activity "verifying" "$archive" "$archive_label"
@@ -1239,18 +1239,21 @@ model_installed() {
 
 # Download and install each model only if not already present
 install_model_if_needed() {
-  zip_file="$1"
-  sha256_sum="$2"
-  model_id="$3"
-  model_label="$4"
+  archive_id="$1"
+
+  zip_file=$(get_archive_field "$archive_id" name)
+  download_url=$(get_archive_field "$archive_id" downloadUrl)
+  sha256_sum=$(get_archive_field "$archive_id" sha256)
+  model_id=$(get_archive_field "$archive_id" modelId)
+  model_label=$(get_archive_field "$archive_id" label)
 
   if model_installed "$model_id"; then
     printf '  %sModel %s is already installed. Skipping.%s\n\n' "$GRAY" "$model_id" "$RESET"
     return 0
   fi
 
-  printf '  %sModel %s is not installed. Proceeding...%s\n\n' "$GRAY" "$model_id" "$RESET"
-  download_and_verify "$zip_file" "$sha256_sum" "$model_label"
+  printf '  %sModel %s is not installed. Proceeding...%s\n\n' "$GRAY" "$model_label" "$RESET"
+  download_and_verify "$download_url" "$zip_file" "$sha256_sum" "$model_label"
   echo "  Extracting $zip_file..."
   emit_activity "extracting" "$zip_file" "$model_label"
   # Remove leftovers from a previously interrupted extraction — the path is
