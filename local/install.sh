@@ -11,12 +11,14 @@ MACHINE_OUTPUT=false
 CHECK_ONLY=false
 KEEP_CONFIG=false
 MODEL="qwen3.6"
+CHANNEL="main"
 
 usage() {
   echo "Usage: install.sh [options]"
   echo ""
   echo "Options:"
   echo "  --model <name>     Model to install: qwen3.6 (default) or qwen3.8"
+  echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
   echo "  --keep-config      Preserve the existing server-config.json instead of removing it"
@@ -36,6 +38,14 @@ while [ $# -gt 0 ]; do
       MODEL="$1"
       ;;
     --model=*) MODEL="${1#--model=}" ;;
+    --channel)
+      shift
+      if [ $# -eq 0 ]; then
+        echo "ERROR: --channel requires a value"; usage; exit 1
+      fi
+      CHANNEL="$1"
+      ;;
+    --channel=*) CHANNEL="${1#--channel=}" ;;
     --help|-h) usage; exit 0 ;;
     *) echo "ERROR: Unknown option: $1"; usage; exit 1 ;;
   esac
@@ -98,12 +108,51 @@ esac
 # archive unpacks into under $MODELS_DIR.
 ENGINE_MODEL_NAME="$MODEL_ID_1"
 
+# ============================================================
+# Engine configuration: fetched from update-info-engine-<channel>.jsonl
+# ============================================================
+
+# Detect the target platform (e.g. macos-aarch64).
+UNAME_OS=$(uname -s)
+UNAME_ARCH=$(uname -m)
+case "$UNAME_OS" in
+  Darwin) OS_NAME="macos" ;;
+  *)      OS_NAME="linux" ;;
+esac
+case "$UNAME_ARCH" in
+  arm64|aarch64) ARCH_NAME="aarch64" ;;
+  x86_64|amd64)  ARCH_NAME="amd64" ;;
+  *)             ARCH_NAME="$UNAME_ARCH" ;;
+esac
+PLATFORM="${OS_NAME}-${ARCH_NAME}"
+
+# Engine update metadata is published per channel as JSONL (one object per
+# line). Fetch the file for the requested channel and pick the entry that
+# matches our platform.
+ENGINE_UPDATE_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/update-info-engine-${CHANNEL}.jsonl"
+
+fetch_engine_config() {
+  engine_jsonl=$(curl -fsSL "$ENGINE_UPDATE_URL" 2>/dev/null) || {
+    echo "ERROR: Could not fetch engine config from $ENGINE_UPDATE_URL"
+    exit 1
+  }
+  engine_entry=$(printf '%s\n' "$engine_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | tail -1)
+  if [ -z "$engine_entry" ]; then
+    echo "ERROR: No engine entry found for platform $PLATFORM in channel $CHANNEL"
+    exit 1
+  fi
+}
+
+fetch_engine_config
+
+ENGINE_VERSION=$(printf '%s' "$engine_entry" | grep -o '"version":"[^"]*"' | sed 's/"version":"\([^"]*\)"/\1/')
+ENGINE_URL=$(printf '%s' "$engine_entry" | grep -o '"downloadUrl":"[^"]*"' | sed 's/"downloadUrl":"\([^"]*\)"/\1/')
+ENGINE_SHA256=$(printf '%s' "$engine_entry" | grep -o '"sha256":"[^"]*"' | sed 's/"sha256":"\([^"]*\)"/\1/')
+# Archive name is the last path segment of the download URL.
+ENGINE_ARCHIVE=$(printf '%s' "$ENGINE_URL" | sed 's|.*/||')
+
 # Inference engine release. Versions are unpacked side by side under versions/
 # and the current symlink points at the one to run.
-ENGINE_VERSION="0.2.2"
-ENGINE_ARCHIVE="junie-mlx-vlm-0.2.2-macos-arm64.tar.gz"
-ENGINE_URL="https://cache-redirector.jetbrains.com/github.com/JetBrains-Hardware/junie-local/releases/download/v0.2.2/$ENGINE_ARCHIVE"
-ENGINE_SHA256="21181744477202f37caed57874ae2bbb5c083816ae084553b1fba3dd978c5763"
 ENGINE_LABEL="inference engine"
 VERSIONS_DIR="$BASE_DIR/versions"
 ENGINE_DIR="$VERSIONS_DIR/$ENGINE_VERSION"

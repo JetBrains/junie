@@ -177,7 +177,7 @@ fetch_version_sha256() {
 install_local_model() {
   echo ""
   log "Junie is installed. Setting up the local model..."
-  if ! curl -fsSL "$LOCAL_MODEL_URL" | bash; then
+  if ! curl -fsSL "$LOCAL_MODEL_URL" | bash -s -- --channel "$CHANNEL"; then
     # The local model is an optional extra on top of a finished Junie install,
     # and it is the part most likely to be refused -- it needs macOS 26 on an
     # Apple M5 or newer with 40 GB of RAM. Whatever went wrong here, Junie itself
@@ -185,7 +185,7 @@ install_local_model() {
     echo ""
     log_error "The local model setup did not complete."
     log "Junie itself is installed and ready to use -- run: junie"
-    log "To try the local model again: curl -fsSL $LOCAL_MODEL_URL | bash"
+    log "To try the local model again: curl -fsSL $LOCAL_MODEL_URL | bash -s -- --channel $CHANNEL"
     exit 1
   fi
 }
