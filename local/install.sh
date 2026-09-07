@@ -70,46 +70,8 @@ JUNIE_HOME="${JUNIE_HOME:-$HOME/.junie}"
 MODELS_DIR="$BASE_DIR/models"
 DOWNLOAD_DIR="$BASE_DIR/incomplete_downloads"
 
-# Model archives, their SHA256 checksums, model IDs, and display labels.
-# Both variants are published side by side; --model picks the one to install,
-# and installing one leaves an already installed other one untouched.
-case "$MODEL" in
-  qwen3.6)
-    MODEL_ZIP_1="Qwen3.6-27B-MLX-4bit.zip"
-    MODEL_SHA256_1="d8abf8f9260247fe2d571b5b65a5d6b80da6635f74f5e2ca195da1941ca7d48d"
-    MODEL_ID_1="Qwen3.6-27B-MLX-4bit"
-    MODEL_LABEL_1="Qwen 3.6 27B 4bit"
-    MODEL_ZIP_2="Qwen3.6-27B-MTP-MLX-4bit.zip"
-    MODEL_SHA256_2="ebbef3755e836082837f902036bfedb8201ab353310f3cbaefdb6d7b652b980f"
-    MODEL_ID_2="Qwen3.6-27B-MTP-MLX-4bit"
-    MODEL_LABEL_2="MTP draft model"
-    JUNIE_MODEL_ID="local-qwen3.6-27b-4bit"
-    JUNIE_MODEL_DISPLAY_NAME="Qwen 3.6"
-    ;;
-  qwen3.8)
-    MODEL_ZIP_1="Qwen3.8-27B-MLX-4bit.zip"
-    MODEL_SHA256_1="50e659f4d286e281502aeaa0fbea43710fd318a976c8cd331c1f8519b303ba39"
-    MODEL_ID_1="Qwen3.8-27B-MLX-4bit"
-    MODEL_LABEL_1="Qwen 3.8 27B 4bit"
-    MODEL_ZIP_2="Qwen3.8-27B-MTP-MLX-4bit.zip"
-    MODEL_SHA256_2="3131d15127297d26c5e97ab63e242be5d1a81b3c8a390fa6e5b6e5a08d7f4f90"
-    MODEL_ID_2="Qwen3.8-27B-MTP-MLX-4bit"
-    MODEL_LABEL_2="MTP draft model"
-    JUNIE_MODEL_ID="local-qwen3.8-27b-4bit"
-    JUNIE_MODEL_DISPLAY_NAME="Qwen 3.8"
-    ;;
-  *)
-    echo "ERROR: Unknown model: $MODEL (supported: qwen3.6, qwen3.8)"
-    exit 1
-    ;;
-esac
-
-# Name the engine serves the main model under. It matches the directory the
-# archive unpacks into under $MODELS_DIR.
-ENGINE_MODEL_NAME="$MODEL_ID_1"
-
 # ============================================================
-# Engine configuration: fetched from update-info-engine-<channel>.jsonl
+# Platform detection
 # ============================================================
 
 # Detect the target platform (e.g. macos-aarch64).
@@ -125,6 +87,113 @@ case "$UNAME_ARCH" in
   *)             ARCH_NAME="$UNAME_ARCH" ;;
 esac
 PLATFORM="${OS_NAME}-${ARCH_NAME}"
+
+# ============================================================
+# Model configuration: fetched from update-info-models-<channel>.json
+# ============================================================
+
+# Model update metadata is published per channel as a JSON file. Fetch the
+# file for the requested channel and extract the entry for the selected model
+# and our platform.
+MODELS_UPDATE_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/update-info-models-${CHANNEL}.json"
+
+# Extract a nested JSON block for a specific model key from the models object.
+# Model names contain dots (e.g. qwen3.6) which plutil interprets as path
+# separators, so we first extract the whole models object, then use awk to
+# pull out the matching block by counting braces.
+extract_model_block() {
+  local models_json="$1"
+  local model="$2"
+  local models_section
+  models_section=$(printf '%s' "$models_json" | plutil -extract models json -o - -- -) || return 1
+
+  # Check that the model key exists.
+  if ! printf '%s' "$models_section" | grep -q "\"$model\":"; then
+    return 1
+  fi
+
+  printf '%s' "$models_section" | awk -v model="\"$model\":" '
+    BEGIN { found=0; depth=0; result="" }
+    {
+      if (!found && index($0, model)) {
+        found=1
+        pos = index($0, model) + length(model)
+        rest = substr($0, pos)
+        brace_pos = index(rest, "{")
+        result = substr(rest, brace_pos)
+        n = length(result)
+        for (i=1; i<=n; i++) {
+          c = substr(result, i, 1)
+          if (c == "{") depth++
+          else if (c == "}") {
+            depth--
+            if (depth == 0) {
+              print substr(result, 1, i)
+              exit
+            }
+          }
+        }
+      } else if (found) {
+        result = result $0
+        n = length($0)
+        for (i=1; i<=n; i++) {
+          c = substr($0, i, 1)
+          if (c == "{") depth++
+          else if (c == "}") {
+            depth--
+            if (depth == 0) {
+              print result substr($0, 1, i)
+              exit
+            }
+          }
+        }
+      }
+    }'
+}
+
+fetch_models_config() {
+  models_json=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
+    echo "ERROR: Could not fetch models config from $MODELS_UPDATE_URL"
+    exit 1
+  }
+
+  # Validate the requested model exists and extract its block.
+  model_section=$(extract_model_block "$models_json" "$MODEL") || {
+    supported=$(printf '%s' "$models_json" | plutil -extract models raw -o - -- - | tr '\n' ',' | sed 's/,$//')
+    echo "ERROR: Unknown model: $MODEL (supported: $supported)"
+    exit 1
+  }
+
+  # Validate the requested platform exists for this model.
+  platform_section=$(printf '%s' "$model_section" | plutil -extract "platforms.$PLATFORM" json -o - -- - 2>/dev/null || true)
+  if [ -z "$platform_section" ]; then
+    supported=$(printf '%s' "$model_section" | plutil -extract platforms raw -o - -- - | tr '\n' ',' | sed 's/,$//')
+    echo "ERROR: No model entry for platform $PLATFORM (supported: $supported)"
+    exit 1
+  fi
+
+  # Extract the model fields and the two archives (main + MTP draft).
+  MODEL_ZIP_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.name' raw -o - -- -)
+  MODEL_SHA256_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.sha256' raw -o - -- -)
+  MODEL_ID_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.modelId' raw -o - -- -)
+  MODEL_LABEL_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.label' raw -o - -- -)
+  MODEL_ZIP_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.name' raw -o - -- -)
+  MODEL_SHA256_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.sha256' raw -o - -- -)
+  MODEL_ID_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.modelId' raw -o - -- -)
+  MODEL_LABEL_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.label' raw -o - -- -)
+  JUNIE_MODEL_ID=$(printf '%s' "$model_section" | plutil -extract junieModelId raw -o - -- -)
+  JUNIE_MODEL_DISPLAY_NAME=$(printf '%s' "$model_section" | plutil -extract displayName raw -o - -- -)
+}
+
+fetch_models_config
+
+# Name the engine serves the main model under. It matches the directory the
+# archive unpacks into under $MODELS_DIR.
+ENGINE_MODEL_NAME="$MODEL_ID_1"
+
+# ============================================================
+# Engine configuration: fetched from update-info-engine-<channel>.jsonl
+# ============================================================
 
 # Engine update metadata is published per channel as JSONL (one object per
 # line). Fetch the file for the requested channel and pick the entry that
