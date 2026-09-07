@@ -10,14 +10,14 @@ PROTOCOL_VERSION=1
 MACHINE_OUTPUT=false
 CHECK_ONLY=false
 KEEP_CONFIG=false
-MODEL="qwen3_6"
+MODEL="Qwen3.6-27B-MLX-4bit"
 CHANNEL="main"
 
 usage() {
   echo "Usage: install.sh [options]"
   echo ""
   echo "Options:"
-  echo "  --model <name>     Model to install: qwen3_6 (default) or qwen3_8"
+  echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default) or Qwen3.8-27B-MLX-4bit"
   echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
@@ -88,72 +88,69 @@ esac
 PLATFORM="${OS_NAME}-${ARCH_NAME}"
 
 # ============================================================
-# Model configuration: fetched from update-info-models-<channel>.json
+# Model configuration: fetched from update-info-models-<channel>.jsonl
 # ============================================================
 
 # Base URL for the update-info files (engine and model metadata). Override via
 # environment variable to point at a custom location during testing/deployment.
 UPDATE_FILES_BASE_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL:-https://raw.githubusercontent.com/jetbrains-junie/junie/main/local}"
 
-# Model update metadata is published per channel as a JSON file with two top
-# level sections:
-#   models  -- model descriptors keyed by model id (must not contain dots)
-#   archives -- archive descriptors keyed by <model_id>[_mtp]_<platform>.
-# The platform section inside a model lists the archiveIds to install.
-MODELS_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-models-${CHANNEL}.json"
+# Model update metadata is published per channel as JSONL (one object per line)
+# with platform, model id (filename in models/ folder), displayName, etc.
+MODELS_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-models-${CHANNEL}.jsonl"
 
-# Global: the fetched JSON, kept for archive lookups later in the script.
+# Global: the fetched model JSON (qwen3.6.json etc), kept for archive lookups.
 models_json=""
 
-# Extract a flat field from a top-level archive entry.
+# Extract a field from an archive entry by index.
 get_archive_field() {
-  local archive_id="$1"
+  local archive_index="$1"
   local field="$2"
-  printf '%s' "$models_json" | plutil -extract "archives.${archive_id}.${field}" raw -o - -- - 2>/dev/null
+  printf '%s' "$models_json" | plutil -extract "archives.${archive_index}.${field}" raw -o - -- - 2>/dev/null
 }
 
 fetch_models_config() {
-  models_json=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
+  # Fetch the JSONL metadata.
+  models_jsonl=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
     echo "ERROR: Could not fetch models config from $MODELS_UPDATE_URL"
     exit 1
   }
 
-  # Validate the requested model exists.
-  model_section=$(printf '%s' "$models_json" | plutil -extract "models.$MODEL" json -o - -- - 2>/dev/null || true)
-  if [ -z "$model_section" ]; then
-    supported=$(printf '%s' "$models_json" | plutil -extract models raw -o - -- - | tr '\n' ',' | sed 's/,$//')
-    echo "ERROR: Unknown model: $MODEL (supported: $supported)"
+  # Find the entry matching our platform and the requested model.
+  model_entry=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | grep "\"id\":\"${MODEL}\"" | tail -1)
+  if [ -z "$model_entry" ]; then
+    supported=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/' | tr '\n' ',' | sed 's/,$//')
+    echo "ERROR: Unknown model: $MODEL for platform $PLATFORM (supported: $supported)"
     exit 1
   fi
 
-  # Validate the requested platform exists for this model.
-  platform_section=$(printf '%s' "$model_section" | plutil -extract "platforms.$PLATFORM" json -o - -- - 2>/dev/null || true)
-  if [ -z "$platform_section" ]; then
-    supported=$(printf '%s' "$model_section" | plutil -extract platforms raw -o - -- - | tr '\n' ',' | sed 's/,$//')
-    echo "ERROR: No model entry for platform $PLATFORM (supported: $supported)"
+  # Extract the model id (filename in the models/ folder).
+  MODEL_FILE_ID=$(printf '%s' "$model_entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
+
+  # Fetch the model JSON file.
+  MODEL_CONFIG_URL="${UPDATE_FILES_BASE_URL}/models/${MODEL_FILE_ID}.json"
+  models_json=$(curl -fsSL "$MODEL_CONFIG_URL" 2>/dev/null) || {
+    echo "ERROR: Could not fetch model config from $MODEL_CONFIG_URL"
     exit 1
-  fi
+  }
 
-  # Extract the model fields.
-  JUNIE_MODEL_DISPLAY_NAME=$(printf '%s' "$model_section" | plutil -extract displayName raw -o - -- -)
-  JUNIE_MODEL_ID=$(printf '%s' "$model_section" | plutil -extract id raw -o - -- -)
+  # Save the model JSON locally so the engine can use it.
+  MODEL_CONFIG_FILE="$BASE_DIR/models/${MODEL_FILE_ID}.json"
+  echo "  Saving model config to $MODEL_CONFIG_FILE..."
+  echo "$models_json" > "$MODEL_CONFIG_FILE"
 
-  # Extract the Junie model config (a valid JSON object with placeholders like
-  # $JUNIE_MODEL_DISPLAY_NAME, $ENGINE_MODEL_NAME, $ENGINE_PORT, $AUTH_TOKEN).
-  # The script substitutes the placeholders before writing the final config file.
-  JUNIE_CONFIG_TEMPLATE=$(printf '%s' "$model_section" | plutil -extract junieConfig json -o - -- -)
+  # Extract the Junie model id (used for config file naming and defaults).
+  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | plutil -extract id raw -o - -- -)
 
-  # Extract the list of archive ids to install (space separated).
-  ARCHIVE_IDS=$(printf '%s' "$platform_section" | plutil -extract archiveIds json -o - -- - \
-    | sed 's/\[//; s/\]//; s/"//g; s/,/ /g')
+  # Count the archives to install.
+  ARCHIVE_COUNT=$(printf '%s' "$models_json" | plutil -extract archives json -o - -- - | grep -o '{' | wc -l | tr -d ' ')
 }
 
 fetch_models_config
 
 # Name the engine serves the main model under. It matches the directory the
 # first archive unpacks into under $MODELS_DIR.
-MAIN_ARCHIVE_ID=$(echo "$ARCHIVE_IDS" | awk '{print $1}')
-ENGINE_MODEL_NAME=$(get_archive_field "$MAIN_ARCHIVE_ID" modelId)
+ENGINE_MODEL_NAME=$(get_archive_field 0 modelId)
 
 # ============================================================
 # Engine configuration: fetched from update-info-engine-<channel>.jsonl
@@ -207,10 +204,6 @@ ENGINE_RAM_GB=35
 # install and stored in server-config.json (api_key field). On re-runs the
 # installer reads the existing token from server-config.json to keep it stable.
 AUTH_TOKEN=""
-
-# Junie model configuration. The id and display name come from the selected
-# model above, so each variant gets its own config file in $JUNIE_HOME/models.
-JUNIE_CUSTOM_MODEL_ID="custom:$JUNIE_MODEL_ID"
 
 # ============================================================
 # Machine-readable events (--json): one JSON object per line on stdout
@@ -1129,54 +1122,6 @@ start_engine() {
   return 1
 }
 
-# Function to create Junie model config file with bearer auth
-create_junie_model_config() {
-  JUNIE_MODELS_DIR="$JUNIE_HOME/models"
-  JUNIE_CONFIG_FILE="$JUNIE_MODELS_DIR/${JUNIE_MODEL_ID}.json"
-
-  # Create the models directory if it doesn't exist
-  if [ ! -d "$JUNIE_MODELS_DIR" ]; then
-    mkdir -p "$JUNIE_MODELS_DIR"
-  fi
-
-  # Ensure the auth token is available; if handle_server_config already ran,
-  # AUTH_TOKEN is already set. Otherwise read from server-config.json or generate.
-  if [ -z "$AUTH_TOKEN" ]; then
-    read_auth_token_from_server_config
-  fi
-  if [ -z "$AUTH_TOKEN" ]; then
-    generate_auth_token
-  fi
-
-  # Substitute the dynamic placeholders in the config JSON and write the
-  # final Junie model config file.
-  echo "  Creating Junie model config at $JUNIE_CONFIG_FILE..."
-  echo "$JUNIE_CONFIG_TEMPLATE" | \
-    sed "s|\$JUNIE_MODEL_DISPLAY_NAME|$JUNIE_MODEL_DISPLAY_NAME|g" | \
-    sed "s|\$ENGINE_MODEL_NAME|$ENGINE_MODEL_NAME|g" | \
-    sed "s|\$ENGINE_PORT|$ENGINE_PORT|g" | \
-    sed "s|\$AUTH_TOKEN|$AUTH_TOKEN|g" > "$JUNIE_CONFIG_FILE"
-  echo "  Junie model config created with bearer auth."
-  return 0
-}
-
-# Function to set the local model as the default in Junie settings
-set_default_junie_model() {
-  JUNIE_SETTINGS="$JUNIE_HOME/settings.json"
-
-  if [ ! -f "$JUNIE_SETTINGS" ]; then
-    echo "  WARNING: Junie settings not found at $JUNIE_SETTINGS"
-    echo "  Skipping default model configuration."
-    emit_warning "Junie settings not found — the local model was not set as default"
-    return 1
-  fi
-
-  echo "  Setting local model as default in Junie..."
-  plutil -replace "modelForLaunch" -string "$JUNIE_CUSTOM_MODEL_ID" "$JUNIE_SETTINGS"
-  echo "  Default model set to $JUNIE_MODEL_ID."
-  return 0
-}
-
 # ============================================================
 # Step 1: Install the inference engine
 # ============================================================
@@ -1231,15 +1176,16 @@ model_installed() {
   [ -d "$MODELS_DIR/$model_id" ] && [ -f "$(model_completion_marker "$model_id")" ]
 }
 
-# Download and install each model only if not already present
+# Download and install each model only if not already present.
+# Takes the archive index within the model JSON's archives array.
 install_model_if_needed() {
-  archive_id="$1"
+  archive_index="$1"
 
-  zip_file=$(get_archive_field "$archive_id" name)
-  download_url=$(get_archive_field "$archive_id" downloadUrl)
-  sha256_sum=$(get_archive_field "$archive_id" sha256)
-  model_id=$(get_archive_field "$archive_id" modelId)
-  model_label=$(get_archive_field "$archive_id" label)
+  zip_file=$(get_archive_field "$archive_index" name)
+  download_url=$(get_archive_field "$archive_index" downloadUrl)
+  sha256_sum=$(get_archive_field "$archive_index" sha256)
+  model_id=$(get_archive_field "$archive_index" modelId)
+  model_label=$(get_archive_field "$archive_index" label)
 
   if model_installed "$model_id"; then
     printf '  %sModel %s is already installed. Skipping.%s\n\n' "$GRAY" "$model_id" "$RESET"
@@ -1258,9 +1204,9 @@ install_model_if_needed() {
   printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
 }
 
-# Download and install each archive listed for this model + platform.
-for archive_id in $ARCHIVE_IDS; do
-  install_model_if_needed "$archive_id"
+# Download and install each archive listed in the model JSON.
+for i in $(seq 0 $((ARCHIVE_COUNT - 1))); do
+  install_model_if_needed "$i"
 done
 
 # Cleanup model downloads
@@ -1273,10 +1219,7 @@ emit_step_done "models"
 # ============================================================
 section "Configuring Junie"
 emit_step_start "configure" "Configuring Junie"
-# These degrade gracefully with warnings; without `|| true` a return 1
-# would abort the script under `set -e`.
-create_junie_model_config || true
-set_default_junie_model || true
+# Setting the default model is handled by the engine on its first run.
 emit_step_done "configure"
 
 # ============================================================

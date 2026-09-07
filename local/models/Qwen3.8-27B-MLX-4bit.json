@@ -1,0 +1,34 @@
+{
+  "id": "local-qwen3.8-27b-4bit",
+  "junieConfig": {
+    "displayName": "Qwen 3.8",
+    "providerName": "Local",
+    "id": "Qwen3.8-27B-MLX-4bit",
+    "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
+    "apiType": "OpenAICompletion",
+    "apiKey": "$AUTH_TOKEN",
+    "temperature": 0.6,
+    "maxContextLength": 150000,
+    "extraBody": {
+      "enable_thinking": false
+    }
+  },
+  "archives": [
+    {
+      "modelId": "Qwen3.8-27B-MLX-4bit",
+      "label": "Qwen 3.8 27B 4bit",
+      "name": "Qwen3.8-27B-MLX-4bit.zip",
+      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/Qwen3.8-27B-MLX-4bit.zip",
+      "sha256": "50e659f4d286e281502aeaa0fbea43710fd318a976c8cd331c1f8519b303ba39",
+      "size": 16081511373
+    },
+    {
+      "modelId": "Qwen3.8-27B-MTP-MLX-4bit",
+      "label": "MTP draft model",
+      "name": "Qwen3.8-27B-MTP-MLX-4bit.zip",
+      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/Qwen3.8-27B-MTP-MLX-4bit.zip",
+      "sha256": "3131d15127297d26c5e97ab63e242be5d1a81b3c8a390fa6e5b6e5a08d7f4f90",
+      "size": 265678598
+    }
+  ]
+}
