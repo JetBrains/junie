@@ -8,24 +8,7 @@
       "platforms": {
         "macos-aarch64": {
           "hardware": "Apple M5",
-          "archives": [
-            {
-              "name": "Qwen3.6-27B-MLX-4bit.zip",
-              "label": "Qwen 3.6 27B 4bit",
-              "modelId": "Qwen3.6-27B-MLX-4bit",
-              "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.6-27B-MLX-4bit.zip",
-              "sha256": "d8abf8f9260247fe2d571b5b65a5d6b80da6635f74f5e2ca195da1941ca7d48d",
-              "size": 14319324160
-            },
-            {
-              "name": "Qwen3.6-27B-MTP-MLX-4bit.zip",
-              "label": "MTP draft model",
-              "modelId": "Qwen3.6-27B-MTP-MLX-4bit",
-              "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.6-27B-MTP-MLX-4bit.zip",
-              "sha256": "ebbef3755e836082837f902036bfedb8201ab353310f3cbaefdb6d7b652b980f",
-              "size": 5120000000
-            }
-          ]
+          "archiveIds": ["qwen3_6_macos_aarch64", "qwen3_6_mtp_macos_aarch64"]
         }
       }
     },
@@ -37,26 +20,43 @@
       "platforms": {
         "macos-aarch64": {
           "hardware": "Apple M5",
-          "archives": [
-            {
-              "name": "Qwen3.8-27B-MLX-4bit.zip",
-              "label": "Qwen 3.8 27B 4bit",
-              "modelId": "Qwen3.8-27B-MLX-4bit",
-              "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.8-27B-MLX-4bit.zip",
-              "sha256": "50e659f4d286e281502aeaa0fbea43710fd318a976c8cd331c1f8519b303ba39",
-              "size": 14319324160
-            },
-            {
-              "name": "Qwen3.8-27B-MTP-MLX-4bit.zip",
-              "label": "MTP draft model",
-              "modelId": "Qwen3.8-27B-MTP-MLX-4bit",
-              "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.8-27B-MTP-MLX-4bit.zip",
-              "sha256": "3131d15127297d26c5e97ab63e242be5d1a81b3c8a390fa6e5b6e5a08d7f4f90",
-              "size": 5120000000
-            }
-          ]
+          "archiveIds": ["qwen3_8_macos_aarch64", "qwen3_8_mtp_macos_aarch64"]
         }
       }
+    }
+  },
+  "archives": {
+    "qwen3_6_macos_aarch64": {
+      "modelId": "Qwen3.6-27B-MLX-4bit",
+      "label": "Qwen 3.6 27B 4bit",
+      "name": "Qwen3.6-27B-MLX-4bit.zip",
+      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.6-27B-MLX-4bit.zip",
+      "sha256": "d8abf8f9260247fe2d571b5b65a5d6b80da6635f74f5e2ca195da1941ca7d48d",
+      "size": 14319324160
+    },
+    "qwen3_6_mtp_macos_aarch64": {
+      "modelId": "Qwen3.6-27B-MTP-MLX-4bit",
+      "label": "MTP draft model",
+      "name": "Qwen3.6-27B-MTP-MLX-4bit.zip",
+      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.6-27B-MTP-MLX-4bit.zip",
+      "sha256": "ebbef3755e836082837f902036bfedb8201ab353310f3cbaefdb6d7b652b980f",
+      "size": 5120000000
+    },
+    "qwen3_8_macos_aarch64": {
+      "modelId": "Qwen3.8-27B-MLX-4bit",
+      "label": "Qwen 3.8 27B 4bit",
+      "name": "Qwen3.8-27B-MLX-4bit.zip",
+      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.8-27B-MLX-4bit.zip",
+      "sha256": "50e659f4d286e281502aeaa0fbea43710fd318a976c8cd331c1f8519b303ba39",
+      "size": 14319324160
+    },
+    "qwen3_8_mtp_macos_aarch64": {
+      "modelId": "Qwen3.8-27B-MTP-MLX-4bit",
+      "label": "MTP draft model",
+      "name": "Qwen3.8-27B-MTP-MLX-4bit.zip",
+      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/models-eap/Qwen3.8-27B-MTP-MLX-4bit.zip",
+      "sha256": "3131d15127297d26c5e97ab63e242be5d1a81b3c8a390fa6e5b6e5a08d7f4f90",
+      "size": 5120000000
     }
   }
 }

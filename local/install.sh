@@ -92,12 +92,22 @@ PLATFORM="${OS_NAME}-${ARCH_NAME}"
 # Model configuration: fetched from update-info-models-<channel>.json
 # ============================================================
 
-# Model update metadata is published per channel as a JSON file. Fetch the
-# file for the requested channel and extract the entry for the selected model
-# and our platform.
-# Note: model keys must not contain dots, as plutil uses dots as path
-# separators (e.g. use qwen3_6 instead of qwen3.6).
+# Model update metadata is published per channel as a JSON file with two top
+# level sections:
+#   models  -- model descriptors keyed by model id (must not contain dots)
+#   archives -- archive descriptors keyed by <model_id>[_mtp]_<platform>.
+# The platform section inside a model lists the archiveIds to install.
 MODELS_UPDATE_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/update-info-models-${CHANNEL}.json"
+
+# Global: the fetched JSON, kept for archive lookups later in the script.
+models_json=""
+
+# Extract a flat field from a top-level archive entry.
+get_archive_field() {
+  local archive_id="$1"
+  local field="$2"
+  printf '%s' "$models_json" | plutil -extract "archives.${archive_id}.${field}" raw -o - -- - 2>/dev/null
+}
 
 fetch_models_config() {
   models_json=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
@@ -105,7 +115,7 @@ fetch_models_config() {
     exit 1
   }
 
-  # Validate the requested model exists and extract its block.
+  # Validate the requested model exists.
   model_section=$(printf '%s' "$models_json" | plutil -extract "models.$MODEL" json -o - -- - 2>/dev/null || true)
   if [ -z "$model_section" ]; then
     supported=$(printf '%s' "$models_json" | plutil -extract models raw -o - -- - | tr '\n' ',' | sed 's/,$//')
@@ -121,24 +131,21 @@ fetch_models_config() {
     exit 1
   fi
 
-  # Extract the model fields and the two archives (main + MTP draft).
-  MODEL_ZIP_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.name' raw -o - -- -)
-  MODEL_SHA256_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.sha256' raw -o - -- -)
-  MODEL_ID_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.modelId' raw -o - -- -)
-  MODEL_LABEL_1=$(printf '%s' "$platform_section" | plutil -extract 'archives.0.label' raw -o - -- -)
-  MODEL_ZIP_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.name' raw -o - -- -)
-  MODEL_SHA256_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.sha256' raw -o - -- -)
-  MODEL_ID_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.modelId' raw -o - -- -)
-  MODEL_LABEL_2=$(printf '%s' "$platform_section" | plutil -extract 'archives.1.label' raw -o - -- -)
+  # Extract the model fields.
   JUNIE_MODEL_ID=$(printf '%s' "$model_section" | plutil -extract junieModelId raw -o - -- -)
   JUNIE_MODEL_DISPLAY_NAME=$(printf '%s' "$model_section" | plutil -extract displayName raw -o - -- -)
+
+  # Extract the list of archive ids to install (space separated).
+  ARCHIVE_IDS=$(printf '%s' "$platform_section" | plutil -extract archiveIds json -o - -- - \
+    | sed 's/\[//; s/\]//; s/"//g; s/,/ /g')
 }
 
 fetch_models_config
 
 # Name the engine serves the main model under. It matches the directory the
-# archive unpacks into under $MODELS_DIR.
-ENGINE_MODEL_NAME="$MODEL_ID_1"
+# first archive unpacks into under $MODELS_DIR.
+MAIN_ARCHIVE_ID=$(echo "$ARCHIVE_IDS" | awk '{print $1}')
+ENGINE_MODEL_NAME=$(get_archive_field "$MAIN_ARCHIVE_ID" modelId)
 
 # ============================================================
 # Engine configuration: fetched from update-info-engine-<channel>.jsonl
@@ -1250,8 +1257,10 @@ install_model_if_needed() {
   printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
 }
 
-install_model_if_needed "$MODEL_ZIP_1" "$MODEL_SHA256_1" "$MODEL_ID_1" "$MODEL_LABEL_1"
-install_model_if_needed "$MODEL_ZIP_2" "$MODEL_SHA256_2" "$MODEL_ID_2" "$MODEL_LABEL_2"
+# Download and install each archive listed for this model + platform.
+for archive_id in $ARCHIVE_IDS; do
+  install_model_if_needed "$archive_id"
+done
 
 # Cleanup model downloads
 printf '  %sRemoving downloaded archives...%s\n' "$GRAY" "$RESET"
@@ -1295,5 +1304,7 @@ echo ""
 printf '  %sThe engine serves http://localhost:%s — the first request has to wait%s\n' "$GRAY" "$ENGINE_PORT" "$RESET"
 printf '  %sfor the model to load.%s\n' "$GRAY" "$RESET"
 printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$ENGINE_CTL" "$RESET"
-emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MODEL_ID_1")\",\"label\":\"$(json_escape "$MODEL_LABEL_1")\""
+MAIN_MODEL_ID=$(get_archive_field "$MAIN_ARCHIVE_ID" modelId)
+MAIN_LABEL=$(get_archive_field "$MAIN_ARCHIVE_ID" label)
+emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MAIN_MODEL_ID")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
 wait_and_exit 0
