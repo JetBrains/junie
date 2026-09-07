@@ -3,8 +3,21 @@
     "qwen3_6": {
       "default": true,
       "displayName": "Qwen 3.6",
-      "junieModelId": "local-qwen3.6-27b-4bit",
+      "id": "local-qwen3.6-27b-4bit",
       "minEngineVersion": "0.2.2",
+      "junieConfig": {
+        "displayName": "$JUNIE_MODEL_DISPLAY_NAME",
+        "providerName": "Local",
+        "id": "$ENGINE_MODEL_NAME",
+        "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
+        "apiType": "OpenAICompletion",
+        "apiKey": "$AUTH_TOKEN",
+        "temperature": 0.6,
+        "maxContextLength": 150000,
+        "extraBody": {
+          "enable_thinking": false
+        }
+      },
       "platforms": {
         "macos-aarch64": {
           "hardware": "Apple M5",
@@ -15,8 +28,21 @@
     "qwen3_8": {
       "default": false,
       "displayName": "Qwen 3.8",
-      "junieModelId": "local-qwen3.8-27b-4bit",
+      "id": "local-qwen3.8-27b-4bit",
       "minEngineVersion": "0.2.2",
+      "junieConfig": {
+        "displayName": "$JUNIE_MODEL_DISPLAY_NAME",
+        "providerName": "Local",
+        "id": "$ENGINE_MODEL_NAME",
+        "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
+        "apiType": "OpenAICompletion",
+        "apiKey": "$AUTH_TOKEN",
+        "temperature": 0.6,
+        "maxContextLength": 150000,
+        "extraBody": {
+          "enable_thinking": false
+        }
+      },
       "platforms": {
         "macos-aarch64": {
           "hardware": "Apple M5",

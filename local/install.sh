@@ -135,8 +135,13 @@ fetch_models_config() {
   fi
 
   # Extract the model fields.
-  JUNIE_MODEL_ID=$(printf '%s' "$model_section" | plutil -extract junieModelId raw -o - -- -)
   JUNIE_MODEL_DISPLAY_NAME=$(printf '%s' "$model_section" | plutil -extract displayName raw -o - -- -)
+  JUNIE_MODEL_ID=$(printf '%s' "$model_section" | plutil -extract id raw -o - -- -)
+
+  # Extract the Junie model config (a valid JSON object with placeholders like
+  # $JUNIE_MODEL_DISPLAY_NAME, $ENGINE_MODEL_NAME, $ENGINE_PORT, $AUTH_TOKEN).
+  # The script substitutes the placeholders before writing the final config file.
+  JUNIE_CONFIG_TEMPLATE=$(printf '%s' "$model_section" | plutil -extract junieConfig json -o - -- -)
 
   # Extract the list of archive ids to install (space separated).
   ARCHIVE_IDS=$(printf '%s' "$platform_section" | plutil -extract archiveIds json -o - -- - \
@@ -169,13 +174,14 @@ fetch_engine_config() {
     echo "ERROR: No engine entry found for platform $PLATFORM in channel $CHANNEL"
     exit 1
   fi
+
+  ENGINE_VERSION=$(printf '%s' "$engine_entry" | grep -o '"version":"[^"]*"' | sed 's/"version":"\([^"]*\)"/\1/')
+  ENGINE_URL=$(printf '%s' "$engine_entry" | grep -o '"downloadUrl":"[^"]*"' | sed 's/"downloadUrl":"\([^"]*\)"/\1/')
+  ENGINE_SHA256=$(printf '%s' "$engine_entry" | grep -o '"sha256":"[^"]*"' | sed 's/"sha256":"\([^"]*\)"/\1/')
 }
 
 fetch_engine_config
 
-ENGINE_VERSION=$(printf '%s' "$engine_entry" | grep -o '"version":"[^"]*"' | sed 's/"version":"\([^"]*\)"/\1/')
-ENGINE_URL=$(printf '%s' "$engine_entry" | grep -o '"downloadUrl":"[^"]*"' | sed 's/"downloadUrl":"\([^"]*\)"/\1/')
-ENGINE_SHA256=$(printf '%s' "$engine_entry" | grep -o '"sha256":"[^"]*"' | sed 's/"sha256":"\([^"]*\)"/\1/')
 # Archive name is the last path segment of the download URL.
 ENGINE_ARCHIVE=$(printf '%s' "$ENGINE_URL" | sed 's|.*/||')
 
@@ -205,9 +211,6 @@ AUTH_TOKEN=""
 # Junie model configuration. The id and display name come from the selected
 # model above, so each variant gets its own config file in $JUNIE_HOME/models.
 JUNIE_CUSTOM_MODEL_ID="custom:$JUNIE_MODEL_ID"
-JUNIE_MODEL_PROVIDER_NAME="Local"
-# seems to be optimal context length
-JUNIE_MAX_CONTEXT_LENGTH=150000
 
 # ============================================================
 # Machine-readable events (--json): one JSON object per line on stdout
@@ -1145,23 +1148,14 @@ create_junie_model_config() {
     generate_auth_token
   fi
 
-  # Write the Junie model config with the bearer token as apiKey.
+  # Substitute the dynamic placeholders in the config JSON and write the
+  # final Junie model config file.
   echo "  Creating Junie model config at $JUNIE_CONFIG_FILE..."
-  cat > "$JUNIE_CONFIG_FILE" <<EOF
-{
-  "displayName": "$JUNIE_MODEL_DISPLAY_NAME",
-  "providerName": "$JUNIE_MODEL_PROVIDER_NAME",
-  "id": "$ENGINE_MODEL_NAME",
-  "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
-  "apiType": "OpenAICompletion",
-  "apiKey": "$AUTH_TOKEN",
-  "temperature": 0.6,
-  "maxContextLength": $JUNIE_MAX_CONTEXT_LENGTH,
-  "extraBody": {
-    "enable_thinking": false
-  }
-}
-EOF
+  echo "$JUNIE_CONFIG_TEMPLATE" | \
+    sed "s|\$JUNIE_MODEL_DISPLAY_NAME|$JUNIE_MODEL_DISPLAY_NAME|g" | \
+    sed "s|\$ENGINE_MODEL_NAME|$ENGINE_MODEL_NAME|g" | \
+    sed "s|\$ENGINE_PORT|$ENGINE_PORT|g" | \
+    sed "s|\$AUTH_TOKEN|$AUTH_TOKEN|g" > "$JUNIE_CONFIG_FILE"
   echo "  Junie model config created with bearer auth."
   return 0
 }
