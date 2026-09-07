@@ -92,12 +92,16 @@ PLATFORM="${OS_NAME}-${ARCH_NAME}"
 # Model configuration: fetched from update-info-models-<channel>.json
 # ============================================================
 
+# Base URL for the update-info files (engine and model metadata). Override via
+# environment variable to point at a custom location during testing/deployment.
+UPDATE_FILES_BASE_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL:-https://raw.githubusercontent.com/jetbrains-junie/junie/main/local}"
+
 # Model update metadata is published per channel as a JSON file with two top
 # level sections:
 #   models  -- model descriptors keyed by model id (must not contain dots)
 #   archives -- archive descriptors keyed by <model_id>[_mtp]_<platform>.
 # The platform section inside a model lists the archiveIds to install.
-MODELS_UPDATE_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/update-info-models-${CHANNEL}.json"
+MODELS_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-models-${CHANNEL}.json"
 
 # Global: the fetched JSON, kept for archive lookups later in the script.
 models_json=""
@@ -154,7 +158,7 @@ ENGINE_MODEL_NAME=$(get_archive_field "$MAIN_ARCHIVE_ID" modelId)
 # Engine update metadata is published per channel as JSONL (one object per
 # line). Fetch the file for the requested channel and pick the entry that
 # matches our platform.
-ENGINE_UPDATE_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/update-info-engine-${CHANNEL}.jsonl"
+ENGINE_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-engine-${CHANNEL}.jsonl"
 
 fetch_engine_config() {
   engine_jsonl=$(curl -fsSL "$ENGINE_UPDATE_URL" 2>/dev/null) || {
