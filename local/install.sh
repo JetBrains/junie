@@ -206,6 +206,10 @@ ENGINE_RAM_GB=35
 AUTH_TOKEN=""
 
 # ============================================================
+# Functions
+# ============================================================
+
+# ============================================================
 # Machine-readable events (--json): one JSON object per line on stdout
 #   {"event":"hello","protocol":1}
 #   {"event":"check","name":"os|cpu|ram","status":"ok|warn|fail","value":"...","requirement":"..."}
@@ -285,6 +289,7 @@ wait_and_exit() {
   fi
   exit "$1"
 }
+
 
 # --- junie-ui:begin ---
 # Presentation layer: the Junie logo, section headings, checked values, and
@@ -799,98 +804,6 @@ type_line() {
 }
 # --- junie-ui:end ---
 
-# ============================================================
-# Collect system information
-# ============================================================
-
-# OS detection
-UNAME_OUT=$(uname -s)
-OS_FULL_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
-OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
-
-# CPU model
-CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
-
-# Total memory in GB
-MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
-MEM_GB=$((MEM_BYTES / 1073741824))
-
-# ============================================================
-# System info summary: evaluate & display
-# ============================================================
-junie_logo
-type_line "Local model installer" "$GRAY"
-section "System information"
-
-ALL_OK=true
-
-# OS check (hard requirement: macOS 26+)
-OS_OK=true
-if [ "$UNAME_OUT" != "Darwin" ]; then
-  OS_OK=false
-  ALL_OK=false
-elif [ "$OS_VERSION" -lt 26 ]; then
-  OS_OK=false
-  ALL_OK=false
-fi
-if [ "$UNAME_OUT" = "Darwin" ]; then
-  OS_DISPLAY="macOS $OS_FULL_VERSION"
-else
-  OS_DISPLAY="$UNAME_OUT $OS_FULL_VERSION"
-fi
-print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "macOS 26 or higher"
-emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "macOS 26 or higher"
-
-# CPU check (hard requirement: Apple M5 or newer)
-#
-# The generation is read out of the brand string ("Apple M5 Pro" -> 5) and
-# compared numerically, so every chip released after the M5 clears the check
-# without this having to be extended for each new generation. Everything below an
-# M5 is turned away, as is an Intel Mac, whose brand string carries no
-# "Apple M<n>" at all.
-CPU_GENERATION=$(printf '%s' "$CPU_MODEL" | sed -n 's/.*Apple M\([0-9][0-9]*\).*/\1/p')
-CPU_OK=true
-if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 5 ]; then
-  CPU_OK=false
-  ALL_OK=false
-fi
-print_value "CPU:" "$CPU_MODEL" "$CPU_OK" false "M5 or newer"
-emit_check "cpu" "$(check_status "$CPU_OK" false)" "$CPU_MODEL" "M5 or newer"
-
-# RAM check (hard: >= 40 GB, recommended: >= 60 GB)
-RAM_OK=true
-RAM_WARN=false
-if [ "$MEM_GB" -lt 40 ]; then
-  RAM_OK=false
-  ALL_OK=false
-elif [ "$MEM_GB" -lt 60 ]; then
-  RAM_WARN=true
-fi
-print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
-emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
-
-# The install configuration is not shown; it still travels as an event so a
-# machine consumer sees the port, the RAM allowance and the engine version.
-emit_event "\"event\":\"config\",\"port\":$ENGINE_PORT,\"ram_gb\":$ENGINE_RAM_GB,\"engine_version\":\"$(json_escape "$ENGINE_VERSION")\",\"model\":\"$(json_escape "$MODEL")\",\"checks_passed\":$ALL_OK"
-
-if [ "$CHECK_ONLY" = true ]; then
-  if [ "$ALL_OK" = true ]; then
-    exit 0
-  else
-    exit 1
-  fi
-fi
-
-# ============================================================
-# Abort unless all hard requirements are met
-# ============================================================
-if [ "$ALL_OK" = false ]; then
-  echo ""
-  printf '  %sSome system requirements are not met. Installation cannot proceed.%s\n' "$RED" "$RESET"
-  emit_error "Some system requirements are not met. Installation cannot proceed."
-  wait_and_exit 1
-fi
-
 # Cleanup function — kills child processes on interrupt
 cleanup() {
   exit_code="$1"
@@ -921,15 +834,6 @@ cleanup() {
 
   wait_and_exit "$exit_code"
 }
-
-trap 'cleanup 130' INT
-trap 'cleanup 143' TERM
-
-# Create directories
-printf '  %sCreating directories...%s\n' "$GRAY" "$RESET"
-mkdir -p "$MODELS_DIR"
-mkdir -p "$VERSIONS_DIR"
-mkdir -p "$DOWNLOAD_DIR"
 
 # Check if an engine version has been fully unpacked. As with the models, a
 # completion marker is written after unpacking — a version directory without it
@@ -1122,20 +1026,6 @@ start_engine() {
   return 1
 }
 
-# ============================================================
-# Step 1: Install the inference engine
-# ============================================================
-section "Installing the inference engine"
-emit_step_start "engine" "Installing the inference engine"
-install_engine
-emit_step_done "engine"
-
-# ============================================================
-# Step 2: Download and install models
-# ============================================================
-section "Installing models"
-emit_step_start "models" "Installing models"
-
 # Function to download and verify a model archive
 download_and_verify() {
   download_url="$1"
@@ -1203,6 +1093,129 @@ install_model_if_needed() {
   touch "$(model_completion_marker "$model_id")"
   printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
 }
+
+# ============================================================
+# System validation
+# ============================================================
+
+# ============================================================
+# Collect system information
+# ============================================================
+
+# OS detection
+UNAME_OUT=$(uname -s)
+OS_FULL_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
+OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
+
+# CPU model
+CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
+
+# Total memory in GB
+MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+MEM_GB=$((MEM_BYTES / 1073741824))
+
+# ============================================================
+# System info summary: evaluate & display
+# ============================================================
+junie_logo
+type_line "Local model installer" "$GRAY"
+section "System information"
+
+ALL_OK=true
+
+# OS check (hard requirement: macOS 26+)
+OS_OK=true
+if [ "$UNAME_OUT" != "Darwin" ]; then
+  OS_OK=false
+  ALL_OK=false
+elif [ "$OS_VERSION" -lt 26 ]; then
+  OS_OK=false
+  ALL_OK=false
+fi
+if [ "$UNAME_OUT" = "Darwin" ]; then
+  OS_DISPLAY="macOS $OS_FULL_VERSION"
+else
+  OS_DISPLAY="$UNAME_OUT $OS_FULL_VERSION"
+fi
+print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "macOS 26 or higher"
+emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "macOS 26 or higher"
+
+# CPU check (hard requirement: Apple M5 or newer)
+#
+# The generation is read out of the brand string ("Apple M5 Pro" -> 5) and
+# compared numerically, so every chip released after the M5 clears the check
+# without this having to be extended for each new generation. Everything below an
+# M5 is turned away, as is an Intel Mac, whose brand string carries no
+# "Apple M<n>" at all.
+CPU_GENERATION=$(printf '%s' "$CPU_MODEL" | sed -n 's/.*Apple M\([0-9][0-9]*\).*/\1/p')
+CPU_OK=true
+if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 5 ]; then
+  CPU_OK=false
+  ALL_OK=false
+fi
+print_value "CPU:" "$CPU_MODEL" "$CPU_OK" false "M5 or newer"
+emit_check "cpu" "$(check_status "$CPU_OK" false)" "$CPU_MODEL" "M5 or newer"
+
+# RAM check (hard: >= 40 GB, recommended: >= 60 GB)
+RAM_OK=true
+RAM_WARN=false
+if [ "$MEM_GB" -lt 40 ]; then
+  RAM_OK=false
+  ALL_OK=false
+elif [ "$MEM_GB" -lt 60 ]; then
+  RAM_WARN=true
+fi
+print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
+emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
+
+# The install configuration is not shown; it still travels as an event so a
+# machine consumer sees the port, the RAM allowance and the engine version.
+emit_event "\"event\":\"config\",\"port\":$ENGINE_PORT,\"ram_gb\":$ENGINE_RAM_GB,\"engine_version\":\"$(json_escape "$ENGINE_VERSION")\",\"model\":\"$(json_escape "$MODEL")\",\"checks_passed\":$ALL_OK"
+
+if [ "$CHECK_ONLY" = true ]; then
+  if [ "$ALL_OK" = true ]; then
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
+# ============================================================
+# Abort unless all hard requirements are met
+# ============================================================
+if [ "$ALL_OK" = false ]; then
+  echo ""
+  printf '  %sSome system requirements are not met. Installation cannot proceed.%s\n' "$RED" "$RESET"
+  emit_error "Some system requirements are not met. Installation cannot proceed."
+  wait_and_exit 1
+fi
+
+# ============================================================
+# Main installation flow
+# ============================================================
+
+trap 'cleanup 130' INT
+trap 'cleanup 143' TERM
+
+# Create directories
+printf '  %sCreating directories...%s\n' "$GRAY" "$RESET"
+mkdir -p "$MODELS_DIR"
+mkdir -p "$VERSIONS_DIR"
+mkdir -p "$DOWNLOAD_DIR"
+
+# ============================================================
+# Step 1: Install the inference engine
+# ============================================================
+section "Installing the inference engine"
+emit_step_start "engine" "Installing the inference engine"
+install_engine
+emit_step_done "engine"
+
+# ============================================================
+# Step 2: Download and install models
+# ============================================================
+section "Installing models"
+emit_step_start "models" "Installing models"
 
 # Download and install each archive listed in the model JSON.
 for i in $(seq 0 $((ARCHIVE_COUNT - 1))); do
