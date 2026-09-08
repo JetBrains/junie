@@ -171,7 +171,7 @@ EOF
       esac
       id=$(printf '%s' "$entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
       name=$(printf '%s' "$entry" | grep -o '"displayName":"[^"]*"' | sed 's/"displayName":"\([^"]*\)"/\1/')
-      echo "$id ($name)"
+      echo "$name ($id)"
     done <<EOF
 $(printf '%s\n' "$models_jsonl")
 EOF
