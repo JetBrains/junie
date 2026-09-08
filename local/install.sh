@@ -181,7 +181,7 @@ EOF
 get_archive_field() {
   local archive_index="$1"
   local field="$2"
-  printf '%s' "$models_json" | grep -o "\"${field}\":[^,}]*" | sed "s/\"${field}\"://; s/[\" ]//g" | sed -n "$((archive_index + 1))p"
+  printf '%s' "$models_json" | grep -o "\"${field}\"[[:space:]]*:[[:space:]]*[^,}]*" | sed "s/\"${field}\"[[:space:]]*:[[:space:]]*//; s/[\" ]//g" | sed -n "$((archive_index + 1))p"
 }
 
 fetch_models_config() {
@@ -218,7 +218,7 @@ fetch_models_config() {
   fi
 
   # Extract the Junie model id (used for config file naming and defaults).
-  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"\([^"]*\)"/\1/')
+  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | grep -o '"id"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"id"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/')
 
   # Count the archives to install.
   ARCHIVE_COUNT=$(printf '%s' "$models_json" | grep -o '"modelId"' | wc -l | tr -d ' ')
@@ -980,7 +980,7 @@ generate_auth_token() {
 read_auth_token_from_server_config() {
   SERVER_CONFIG="$BASE_DIR/server-config.json"
   if [ -f "$SERVER_CONFIG" ]; then
-    AUTH_TOKEN=$(grep -o '"api_key":"[^"]*"' "$SERVER_CONFIG" | sed 's/"api_key":"\([^"]*\)"/\1/' || true)
+    AUTH_TOKEN=$(grep -o '"api_key"[[:space:]]*:[[:space:]]*"[^"]*"' "$SERVER_CONFIG" | sed 's/"api_key"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/' || true)
   fi
 }
 
@@ -1055,7 +1055,7 @@ start_engine() {
   waited=0
   while [ "$waited" -lt 30 ]; do
     phase=$(curl -s -m 5 -H "Authorization: Bearer $AUTH_TOKEN" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
-      | grep -o '"phase":"[^"]*"' | sed 's/"phase":"\([^"]*\)"/\1/' || true)
+      | grep -o '"phase"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"phase"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/' || true)
     if [ "$phase" = "ready" ]; then
       echo "  Engine is ready on port $ENGINE_PORT."
       return 0
