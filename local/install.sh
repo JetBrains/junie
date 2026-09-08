@@ -148,10 +148,6 @@ fetch_models_config() {
 
 fetch_models_config
 
-# Name the engine serves the main model under. It matches the directory the
-# first archive unpacks into under $MODELS_DIR.
-ENGINE_MODEL_NAME=$(get_archive_field 0 modelId)
-
 # ============================================================
 # Engine configuration: fetched from update-info-engine-<channel>.jsonl
 # ============================================================
