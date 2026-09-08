@@ -274,10 +274,6 @@ ENGINE_DAEMON_LOG="$BASE_DIR/junie-mlx-vlm-daemon.log"
 ENGINE_PORT=19239
 ENGINE_RAM_GB=35
 
-# Bearer auth token for local engine-to-Junie communication. Generated on first
-# install and stored in server-config.json (api_key field). On re-runs the
-# installer reads the existing token from server-config.json to keep it stable.
-AUTH_TOKEN=""
 
 # ============================================================
 # Functions
@@ -970,42 +966,26 @@ install_engine() {
   echo ""
 }
 
-# Generate a random bearer token: "sk-" plus 12 random bytes in hex.
-generate_auth_token() {
-  AUTH_TOKEN=$(printf 'sk-%s' "$(head -c 12 /dev/urandom | xxd -p)")
-  echo "  Auth token generated."
-}
-
-# Read the bearer token from an existing server-config.json.
-read_auth_token_from_server_config() {
-  SERVER_CONFIG="$BASE_DIR/server-config.json"
-  if [ -f "$SERVER_CONFIG" ]; then
-    AUTH_TOKEN=$(grep -o '"api_key"[[:space:]]*:[[:space:]]*"[^"]*"' "$SERVER_CONFIG" | sed 's/"api_key"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/' || true)
-  fi
-}
-
 # Ensure server-config.json exists with the api_key and port fields. The engine
 # handles all config updates after initial creation — we only create it here if
-# it doesn't already exist, then reuse the existing token on subsequent runs.
+# it doesn't already exist.
 handle_server_config() {
   SERVER_CONFIG="$BASE_DIR/server-config.json"
 
-  # If the config already exists, read the token from it and leave the file alone.
-  # The engine manages config updates from this point on.
+  # If the config already exists, leave it alone — the engine manages it.
   if [ -f "$SERVER_CONFIG" ]; then
-    read_auth_token_from_server_config
-    if [ -n "$AUTH_TOKEN" ]; then
-      echo "  Reusing existing server-config.json."
-      return 0
-    fi
+    echo "  Reusing existing server-config.json."
+    return 0
   fi
 
   # First run: generate a token and create the config file.
-  generate_auth_token
+  local token
+  token="sk-$(head -c 12 /dev/urandom | xxd -p)"
+  echo "  Auth token generated."
   echo "  Writing server-config.json with api_key and port..."
   cat > "$SERVER_CONFIG" <<EOF
 {
-  "api_key": "$AUTH_TOKEN",
+  "api_key": "$token",
   "port": $ENGINE_PORT
 }
 EOF
