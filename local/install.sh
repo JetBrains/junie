@@ -1261,7 +1261,7 @@ echo ""
 printf '  %sThe engine serves http://localhost:%s — the first request has to wait%s\n' "$GRAY" "$ENGINE_PORT" "$RESET"
 printf '  %sfor the model to load.%s\n' "$GRAY" "$RESET"
 printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$ENGINE_CTL" "$RESET"
-MAIN_MODEL_ID=$(get_archive_field "$MAIN_ARCHIVE_ID" modelId)
-MAIN_LABEL=$(get_archive_field "$MAIN_ARCHIVE_ID" label)
+MAIN_MODEL_ID=$(get_archive_field 0 modelId)
+MAIN_LABEL=$(get_archive_field 0 label)
 emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MAIN_MODEL_ID")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
 wait_and_exit 0
