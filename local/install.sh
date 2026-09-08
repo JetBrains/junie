@@ -262,7 +262,6 @@ ENGINE_LABEL="inference engine"
 VERSIONS_DIR="$BASE_DIR/versions"
 ENGINE_DIR="$VERSIONS_DIR/$ENGINE_VERSION"
 CURRENT_LINK="$BASE_DIR/current"
-ENGINE_BIN="$CURRENT_LINK/junie-mlx-vlm"
 ENGINE_CTL="$CURRENT_LINK/serverctl.sh"
 ENGINE_DAEMON_LOG="$BASE_DIR/junie-mlx-vlm-daemon.log"
 
