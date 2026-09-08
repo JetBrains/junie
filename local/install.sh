@@ -11,7 +11,7 @@ set -e
 # through the install.
 require_commands() {
   missing=""
-  for cmd in curl shasum plutil tar unzip nc pgrep xxd head tput sysctl sw_vers; do
+  for cmd in curl shasum plutil tar unzip pgrep xxd head tput sysctl sw_vers; do
     if ! command -v "$cmd" > /dev/null 2>&1; then
       missing="$missing $cmd"
     fi
@@ -983,18 +983,16 @@ start_engine() {
   fi
 
   if [ ! -f "$ENGINE_CTL" ]; then
-    echo "  WARNING: serverctl.sh not found at $ENGINE_CTL — falling back to direct start"
-    emit_warning "serverctl.sh missing — using direct binary start"
+    echo "  ERROR: serverctl.sh not found at $ENGINE_CTL"
+    echo "  Cannot start the engine without it."
+    emit_error "serverctl.sh not found at $ENGINE_CTL"
+    return 1
   fi
 
   # Stop an engine from an earlier run so it releases the port
   if pgrep -f junie-mlx-vlm > /dev/null 2>&1; then
     echo "  Stopping the running engine..."
-    if [ -f "$ENGINE_CTL" ]; then
-      "$ENGINE_CTL" stop >/dev/null 2>&1 || true
-    else
-      pkill -f junie-mlx-vlm || true
-    fi
+    "$ENGINE_CTL" stop >/dev/null 2>&1 || true
     waited=0
     while [ "$waited" -lt 10 ] && pgrep -f junie-mlx-vlm > /dev/null 2>&1; do
       sleep 1
@@ -1008,40 +1006,23 @@ start_engine() {
   # stream: a consumer reading our stdout would otherwise never see
   # end-of-stream because the daemon holds the pipe open forever.
   echo "  Starting the engine (log: $ENGINE_DAEMON_LOG)..."
-  if [ -f "$ENGINE_CTL" ]; then
-    ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- )
-  else
-    ( nohup "$ENGINE_BIN" daemon < /dev/null >> "$ENGINE_DAEMON_LOG" 2>&1 3>&- & )
-  fi
+  ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- )
 
-  # Wait for the engine to become ready. serverctl.sh wait polls /status until
-  # phase is "ready"; fall back to a simple port check if it is unavailable.
-  if [ -f "$ENGINE_CTL" ]; then
-    waited=0
-    while [ "$waited" -lt 30 ]; do
-      phase=$(curl -s -m 5 -H "Authorization: Bearer $AUTH_TOKEN" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
-        | plutil -extract phase raw -o - -- - 2>/dev/null || true)
-      if [ "$phase" = "ready" ]; then
-        echo "  Engine is ready on port $ENGINE_PORT."
-        return 0
-      fi
-      if [ "$phase" = "error" ]; then
-        break
-      fi
-      sleep 1
-      waited=$((waited + 1))
-    done
-  else
-    waited=0
-    while [ "$waited" -lt 26 ]; do
-      if nc -z localhost "$ENGINE_PORT" 2>/dev/null; then
-        echo "  Engine is listening on port $ENGINE_PORT."
-        return 0
-      fi
-      sleep 1
-      waited=$((waited + 1))
-    done
-  fi
+  # Wait for the engine to become ready by polling /status until phase is "ready".
+  waited=0
+  while [ "$waited" -lt 30 ]; do
+    phase=$(curl -s -m 5 -H "Authorization: Bearer $AUTH_TOKEN" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
+      | plutil -extract phase raw -o - -- - 2>/dev/null || true)
+    if [ "$phase" = "ready" ]; then
+      echo "  Engine is ready on port $ENGINE_PORT."
+      return 0
+    fi
+    if [ "$phase" = "error" ]; then
+      break
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
 
   echo "  WARNING: the engine is not answering on port $ENGINE_PORT yet."
   echo "  Check the log at $ENGINE_DAEMON_LOG"
