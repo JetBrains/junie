@@ -11,7 +11,7 @@ set -e
 # through the install.
 require_commands() {
   missing=""
-  for cmd in curl shasum plutil tar unzip pgrep xxd head tput sysctl sw_vers; do
+  for cmd in curl shasum tar unzip pgrep xxd head tput sysctl sw_vers; do
     if ! command -v "$cmd" > /dev/null 2>&1; then
       missing="$missing $cmd"
     fi
@@ -37,7 +37,6 @@ PROTOCOL_VERSION=1
 MACHINE_OUTPUT=false
 CHECK_ONLY=false
 LIST_MODELS=false
-KEEP_CONFIG=false
 MODEL="Qwen3.6-27B-MLX-4bit"
 CHANNEL="main"
 
@@ -50,7 +49,6 @@ usage() {
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
-  echo "  --keep-config      Preserve the existing server-config.json instead of removing it"
   echo "  --help, -h         Show this help"
 }
 
@@ -59,7 +57,6 @@ while [ $# -gt 0 ]; do
     --json) MACHINE_OUTPUT=true ;;
     --check-only) CHECK_ONLY=true ;;
     --models) LIST_MODELS=true ;;
-    --keep-config) KEEP_CONFIG=true ;;
     --model)
       shift
       if [ $# -eq 0 ]; then
@@ -178,11 +175,13 @@ EOF
   fi
 }
 
-# Extract a field from an archive entry by index.
+# Extract a field from an archive entry by index. Each archive object has
+# exactly one of each field, so we extract all values of that field in order
+# and pick the Nth one.
 get_archive_field() {
   local archive_index="$1"
   local field="$2"
-  printf '%s' "$models_json" | plutil -extract "archives.${archive_index}.${field}" raw -o - -- - 2>/dev/null
+  printf '%s' "$models_json" | grep -o "\"${field}\":[^,}]*" | sed "s/\"${field}\"://; s/[\" ]//g" | sed -n "$((archive_index + 1))p"
 }
 
 fetch_models_config() {
@@ -219,10 +218,10 @@ fetch_models_config() {
   fi
 
   # Extract the Junie model id (used for config file naming and defaults).
-  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | plutil -extract id raw -o - -- -)
+  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"\([^"]*\)"/\1/')
 
   # Count the archives to install.
-  ARCHIVE_COUNT=$(printf '%s' "$models_json" | plutil -extract archives json -o - -- - | grep -o '"modelId"' | wc -l | tr -d ' ')
+  ARCHIVE_COUNT=$(printf '%s' "$models_json" | grep -o '"modelId"' | wc -l | tr -d ' ')
 }
 
 fetch_models_config
@@ -977,55 +976,46 @@ generate_auth_token() {
   echo "  Auth token generated."
 }
 
-# Read the bearer token from an existing server-config.json using plutil.
+# Read the bearer token from an existing server-config.json.
 read_auth_token_from_server_config() {
   SERVER_CONFIG="$BASE_DIR/server-config.json"
   if [ -f "$SERVER_CONFIG" ]; then
-    AUTH_TOKEN=$(plutil -extract api_key raw "$SERVER_CONFIG" 2>/dev/null || true)
+    AUTH_TOKEN=$(grep -o '"api_key":"[^"]*"' "$SERVER_CONFIG" | sed 's/"api_key":"\([^"]*\)"/\1/' || true)
   fi
 }
 
-# Write server-config.json with the api_key field set to the generated bearer
-# token. The engine will read this on startup and enforce auth on all endpoints.
-# With --keep-config the previous file is left in place.
+# Ensure server-config.json exists with the api_key and port fields. The engine
+# handles all config updates after initial creation — we only create it here if
+# it doesn't already exist, then reuse the existing token on subsequent runs.
 handle_server_config() {
   SERVER_CONFIG="$BASE_DIR/server-config.json"
 
-  # On re-run, try to read the existing token from server-config.json before
-  # removing it, so we can reuse it in the fresh config.
-  if [ -z "$AUTH_TOKEN" ] && [ -f "$SERVER_CONFIG" ]; then
-    read_auth_token_from_server_config
-  fi
-
+  # If the config already exists, read the token from it and leave the file alone.
+  # The engine manages config updates from this point on.
   if [ -f "$SERVER_CONFIG" ]; then
-    if [ "$KEEP_CONFIG" = true ]; then
-      echo "  Keeping existing server-config.json (--keep-config)."
-    else
-      echo "  Removing existing server-config.json (use --keep-config to preserve)."
-      rm -f "$SERVER_CONFIG"
+    read_auth_token_from_server_config
+    if [ -n "$AUTH_TOKEN" ]; then
+      echo "  Reusing existing server-config.json."
+      return 0
     fi
   fi
 
-  if [ -z "$AUTH_TOKEN" ]; then
-    generate_auth_token
-  fi
-
-  if [ "$KEEP_CONFIG" != true ]; then
-    echo "  Writing server-config.json with api_key and port..."
-    cat > "$SERVER_CONFIG" <<EOF
+  # First run: generate a token and create the config file.
+  generate_auth_token
+  echo "  Writing server-config.json with api_key and port..."
+  cat > "$SERVER_CONFIG" <<EOF
 {
   "api_key": "$AUTH_TOKEN",
   "port": $ENGINE_PORT
 }
 EOF
-    echo "  server-config.json created with bearer auth and port."
-  fi
+  echo "  server-config.json created with bearer auth and port."
 }
 
 # Function to start the engine daemon using serverctl.sh. The daemon serves the
 # public API and supervises the inference worker itself.
 start_engine() {
-  # Remove the config file by default so the engine writes a fresh one on first start.
+  # Ensure server-config.json exists (created on first run, reused afterwards).
   handle_server_config
 
   if [ ! -x "$ENGINE_BIN" ]; then
@@ -1065,7 +1055,7 @@ start_engine() {
   waited=0
   while [ "$waited" -lt 30 ]; do
     phase=$(curl -s -m 5 -H "Authorization: Bearer $AUTH_TOKEN" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
-      | plutil -extract phase raw -o - -- - 2>/dev/null || true)
+      | grep -o '"phase":"[^"]*"' | sed 's/"phase":"\([^"]*\)"/\1/' || true)
     if [ "$phase" = "ready" ]; then
       echo "  Engine is ready on port $ENGINE_PORT."
       return 0
