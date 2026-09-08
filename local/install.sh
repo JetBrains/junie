@@ -2,6 +2,33 @@
 set -e
 
 # ============================================================
+# Prerequisites
+# ============================================================
+
+# Ensure the required commands are available before we start downloading
+# anything. We fail early with an actionable message so users on minimal
+# systems aren't stuck staring at a cryptic `command not found` halfway
+# through the install.
+require_commands() {
+  missing=""
+  for cmd in curl shasum plutil tar unzip nc pgrep xxd head tput sysctl sw_vers; do
+    if ! command -v "$cmd" > /dev/null 2>&1; then
+      missing="$missing $cmd"
+    fi
+  done
+  if [ -n "$missing" ]; then
+    echo "ERROR: Required commands not found:$missing"
+    echo ""
+    echo "These are part of macOS base system or Xcode Command Line Tools."
+    echo "Install Xcode CLI tools with:"
+    echo "  xcode-select --install"
+    echo "then re-run this installer."
+    exit 1
+  fi
+}
+require_commands
+
+# ============================================================
 # Command-line arguments
 # ============================================================
 
