@@ -129,6 +129,14 @@ MODELS_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-models-${CHANNEL}.jsonl"
 # Global: the fetched model JSON (qwen3.6.json etc), kept for archive lookups.
 models_json=""
 
+# Extract a string field from JSON on stdin. Handles both compact
+# ("key":"value") and pretty-printed ("key": "value") formats. Prints the
+# first occurrence; empty if the field is not found.
+get_json_field() {
+  local field="$1"
+  grep -o "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 | sed "s/\"${field}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\"/\\1/"
+}
+
 # List all models available for the current platform from the channel's
 # update-info-models JSONL. In human mode prints one "id (displayName)" per
 # line; with --json emits a single "models" event with the full list.
@@ -147,8 +155,8 @@ list_available_models() {
         *"\"platform\":\"${PLATFORM}\""*) ;;
         *) continue ;;
       esac
-      id=$(printf '%s' "$entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
-      name=$(printf '%s' "$entry" | grep -o '"displayName":"[^"]*"' | sed 's/"displayName":"\([^"]*\)"/\1/')
+      id=$(printf '%s' "$entry" | get_json_field id)
+      name=$(printf '%s' "$entry" | get_json_field displayName)
       if [ "$first" = true ]; then
         first=false
       else
@@ -166,8 +174,8 @@ EOF
         *"\"platform\":\"${PLATFORM}\""*) ;;
         *) continue ;;
       esac
-      id=$(printf '%s' "$entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
-      name=$(printf '%s' "$entry" | grep -o '"displayName":"[^"]*"' | sed 's/"displayName":"\([^"]*\)"/\1/')
+      id=$(printf '%s' "$entry" | get_json_field id)
+      name=$(printf '%s' "$entry" | get_json_field displayName)
       echo "$name ($id)"
     done <<EOF
 $(printf '%s\n' "$models_jsonl")
@@ -194,13 +202,13 @@ fetch_models_config() {
   # Find the entry matching our platform and the requested model.
   model_entry=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | grep "\"id\":\"${MODEL}\"" | tail -1)
   if [ -z "$model_entry" ]; then
-    supported=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/' | tr '\n' ',' | sed 's/,$//')
+    supported=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | while IFS= read -r e; do printf '%s' "$e" | get_json_field id; done | tr '\n' ',' | sed 's/,$//')
     echo "ERROR: Unknown model: $MODEL for platform $PLATFORM (supported: $supported)"
     exit 1
   fi
 
   # Extract the model id (filename in the models/ folder).
-  MODEL_FILE_ID=$(printf '%s' "$model_entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
+  MODEL_FILE_ID=$(printf '%s' "$model_entry" | get_json_field id)
 
   # Fetch the model JSON file.
   MODEL_CONFIG_URL="${UPDATE_FILES_BASE_URL}/models/${MODEL_FILE_ID}.json"
@@ -218,7 +226,7 @@ fetch_models_config() {
   fi
 
   # Extract the Junie model id (used for config file naming and defaults).
-  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | grep -o '"id"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/"id"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/')
+  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | get_json_field id)
 
   # Count the archives to install.
   ARCHIVE_COUNT=$(printf '%s' "$models_json" | grep -o '"modelId"' | wc -l | tr -d ' ')
@@ -246,9 +254,9 @@ fetch_engine_config() {
     exit 1
   fi
 
-  ENGINE_VERSION=$(printf '%s' "$engine_entry" | grep -o '"version":"[^"]*"' | sed 's/"version":"\([^"]*\)"/\1/')
-  ENGINE_URL=$(printf '%s' "$engine_entry" | grep -o '"downloadUrl":"[^"]*"' | sed 's/"downloadUrl":"\([^"]*\)"/\1/')
-  ENGINE_SHA256=$(printf '%s' "$engine_entry" | grep -o '"sha256":"[^"]*"' | sed 's/"sha256":"\([^"]*\)"/\1/')
+  ENGINE_VERSION=$(printf '%s' "$engine_entry" | get_json_field version)
+  ENGINE_URL=$(printf '%s' "$engine_entry" | get_json_field downloadUrl)
+  ENGINE_SHA256=$(printf '%s' "$engine_entry" | get_json_field sha256)
 }
 
 fetch_engine_config
@@ -912,7 +920,7 @@ engine_completion_marker() {
 }
 
 engine_installed() {
-  [ -x "$ENGINE_DIR/junie-mlx-vlm" ] && [ -f "$ENGINE_DIR/serverctl.sh" ] && [ -f "$(engine_completion_marker)" ]
+  [ -f "$ENGINE_DIR/serverctl.sh" ] && [ -f "$(engine_completion_marker)" ]
 }
 
 # Function to download and unpack the inference engine, then point current at it
@@ -997,6 +1005,10 @@ start_engine() {
   # Ensure server-config.json exists (created on first run, reused afterwards).
   handle_server_config
 
+  # Read the auth token from the config file.
+  local auth_token
+  auth_token=$(get_json_field api_key < "$BASE_DIR/server-config.json")
+
   if [ ! -f "$ENGINE_CTL" ]; then
     echo "  ERROR: serverctl.sh not found at $ENGINE_CTL"
     echo "  Cannot start the engine without it."
@@ -1026,8 +1038,8 @@ start_engine() {
   # Wait for the engine to become ready by polling /status until phase is "ready".
   waited=0
   while [ "$waited" -lt 30 ]; do
-    phase=$(curl -s -m 5 -H "Authorization: Bearer $AUTH_TOKEN" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
-      | grep -o '"phase"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"phase"[[:space:]]*:[[:space:]]*"\([^"]*\)"/\1/' || true)
+    phase=$(curl -s -m 5 -H "Authorization: Bearer $auth_token" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
+      | get_json_field phase || true)
     if [ "$phase" = "ready" ]; then
       echo "  Engine is ready on port $ENGINE_PORT."
       return 0
