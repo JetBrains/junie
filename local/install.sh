@@ -998,13 +998,6 @@ start_engine() {
   # Ensure server-config.json exists (created on first run, reused afterwards).
   handle_server_config
 
-  if [ ! -x "$ENGINE_BIN" ]; then
-    echo "  WARNING: engine binary not found at $ENGINE_BIN"
-    echo "  Skipping engine startup."
-    emit_warning "engine binary not found at $ENGINE_BIN — start it manually"
-    return 1
-  fi
-
   if [ ! -f "$ENGINE_CTL" ]; then
     echo "  ERROR: serverctl.sh not found at $ENGINE_CTL"
     echo "  Cannot start the engine without it."
