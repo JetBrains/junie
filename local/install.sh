@@ -170,7 +170,7 @@ fetch_models_config() {
   JUNIE_MODEL_ID=$(printf '%s' "$models_json" | plutil -extract id raw -o - -- -)
 
   # Count the archives to install.
-  ARCHIVE_COUNT=$(printf '%s' "$models_json" | plutil -extract archives json -o - -- - | grep -o '{' | wc -l | tr -d ' ')
+  ARCHIVE_COUNT=$(printf '%s' "$models_json" | plutil -extract archives json -o - -- - | grep -o '"modelId"' | wc -l | tr -d ' ')
 }
 
 fetch_models_config
