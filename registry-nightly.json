@@ -204,6 +204,7 @@
         "Tencent Cloud"
       ],
       "license": "Proprietary",
+      "license_url": "https://www.codebuddy.cn/agreement/",
       "distribution": {
         "npx": {
           "package": "@tencent-ai/codebuddy-code@2.147.0",
@@ -244,6 +245,7 @@
         "Snowflake"
       ],
       "license": "proprietary",
+      "license_url": "https://www.snowflake.com/en/legal/terms-of-service/",
       "distribution": {
         "binary": {
           "darwin-aarch64": {
@@ -474,6 +476,7 @@
         "Cognition"
       ],
       "license": "proprietary",
+      "license_url": "https://cognition.com/legal/platform-terms-of-service",
       "repository": "https://github.com/CognitionAI/devin-cli",
       "distribution": {
         "binary": {
@@ -575,6 +578,7 @@
         "Factory AI"
       ],
       "license": "proprietary",
+      "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
           "package": "droid@0.213.0",
@@ -649,6 +653,7 @@
         "GitHub"
       ],
       "license": "proprietary",
+      "license_url": "https://github.com/github/copilot-cli/blob/main/LICENSE.md",
       "distribution": {
         "npx": {
           "package": "@github/copilot@1.0.83",
@@ -745,6 +750,7 @@
         "xAI"
       ],
       "license": "proprietary",
+      "license_url": "https://x.ai/legal/terms-of-service",
       "distribution": {
         "npx": {
           "package": "@xai-official/grok@1.0.24",
@@ -822,7 +828,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3212.1",
+      "version": "3213.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -830,45 +836,46 @@
         "JetBrains"
       ],
       "license": "proprietary",
+      "license_url": "https://www.jetbrains.com/legal/docs/terms/jetbrains-ai-service/",
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3212.1/junie-nightly-3212.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3213.1/junie-nightly-3213.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3212.1/junie-nightly-3212.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3213.1/junie-nightly-3213.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3212.1/junie-nightly-3212.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3213.1/junie-nightly-3213.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3212.1/junie-nightly-3212.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3213.1/junie-nightly-3213.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3212.1/junie-nightly-3212.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3213.1/junie-nightly-3213.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3212.1/junie-nightly-3212.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3213.1/junie-nightly-3213.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -953,6 +960,7 @@
         "Kimchi"
       ],
       "license": "Apache-2.0",
+      "license_url": "https://github.com/getkimchi/kimchi/blob/master/LICENSE",
       "distribution": {
         "binary": {
           "darwin-aarch64": {
@@ -1308,6 +1316,7 @@
         "Qoder AI"
       ],
       "license": "proprietary",
+      "license_url": "https://qoder.com/product-service?lang=en",
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
