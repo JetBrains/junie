@@ -4,7 +4,8 @@ Installation scripts and update metadata for the Junie local model (on-device in
 
 ## Current Platform Support
 
-macOS only (Apple M5 or newer, macOS 26+).
+- **macOS**: Apple M5 or newer, macOS 26+ (MLX backend)
+- **Linux**: NVIDIA GPU with 24 GB VRAM, CUDA 12+, 40 GB system RAM, kernel 5.15+
 
 ## Files
 

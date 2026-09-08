@@ -9,9 +9,22 @@ set -e
 # anything. We fail early with an actionable message so users on minimal
 # systems aren't stuck staring at a cryptic `command not found` halfway
 # through the install.
+# Detect the OS early so we can pick the right toolchain for every step.
+if uname -s | grep -qi "darwin"; then
+  OS_TYPE="macos"
+else
+  OS_TYPE="linux"
+fi
+
 require_commands() {
   missing=""
-  for cmd in curl shasum tar unzip pgrep xxd head tput sysctl sw_vers; do
+  common="curl tar unzip head tput"
+  if [ "$OS_TYPE" = "macos" ]; then
+    required="$common shasum pgrep xxd sysctl sw_vers"
+  else
+    required="$common sha256sum nvidia-smi lscpu"
+  fi
+  for cmd in $required; do
     if ! command -v "$cmd" > /dev/null 2>&1; then
       missing="$missing $cmd"
     fi
@@ -19,9 +32,16 @@ require_commands() {
   if [ -n "$missing" ]; then
     echo "ERROR: Required commands not found:$missing"
     echo ""
-    echo "These are part of macOS base system or Xcode Command Line Tools."
-    echo "Install Xcode CLI tools with:"
-    echo "  xcode-select --install"
+    if [ "$OS_TYPE" = "macos" ]; then
+      echo "These are part of macOS base system or Xcode Command Line Tools."
+      echo "Install Xcode CLI tools with:"
+      echo "  xcode-select --install"
+    else
+      echo "Install them with your distribution's package manager, e.g.:"
+      echo "  apt-get update && apt-get install -y sha256sum nvidia-smi lscpu"
+      echo "or"
+      echo "  dnf install -y coreutils nvidia-utils pciutils"
+    fi
     echo "then re-run this installer."
     exit 1
   fi
@@ -100,7 +120,9 @@ DOWNLOAD_DIR="$BASE_DIR/incomplete_downloads"
 # Platform detection
 # ============================================================
 
-# Detect the target platform (e.g. macos-aarch64).
+# Detect the target platform (e.g. macos-aarch64 or linux-amd64).
+# OS_TYPE was already set at the top of the script; UNAME_OS is kept for
+# display and for the legacy checks that still use it.
 UNAME_OS=$(uname -s)
 UNAME_ARCH=$(uname -m)
 case "$UNAME_OS" in
@@ -271,7 +293,6 @@ VERSIONS_DIR="$BASE_DIR/versions"
 ENGINE_DIR="$VERSIONS_DIR/$ENGINE_VERSION"
 CURRENT_LINK="$BASE_DIR/current"
 ENGINE_CTL="$CURRENT_LINK/serverctl.sh"
-ENGINE_DAEMON_LOG="$BASE_DIR/junie-mlx-vlm-daemon.log"
 
 # The port the engine serves on (the Junie model config below points at it) and
 # the RAM allowance it may spend on weights and KV cache. The engine reads the
@@ -352,6 +373,43 @@ check_status() {
 }
 
 emit_event "\"event\":\"hello\",\"protocol\":$PROTOCOL_VERSION"
+
+# ============================================================
+# OS-specific utility functions
+# ============================================================
+
+# Calculate SHA-256 checksum of a file. Uses shasum on macOS and sha256sum on
+# Linux, since the two tools have different flags and output formats.
+get_checksum() {
+  local file="$1"
+  if [ "$OS_TYPE" = "macos" ]; then
+    shasum -a 256 "$file" | awk '{print $1}'
+  else
+    sha256sum "$file" | awk '{print $1}'
+  fi
+}
+
+# Generate a random hex token. xxd is not available on all Linux systems,
+# so fall back to od, which is part of POSIX coreutils.
+generate_token() {
+  if command -v xxd > /dev/null 2>&1; then
+    head -c 12 /dev/urandom | xxd -p
+  else
+    head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n'
+  fi
+}
+
+# Check whether the engine daemon is currently running. macOS has pgrep with
+# a clean -f flag; on Linux we use ps + grep and filter out the grep itself.
+# We match on "serverctl" and the base dir rather than a hardcoded binary name,
+# so the check works regardless of the platform-specific engine binary.
+is_engine_running() {
+  if [ "$OS_TYPE" = "macos" ]; then
+    pgrep -f "$ENGINE_CTL" > /dev/null 2>&1 || pgrep -f "junie.*vlm" > /dev/null 2>&1
+  else
+    ps aux | grep -E "serverctl|junie.*vlm" | grep -v grep | grep -q .
+  fi
+}
 
 # Helper: wait for user to press any key, then exit. Only a standalone run on a
 # terminal has someone to wait for: piped into a shell (`curl ... | sh`) stdin is
@@ -933,7 +991,7 @@ install_engine() {
     printf '  %sChecking SHA256...%s\n' "$GRAY" "$RESET"
 
     emit_activity "verifying" "$ENGINE_ARCHIVE" "$ENGINE_LABEL"
-    actual_sha256=$(shasum -a 256 "$DOWNLOAD_DIR/$ENGINE_ARCHIVE" | awk '{print $1}')
+    actual_sha256=$(get_checksum "$DOWNLOAD_DIR/$ENGINE_ARCHIVE")
     if [ "$actual_sha256" != "$ENGINE_SHA256" ]; then
       printf '  %sERROR: SHA256 mismatch for %s%s\n' "$RED" "$ENGINE_ARCHIVE" "$RESET"
       echo "    Expected: $ENGINE_SHA256"
@@ -987,7 +1045,7 @@ handle_server_config() {
 
   # First run: generate a token and create the config file.
   local token
-  token="sk-$(head -c 12 /dev/urandom | xxd -p)"
+  token="sk-$(generate_token)"
   echo "  Auth token generated."
   echo "  Writing server-config.json with api_key and port..."
   cat > "$SERVER_CONFIG" <<EOF
@@ -1017,11 +1075,11 @@ start_engine() {
   fi
 
   # Stop an engine from an earlier run so it releases the port
-  if pgrep -f junie-mlx-vlm > /dev/null 2>&1; then
+  if is_engine_running; then
     echo "  Stopping the running engine..."
     "$ENGINE_CTL" stop >/dev/null 2>&1 || true
     waited=0
-    while [ "$waited" -lt 10 ] && pgrep -f junie-mlx-vlm > /dev/null 2>&1; do
+    while [ "$waited" -lt 10 ] && is_engine_running; do
       sleep 1
       waited=$((waited + 1))
     done
@@ -1032,7 +1090,7 @@ start_engine() {
   # 3>&- keeps the spawned daemon from inheriting the machine-output event
   # stream: a consumer reading our stdout would otherwise never see
   # end-of-stream because the daemon holds the pipe open forever.
-  echo "  Starting the engine (log: $ENGINE_DAEMON_LOG)..."
+  echo "  Starting the engine..."
   ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- )
 
   # Wait for the engine to become ready by polling /status until phase is "ready".
@@ -1052,8 +1110,8 @@ start_engine() {
   done
 
   echo "  WARNING: the engine is not answering on port $ENGINE_PORT yet."
-  echo "  Check the log at $ENGINE_DAEMON_LOG"
-  emit_warning "engine did not start listening on port $ENGINE_PORT — see $ENGINE_DAEMON_LOG"
+  echo "  Check the engine logs in $BASE_DIR"
+  emit_warning "engine did not start listening on port $ENGINE_PORT — see logs in $BASE_DIR"
   return 1
 }
 
@@ -1069,7 +1127,7 @@ download_and_verify() {
   printf '  %sChecking SHA256...%s\n' "$GRAY" "$RESET"
 
   emit_activity "verifying" "$archive" "$archive_label"
-  actual=$(shasum -a 256 "$DOWNLOAD_DIR/$archive" | awk '{print $1}')
+  actual=$(get_checksum "$DOWNLOAD_DIR/$archive")
   if [ "$actual" != "$expected_sha256" ]; then
     printf '  %sERROR: SHA256 mismatch for %s%s\n' "$RED" "$archive" "$RESET"
     echo "    Expected: $expected_sha256"
@@ -1141,16 +1199,22 @@ fi
 # Collect system information
 # ============================================================
 
-# OS detection
+# OS detection — collect all platform-specific system info in one place.
 UNAME_OUT=$(uname -s)
-OS_FULL_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
-OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
-
-# CPU model
-CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
-
-# Total memory in GB
-MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+if [ "$OS_TYPE" = "macos" ]; then
+  OS_FULL_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
+  OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
+  CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
+  MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+else
+  OS_FULL_VERSION=$(grep '^VERSION_ID=' /etc/os-release 2>/dev/null | tr -d '"=' | cut -d' ' -f1)
+  if [ -z "$OS_FULL_VERSION" ]; then
+    OS_FULL_VERSION=$(uname -r)
+  fi
+  OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
+  CPU_MODEL=$(lscpu 2>/dev/null | grep 'Model name' | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
+  MEM_BYTES=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2 * 1024}' || echo "0")
+fi
 MEM_GB=$((MEM_BYTES / 1073741824))
 
 # ============================================================
@@ -1162,38 +1226,106 @@ section "System information"
 
 ALL_OK=true
 
-# OS check (hard requirement: macOS 26+)
+# OS check
+# macOS: require 26+
+# Linux: require kernel 5.15+ (for CUDA and modern GPU drivers)
 OS_OK=true
-if [ "$UNAME_OUT" != "Darwin" ]; then
-  OS_OK=false
-  ALL_OK=false
-elif [ "$OS_VERSION" -lt 26 ]; then
-  OS_OK=false
-  ALL_OK=false
-fi
-if [ "$UNAME_OUT" = "Darwin" ]; then
+OS_REQUIREMENT=""
+if [ "$OS_TYPE" = "macos" ]; then
+  if [ "$UNAME_OUT" != "Darwin" ]; then
+    OS_OK=false
+    ALL_OK=false
+  elif [ "$OS_VERSION" -lt 26 ]; then
+    OS_OK=false
+    ALL_OK=false
+  fi
   OS_DISPLAY="macOS $OS_FULL_VERSION"
+  OS_REQUIREMENT="macOS 26 or higher"
 else
-  OS_DISPLAY="$UNAME_OUT $OS_FULL_VERSION"
+  KERNEL_VERSION=$(uname -r | cut -d '.' -f 1-2)
+  KERNEL_MAJOR=$(echo "$KERNEL_VERSION" | cut -d '.' -f 1)
+  KERNEL_MINOR=$(echo "$KERNEL_VERSION" | cut -d '.' -f 2)
+  if [ "$KERNEL_MAJOR" -lt 5 ] || { [ "$KERNEL_MAJOR" -eq 5 ] && [ "$KERNEL_MINOR" -lt 15 ]; }; then
+    OS_OK=false
+    ALL_OK=false
+  fi
+  OS_DISPLAY="Linux $OS_FULL_VERSION (kernel $(uname -r))"
+  OS_REQUIREMENT="Linux kernel 5.15 or higher"
 fi
-print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "macOS 26 or higher"
-emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "macOS 26 or higher"
+print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "$OS_REQUIREMENT"
+emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
-# CPU check (hard requirement: Apple M5 or newer)
-#
-# The generation is read out of the brand string ("Apple M5 Pro" -> 5) and
-# compared numerically, so every chip released after the M5 clears the check
-# without this having to be extended for each new generation. Everything below an
-# M5 is turned away, as is an Intel Mac, whose brand string carries no
-# "Apple M<n>" at all.
-CPU_GENERATION=$(printf '%s' "$CPU_MODEL" | sed -n 's/.*Apple M\([0-9][0-9]*\).*/\1/p')
+# Accelerator check
+# macOS: require Apple M5 or newer (MLX)
+# Linux: require NVIDIA GPU with 24 GB VRAM and CUDA 12+ (CUDA)
 CPU_OK=true
-if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 5 ]; then
-  CPU_OK=false
-  ALL_OK=false
+ACCEL_DISPLAY="$CPU_MODEL"
+ACCEL_REQUIREMENT=""
+GPU_NAME=""
+GPU_VRAM_GB=0
+CUDA_OK=true
+CUDA_DISPLAY=""
+CUDA_REQUIREMENT=""
+
+if [ "$OS_TYPE" = "macos" ]; then
+  # The generation is read out of the brand string ("Apple M5 Pro" -> 5) and
+  # compared numerically, so every chip released after the M5 clears the check
+  # without this having to be extended for each new generation.
+  CPU_GENERATION=$(printf '%s' "$CPU_MODEL" | sed -n 's/.*Apple M\([0-9][0-9]*\).*/\1/p')
+  if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 5 ]; then
+    CPU_OK=false
+    ALL_OK=false
+  fi
+  ACCEL_REQUIREMENT="Apple M5 or newer"
+else
+  # NVIDIA GPU check via nvidia-smi
+  GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
+  if [ -z "$GPU_INFO" ]; then
+    CPU_OK=false
+    ALL_OK=false
+    ACCEL_DISPLAY="No NVIDIA GPU detected"
+    ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+  else
+    GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
+    GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
+    GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
+    DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
+    ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
+    ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+    
+    if [ "$GPU_VRAM_GB" -lt 24 ]; then
+      CPU_OK=false
+      ALL_OK=false
+    fi
+  fi
+
+  # CUDA version check — nvidia-smi reports the highest supported CUDA version
+  # in its output header, e.g. "CUDA Version: 12.2"
+  CUDA_MAJOR=$(nvidia-smi 2>/dev/null | grep 'CUDA Version' | awk '{print $NF}' | cut -d '.' -f 1)
+  if [ -z "$CUDA_MAJOR" ]; then
+    CUDA_OK=false
+    ALL_OK=false
+    CUDA_DISPLAY="CUDA version not detected"
+    CUDA_REQUIREMENT="CUDA 12+"
+  elif [ "$CUDA_MAJOR" -lt 12 ]; then
+    CUDA_OK=false
+    ALL_OK=false
+    CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
+    CUDA_REQUIREMENT="CUDA 12+"
+  else
+    CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
+    CUDA_REQUIREMENT="CUDA 12+"
+  fi
 fi
-print_value "CPU:" "$CPU_MODEL" "$CPU_OK" false "M5 or newer"
-emit_check "cpu" "$(check_status "$CPU_OK" false)" "$CPU_MODEL" "M5 or newer"
+
+print_value "CPU:" "$CPU_MODEL" true false ""
+emit_check "cpu" "ok" "$CPU_MODEL" ""
+print_value "GPU:" "$ACCEL_DISPLAY" "$CPU_OK" false "$ACCEL_REQUIREMENT"
+emit_check "gpu" "$(check_status "$CPU_OK" false)" "$ACCEL_DISPLAY" "$ACCEL_REQUIREMENT"
+if [ "$OS_TYPE" = "linux" ]; then
+  print_value "CUDA:" "$CUDA_DISPLAY" "$CUDA_OK" false "$CUDA_REQUIREMENT"
+  emit_check "cuda" "$(check_status "$CUDA_OK" false)" "$CUDA_DISPLAY" "$CUDA_REQUIREMENT"
+fi
 
 # RAM check (hard: >= 40 GB, recommended: >= 60 GB)
 RAM_OK=true
@@ -1293,7 +1425,7 @@ echo ""
 print_value "Engine:" "$ENGINE_DIR" true false ""
 print_value "Current version:" "$CURRENT_LINK -> $ENGINE_DIR" true false ""
 print_value "Models:" "$MODELS_DIR" true false ""
-print_value "Engine log:" "$ENGINE_DAEMON_LOG" true false ""
+print_value "Logs:" "$BASE_DIR" true false ""
 print_value "Junie model config:" "$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json" true false ""
 print_value "Default model:" "$JUNIE_MODEL_ID" true false ""
 echo ""
