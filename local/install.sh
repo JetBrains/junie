@@ -36,6 +36,7 @@ PROTOCOL_VERSION=1
 
 MACHINE_OUTPUT=false
 CHECK_ONLY=false
+LIST_MODELS=false
 KEEP_CONFIG=false
 MODEL="Qwen3.6-27B-MLX-4bit"
 CHANNEL="main"
@@ -47,6 +48,7 @@ usage() {
   echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default) or Qwen3.8-27B-MLX-4bit"
   echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
+  echo "  --models           List all available models for this architecture, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
   echo "  --keep-config      Preserve the existing server-config.json instead of removing it"
   echo "  --help, -h         Show this help"
@@ -56,6 +58,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --json) MACHINE_OUTPUT=true ;;
     --check-only) CHECK_ONLY=true ;;
+    --models) LIST_MODELS=true ;;
     --keep-config) KEEP_CONFIG=true ;;
     --model)
       shift
@@ -129,6 +132,20 @@ MODELS_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-models-${CHANNEL}.jsonl"
 # Global: the fetched model JSON (qwen3.6.json etc), kept for archive lookups.
 models_json=""
 
+# List all models available for the current platform from the channel's
+# update-info-models JSONL. Prints one "id (displayName)" per line and exits.
+list_available_models() {
+  models_jsonl=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
+    echo "ERROR: Could not fetch models list from $MODELS_UPDATE_URL"
+    exit 1
+  }
+  printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | while IFS= read -r entry; do
+    id=$(printf '%s' "$entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
+    name=$(printf '%s' "$entry" | grep -o '"displayName":"[^"]*"' | sed 's/"displayName":"\([^"]*\)"/\1/')
+    echo "$id ($name)"
+  done
+}
+
 # Extract a field from an archive entry by index.
 get_archive_field() {
   local archive_index="$1"
@@ -172,6 +189,12 @@ fetch_models_config() {
   # Count the archives to install.
   ARCHIVE_COUNT=$(printf '%s' "$models_json" | plutil -extract archives json -o - -- - | grep -o '"modelId"' | wc -l | tr -d ' ')
 }
+
+if [ "$LIST_MODELS" = true ]; then
+  echo "Available models for $PLATFORM ($CHANNEL channel):"
+  list_available_models
+  exit 0
+fi
 
 fetch_models_config
 
