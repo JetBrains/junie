@@ -133,17 +133,49 @@ MODELS_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-models-${CHANNEL}.jsonl"
 models_json=""
 
 # List all models available for the current platform from the channel's
-# update-info-models JSONL. Prints one "id (displayName)" per line and exits.
+# update-info-models JSONL. In human mode prints one "id (displayName)" per
+# line; with --json emits a single "models" event with the full list.
 list_available_models() {
   models_jsonl=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
     echo "ERROR: Could not fetch models list from $MODELS_UPDATE_URL"
+    emit_error "Could not fetch models list from $MODELS_UPDATE_URL"
     exit 1
   }
-  printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | while IFS= read -r entry; do
-    id=$(printf '%s' "$entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
-    name=$(printf '%s' "$entry" | grep -o '"displayName":"[^"]*"' | sed 's/"displayName":"\([^"]*\)"/\1/')
-    echo "$id ($name)"
-  done
+  if [ "$MACHINE_OUTPUT" = true ]; then
+    # Build a JSON array of {"id":"...","displayName":"..."} objects.
+    models_array="["
+    first=true
+    while IFS= read -r entry; do
+      case "$entry" in
+        *"\"platform\":\"${PLATFORM}\""*) ;;
+        *) continue ;;
+      esac
+      id=$(printf '%s' "$entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
+      name=$(printf '%s' "$entry" | grep -o '"displayName":"[^"]*"' | sed 's/"displayName":"\([^"]*\)"/\1/')
+      if [ "$first" = true ]; then
+        first=false
+      else
+        models_array="$models_array,"
+      fi
+      models_array="$models_array{\"id\":\"$(json_escape "$id")\",\"displayName\":\"$(json_escape "$name")\"}"
+    done <<EOF
+$(printf '%s\n' "$models_jsonl")
+EOF
+    models_array="$models_array]"
+    emit_event "\"event\":\"models\",\"platform\":\"$(json_escape "$PLATFORM")\",\"channel\":\"$(json_escape "$CHANNEL")\",\"models\":$models_array"
+  else
+    while IFS= read -r entry; do
+      case "$entry" in
+        *"\"platform\":\"${PLATFORM}\""*) ;;
+        *) continue ;;
+      esac
+      id=$(printf '%s' "$entry" | grep -o '"id":"[^"]*"' | sed 's/"id":"\([^"]*\)"/\1/')
+      name=$(printf '%s' "$entry" | grep -o '"displayName":"[^"]*"' | sed 's/"displayName":"\([^"]*\)"/\1/')
+      echo "$id ($name)"
+    done <<EOF
+$(printf '%s\n' "$models_jsonl")
+EOF
+  fi
 }
 
 # Extract a field from an archive entry by index.
@@ -178,10 +210,13 @@ fetch_models_config() {
     exit 1
   }
 
-  # Save the model JSON locally so the engine can use it.
-  MODEL_CONFIG_FILE="$BASE_DIR/models/${MODEL_FILE_ID}.json"
-  echo "  Saving model config to $MODEL_CONFIG_FILE..."
-  echo "$models_json" > "$MODEL_CONFIG_FILE"
+  # Save the model JSON locally so the engine can use it. Skip when only
+  # listing models — no install is happening.
+  if [ "$LIST_MODELS" != true ]; then
+    MODEL_CONFIG_FILE="$BASE_DIR/models/${MODEL_FILE_ID}.json"
+    echo "  Saving model config to $MODEL_CONFIG_FILE..."
+    echo "$models_json" > "$MODEL_CONFIG_FILE"
+  fi
 
   # Extract the Junie model id (used for config file naming and defaults).
   JUNIE_MODEL_ID=$(printf '%s' "$models_json" | plutil -extract id raw -o - -- -)
@@ -189,12 +224,6 @@ fetch_models_config() {
   # Count the archives to install.
   ARCHIVE_COUNT=$(printf '%s' "$models_json" | plutil -extract archives json -o - -- - | grep -o '"modelId"' | wc -l | tr -d ' ')
 }
-
-if [ "$LIST_MODELS" = true ]; then
-  echo "Available models for $PLATFORM ($CHANNEL channel):"
-  list_available_models
-  exit 0
-fi
 
 fetch_models_config
 
@@ -1121,6 +1150,14 @@ install_model_if_needed() {
   touch "$(model_completion_marker "$model_id")"
   printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
 }
+
+if [ "$LIST_MODELS" = true ]; then
+  if [ "$MACHINE_OUTPUT" != true ]; then
+    echo "Available models for $PLATFORM ($CHANNEL channel):"
+  fi
+  list_available_models
+  exit 0
+fi
 
 # ============================================================
 # System validation
