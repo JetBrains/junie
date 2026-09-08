@@ -959,13 +959,14 @@ handle_server_config() {
   fi
 
   if [ "$KEEP_CONFIG" != true ]; then
-    echo "  Writing server-config.json with api_key..."
+    echo "  Writing server-config.json with api_key and port..."
     cat > "$SERVER_CONFIG" <<EOF
 {
-  "api_key": "$AUTH_TOKEN"
+  "api_key": "$AUTH_TOKEN",
+  "port": $ENGINE_PORT
 }
 EOF
-    echo "  server-config.json created with bearer auth."
+    echo "  server-config.json created with bearer auth and port."
   fi
 }
 
