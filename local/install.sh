@@ -1060,10 +1060,7 @@ EOF
 # Function to start the engine daemon using serverctl.sh. The daemon serves the
 # public API and supervises the inference worker itself.
 start_engine() {
-  # Ensure server-config.json exists (created on first run, reused afterwards).
-  handle_server_config
-
-  # Read the auth token from the config file.
+  # Read the auth token from the config file (created in Step 3).
   local auth_token
   auth_token=$(get_json_field api_key < "$BASE_DIR/server-config.json")
 
@@ -1418,7 +1415,17 @@ emit_step_done "models"
 # ============================================================
 section "Configuring Junie"
 emit_step_start "configure" "Configuring Junie"
-# Setting the default model is handled by the engine on its first run.
+# Ensure server-config.json exists so the engine can read the auth token.
+handle_server_config
+# Generate the Junie model config from the installed model template.
+# This resolves the $ENGINE_PORT and $AUTH_TOKEN placeholders and writes
+# the finished config to $JUNIE_HOME/models/<id>.json.
+if [ -x "$ENGINE_CTL" ]; then
+  "$ENGINE_CTL" --junie-config "$JUNIE_HOME" --model "$MODEL"
+else
+  echo "  WARNING: serverctl.sh not found at $ENGINE_CTL"
+  echo "  Skipping Junie config generation."
+fi
 emit_step_done "configure"
 
 # ============================================================
