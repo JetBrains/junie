@@ -22,7 +22,7 @@ require_commands() {
   if [ "$OS_TYPE" = "macos" ]; then
     required="$common shasum pgrep xxd sysctl sw_vers"
   else
-    required="$common sha256sum nvidia-smi lscpu"
+    required="$common sha256sum"
   fi
   for cmd in $required; do
     if ! command -v "$cmd" > /dev/null 2>&1; then
@@ -38,9 +38,9 @@ require_commands() {
       echo "  xcode-select --install"
     else
       echo "Install them with your distribution's package manager, e.g.:"
-      echo "  apt-get update && apt-get install -y sha256sum nvidia-smi lscpu"
+      echo "  apt-get update && apt-get install -y coreutils"
       echo "or"
-      echo "  dnf install -y coreutils nvidia-utils pciutils"
+      echo "  dnf install -y coreutils"
     fi
     echo "then re-run this installer."
     exit 1
@@ -1212,7 +1212,11 @@ else
     OS_FULL_VERSION=$(uname -r)
   fi
   OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
-  CPU_MODEL=$(lscpu 2>/dev/null | grep 'Model name' | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
+  if command -v lscpu > /dev/null 2>&1; then
+    CPU_MODEL=$(lscpu 2>/dev/null | grep 'Model name' | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
+  else
+    CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
+  fi
   MEM_BYTES=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2 * 1024}' || echo "0")
 fi
 MEM_GB=$((MEM_BYTES / 1073741824))
@@ -1278,43 +1282,54 @@ if [ "$OS_TYPE" = "macos" ]; then
   fi
   ACCEL_REQUIREMENT="Apple M5 or newer"
 else
-  # NVIDIA GPU check via nvidia-smi
-  GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
-  if [ -z "$GPU_INFO" ]; then
+  # NVIDIA GPU check via nvidia-smi (not required in require_commands, so it
+  # may be absent — handle that gracefully here with a clear message)
+  if ! command -v nvidia-smi > /dev/null 2>&1; then
     CPU_OK=false
     ALL_OK=false
-    ACCEL_DISPLAY="No NVIDIA GPU detected"
+    CUDA_OK=false
+    ACCEL_DISPLAY="nvidia-smi not found"
     ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+    CUDA_DISPLAY="CUDA not detected"
+    CUDA_REQUIREMENT="CUDA 12+"
   else
-    GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
-    GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
-    GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
-    DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
-    ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
-    ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
-    
-    if [ "$GPU_VRAM_GB" -lt 24 ]; then
+    GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
+    if [ -z "$GPU_INFO" ]; then
       CPU_OK=false
       ALL_OK=false
+      ACCEL_DISPLAY="No NVIDIA GPU detected"
+      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+    else
+      GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
+      GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
+      GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
+      DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
+      ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
+      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+      
+      if [ "$GPU_VRAM_GB" -lt 24 ]; then
+        CPU_OK=false
+        ALL_OK=false
+      fi
     fi
-  fi
 
-  # CUDA version check — nvidia-smi reports the highest supported CUDA version
-  # in its output header, e.g. "CUDA Version: 12.2"
-  CUDA_MAJOR=$(nvidia-smi 2>/dev/null | grep 'CUDA Version' | awk '{print $NF}' | cut -d '.' -f 1)
-  if [ -z "$CUDA_MAJOR" ]; then
-    CUDA_OK=false
-    ALL_OK=false
-    CUDA_DISPLAY="CUDA version not detected"
-    CUDA_REQUIREMENT="CUDA 12+"
-  elif [ "$CUDA_MAJOR" -lt 12 ]; then
-    CUDA_OK=false
-    ALL_OK=false
-    CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-    CUDA_REQUIREMENT="CUDA 12+"
-  else
-    CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-    CUDA_REQUIREMENT="CUDA 12+"
+    # CUDA version check — nvidia-smi reports the highest supported CUDA version
+    # in its output header, e.g. "CUDA Version: 12.2"
+    CUDA_MAJOR=$(nvidia-smi 2>/dev/null | grep 'CUDA Version' | awk '{print $NF}' | cut -d '.' -f 1)
+    if [ -z "$CUDA_MAJOR" ]; then
+      CUDA_OK=false
+      ALL_OK=false
+      CUDA_DISPLAY="CUDA version not detected"
+      CUDA_REQUIREMENT="CUDA 12+"
+    elif [ "$CUDA_MAJOR" -lt 12 ]; then
+      CUDA_OK=false
+      ALL_OK=false
+      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
+      CUDA_REQUIREMENT="CUDA 12+"
+    else
+      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
+      CUDA_REQUIREMENT="CUDA 12+"
+    fi
   fi
 fi
 
