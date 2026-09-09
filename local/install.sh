@@ -142,7 +142,7 @@ PLATFORM="${OS_NAME}-${ARCH_NAME}"
 
 # Base URL for the update-info files (engine and model metadata). Override via
 # environment variable to point at a custom location during testing/deployment.
-UPDATE_FILES_BASE_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL:-https://raw.githubusercontent.com/jetbrains-junie/junie/main/local}"
+UPDATE_FILES_BASE_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL:-https://raw.githubusercontent.com/jetbrains-junie/junie/erokhins/local_update/local}"
 
 # Model update metadata is published per channel as JSONL (one object per line)
 # with platform, model id (filename in models/ folder), displayName, etc.
