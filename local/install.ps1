@@ -64,8 +64,8 @@ $ProgressPreference = "SilentlyContinue"
 
 $Script:ProtocolVersion = 1
 
-# Base installation directory - mirrors ~/.local/share/junie-local on Unix
-$Script:BaseDir = Join-Path $env:LOCALAPPDATA "junie-local"
+# Base installation directory
+$Script:BaseDir = "$HOME\.local\share\junie-local"
 $Script:JunieHome = if ($env:JUNIE_HOME) { $env:JUNIE_HOME } else { Join-Path $env:USERPROFILE ".junie" }
 $Script:ModelsDir = Join-Path $Script:BaseDir "models"
 $Script:VersionsDir = Join-Path $Script:BaseDir "versions"
