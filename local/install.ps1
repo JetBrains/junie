@@ -1004,36 +1004,46 @@ function Install-ModelIfNeeded {
     }
     Write-Host "  SHA256 verified $actual"
 
-    Write-Host "  Extracting $zipFile..."
-    Emit-Activity "extracting" $zipFile $modelLabel
-
     $modelDest = Join-Path $Script:ModelsDir $modelId
     Remove-Item -LiteralPath $modelDest -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Path $modelDest -Force | Out-Null
 
-    $sevenZip = Get-Command 7z.exe -ErrorAction SilentlyContinue
-    if ($sevenZip) {
-        & 7z.exe x -o$modelDest -y $archivePath | Out-Null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "  ERROR: Extraction failed for $zipFile." -ForegroundColor Red
-            exit 1
-        }
-        # Flatten if there's a single top-level directory
-        $topLevel = Get-ChildItem -LiteralPath $modelDest -Directory | Select-Object -First 1
-        if ($topLevel -and (Get-ChildItem -LiteralPath $modelDest).Count -eq 1) {
-            Move-Item -LiteralPath (Join-Path $modelDest $topLevel.Name)/* `
-                -Destination $modelDest -Force
-            Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
-        }
+    $ext = [System.IO.Path]::GetExtension($zipFile).ToLowerInvariant()
+    if ($ext -in @(".gguf", ".bin")) {
+        # Plain model file — just copy it
+        Write-Host "  Copying $zipFile..."
+        Emit-Activity "extracting" $zipFile $modelLabel
+        Copy-Item -LiteralPath $archivePath -Destination (Join-Path $modelDest $zipFile) -Force
     }
     else {
-        Expand-Archive -LiteralPath $archivePath -DestinationPath $modelDest -Force
-        # Flatten
-        $topLevel = Get-ChildItem -LiteralPath $modelDest -Directory | Select-Object -First 1
-        if ($topLevel -and (Get-ChildItem -LiteralPath $modelDest).Count -eq 1) {
-            Move-Item -LiteralPath (Join-Path $modelDest $topLevel.Name)/* `
-                -Destination $modelDest -Force
-            Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
+        # Archive — extract it
+        Write-Host "  Extracting $zipFile..."
+        Emit-Activity "extracting" $zipFile $modelLabel
+
+        $sevenZip = Get-Command 7z.exe -ErrorAction SilentlyContinue
+        if ($sevenZip) {
+            & 7z.exe x -o$modelDest -y $archivePath | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "  ERROR: Extraction failed for $zipFile." -ForegroundColor Red
+                exit 1
+            }
+            # Flatten if there's a single top-level directory
+            $topLevel = Get-ChildItem -LiteralPath $modelDest -Directory | Select-Object -First 1
+            if ($topLevel -and (Get-ChildItem -LiteralPath $modelDest).Count -eq 1) {
+                Move-Item -LiteralPath (Join-Path $modelDest $topLevel.Name)/* `
+                    -Destination $modelDest -Force
+                Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
+            }
+        }
+        else {
+            Expand-Archive -LiteralPath $archivePath -DestinationPath $modelDest -Force
+            # Flatten
+            $topLevel = Get-ChildItem -LiteralPath $modelDest -Directory | Select-Object -First 1
+            if ($topLevel -and (Get-ChildItem -LiteralPath $modelDest).Count -eq 1) {
+                Move-Item -LiteralPath (Join-Path $modelDest $topLevel.Name)/* `
+                    -Destination $modelDest -Force
+                Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
+            }
         }
     }
 
