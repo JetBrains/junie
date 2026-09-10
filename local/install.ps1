@@ -280,12 +280,11 @@ $Script:CurrentLink = Join-Path $Script:BaseDir "current"
 
 # Fetch configs
 Fetch-ModelsConfig
-Fetch-EngineConfig
-
-# Archive name from URL — must be after Fetch-EngineConfig
-$Script:EngineArchive = [System.IO.Path]::GetFileName($Script:EngineUrl)
+# Engine config skipped — engine download not ready yet
+# Fetch-EngineConfig
+$Script:EngineVersion = "0.0.0-dev"
 $Script:EngineDir = Join-Path $Script:VersionsDir $Script:EngineVersion
-$Script:EngineCtl = Join-Path $Script:CurrentLink "serverctl.ps1"
+$Script:EngineCtl = ""
 
 # ============================================================
 # List models mode
@@ -1031,14 +1030,11 @@ New-Item -ItemType Directory -Path $Script:ModelsDir -Force | Out-Null
 New-Item -ItemType Directory -Path $Script:VersionsDir -Force | Out-Null
 New-Item -ItemType Directory -Path $Script:DownloadDir -Force | Out-Null
 
-# --- Step 1: Install the inference engine ---
+# --- Step 1: Install the inference engine (DISABLED - engine not ready yet) ---
 Write-Host ""
-Write-Host "  Installing the inference engine" -ForegroundColor Green
-Write-Host "  --------------------------------" -ForegroundColor DarkGray
+Write-Host "  Skipping engine installation (not ready yet)" -ForegroundColor Yellow
+Write-Host "  ----------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
-Emit-StepStart "engine" "Installing the inference engine"
-Install-Engine
-Emit-StepDone "engine"
 
 # --- Step 2: Download and install models ---
 Write-Host ""
@@ -1056,40 +1052,11 @@ Write-Host "  Removing downloaded archives..." -ForegroundColor DarkGray
 Remove-Item -LiteralPath $Script:DownloadDir -Recurse -Force -ErrorAction SilentlyContinue
 Emit-StepDone "models"
 
-# --- Step 3: Configure Junie ---
+# --- Step 3 & 4: Configure & start engine (DISABLED - engine not ready yet) ---
 Write-Host ""
-Write-Host "  Configuring Junie" -ForegroundColor Green
-Write-Host "  -----------------" -ForegroundColor DarkGray
+Write-Host "  Skipping engine configuration and start (not ready yet)" -ForegroundColor Yellow
+Write-Host "  ---------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
-Emit-StepStart "configure" "Configuring Junie"
-Handle-ServerConfig
-
-# Generate Junie model config via serverctl
-$ctlPath = Join-Path $Script:EngineDir "serverctl.ps1"
-if (-not (Test-Path -LiteralPath $ctlPath)) {
-    $ctlPath = Join-Path $Script:EngineDir "serverctl.sh"
-}
-if (Test-Path -LiteralPath $ctlPath) {
-    try {
-        & $ctlPath --junie-config $Script:JunieHome --model $Model 2>$null
-    }
-    catch {
-        Write-Host "  WARNING: Failed to generate Junie config via serverctl." -ForegroundColor Yellow
-    }
-}
-else {
-    Write-Host "  WARNING: serverctl.ps1 not found. Skipping Junie config generation." -ForegroundColor Yellow
-}
-Emit-StepDone "configure"
-
-# --- Step 4: Start the inference engine ---
-Write-Host ""
-Write-Host "  Starting the inference engine" -ForegroundColor Green
-Write-Host "  ------------------------------" -ForegroundColor DarkGray
-Write-Host ""
-Emit-StepStart "start" "Starting the inference engine"
-Start-Engine | Out-Null
-Emit-StepDone "start"
 
 # --- Summary ---
 $mainModelId = Get-ArchiveField -ArchiveIndex 0 -Field "modelId"
@@ -1100,17 +1067,11 @@ Write-Host "  Installation complete" -ForegroundColor Green
 Write-Host "  ---------------------" -ForegroundColor DarkGray
 Write-Host ""
 
-Print-Value "Engine:" "$Script:EngineDir" $true $false ""
-Print-Value "Current:" "$Script:CurrentLink -> $Script:EngineDir" $true $false ""
 Print-Value "Models:" "$Script:ModelsDir" $true $false ""
-Print-Value "Logs:" "$Script:BaseDir" $true $false ""
-Print-Value "Junie config:" "$Script:JunieHome\models\$Script:JunieModelId.json" $true $false ""
-Print-Value "Default model:" "$Script:JunieModelId" $true $false ""
+Print-Value "Model path:" "$Script:ModelsDir\$mainModelId" $true $false ""
 
 Write-Host ""
-Write-Host "  The engine serves http://localhost:$Script:EnginePort - the first request has to wait"
-Write-Host "  for the model to load."
-Write-Host "  Control the engine with: $Script:EngineCtl {start|stop|status|wait}"
+Write-Host "  Model downloaded successfully. Engine installation skipped (not ready yet)."
 
 Emit-Event "event:`"done`",model_id:`"$Script:JunieModelId`",port:$Script:EnginePort,model_path:`"$(Json-Escape "$Script:ModelsDir/$mainModelId")`",label:`"$(Json-Escape "$mainLabel")`""
 
