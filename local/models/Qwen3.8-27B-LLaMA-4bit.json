@@ -1,0 +1,26 @@
+{
+  "id": "local-qwen3.8-27b-test-4bit",
+  "junieConfig": {
+    "displayName": "Qwen 3.8",
+    "providerName": "Local",
+    "id": "Qwen3.8-27B-test-Q4_K_M",
+    "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
+    "apiType": "OpenAICompletion",
+    "apiKey": "$AUTH_TOKEN",
+    "temperature": 0.6,
+    "maxContextLength": 150000,
+    "extraBody": {
+      "enable_thinking": false
+    }
+  },
+  "archives": [
+    {
+      "modelId": "Qwen3.8-27B-test-Q4_K_M",
+      "label": "Qwen 3.8 27B 4bit",
+      "name": "Qwen3.8-27B-test-Q4_K_M.gguf",
+      "downloadUrl": "https://junie-local.erokhins.com/Qwen3.8-27B-test-Q4_K_M.gguf",
+      "sha256": "5f54ded85a78f11ad7a1c02d17564a268238ac8afe9b3d94fb0b614e473006a1",
+      "size": 16810715104
+    }
+  ]
+}
