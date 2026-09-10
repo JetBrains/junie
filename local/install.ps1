@@ -964,8 +964,7 @@ function Model-CompletionMarker {
 
 function Test-ModelInstalled {
     param([string]$ModelId)
-    return (Test-Path -LiteralPath (Join-Path $Script:ModelsDir $ModelId) -PathType Container) -and
-           (Test-Path -LiteralPath (Model-CompletionMarker $ModelId) -PathType Leaf)
+    return (Test-Path -LiteralPath (Model-CompletionMarker $ModelId) -PathType Leaf)
 }
 
 function Install-ModelIfNeeded {
