@@ -17,7 +17,7 @@
   - Minimum 40 GB RAM (60 GB recommended)
 
 .PARAMETER Model
-  Model identifier to install.  Default: Qwen3.6-27B-LLaMA-4bit
+  Model identifier to install.  Default: Qwen3.8-27B-LLaMA-4bit
 
 .PARAMETER Channel
   Update channel: main (default) or eap.
@@ -40,7 +40,7 @@
 #>
 
 param(
-    [string]$Model = "Qwen3.6-27B-LLaMA-4bit",
+    [string]$Model = "Qwen3.8-27B-LLaMA-4bit",
     [string]$Channel = "main",
     [switch]$CheckOnly,
     [switch]$ListModels,
@@ -193,16 +193,16 @@ function Fetch-ModelsConfig {
 
     # Find the entry matching platform + model
     $dq = [char]34
-    $entry = $lines | Where-Object {
-        $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}" -and
-        $_ -match "${dq}id${dq}:${dq}$([regex]::Escape($Model))${dq}"
+    $platOnly = @($lines | Where-Object {
+        $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
+    })
+    $entry = $platOnly | Where-Object {
+        $_ -match "${dq}id${dq}:${dq}$([regex]::Escape($Script:Model))${dq}"
     } | Select-Object -Last 1
 
     if (-not $entry) {
-        $supported = ($lines | Where-Object {
-            $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
-        } | ForEach-Object { $_ | Get-JsonField -Field "id" }) -join ","
-        Write-Host "ERROR: Unknown model: $Model for platform $Script:Platform (supported: $supported)" -ForegroundColor Red
+        $supported = $platOnly | ForEach-Object { $_ | Get-JsonField -Field "id" }
+        Write-Host "ERROR: Unknown model: $Script:Model for platform $Script:Platform (supported: $supported)" -ForegroundColor Red
         exit 1
     }
 
@@ -260,9 +260,9 @@ function Fetch-EngineConfig {
 
     $lines = $jsonl.Content -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
     $dq = [char]34
-    $entry = $lines | Where-Object {
+    $entry = @($lines | Where-Object {
         $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
-    } | Select-Object -Last 1
+    }) | Select-Object -Last 1
 
     if (-not $entry) {
         Write-Host "ERROR: No engine entry found for platform $Script:Platform in channel $Script:Channel" -ForegroundColor Red
@@ -296,9 +296,9 @@ if ($ListModels) {
     $jsonl = (Invoke-WebRequest -Uri $modelsUpdateUrl -UseBasicParsing).Content
     $lines = $jsonl -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
     $dq = [char]34
-    $platformLines = $lines | Where-Object {
+    $platformLines = @($lines | Where-Object {
         $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
-    }
+    })
 
     if ($MachineOutput) {
         $array = "["
