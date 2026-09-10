@@ -39,18 +39,48 @@
   .\install.ps1 --CheckOnly
 #>
 
-param(
-    [string]$Model = "Qwen3.8-27B-LLaMA-4bit",
-    [string]$Channel = "main",
-    [switch]$CheckOnly,
-    [switch]$ListModels,
-    [switch]$Json
-)
+# ============================================================
+# CLI parameter parsing (PowerShell 5.1 doesn't support -- switches)
+# ============================================================
 
-if ($Json) { $script:MachineOutput = $true } else { $script:MachineOutput = $false }
-if ($Channel -notin @("main", "eap")) {
-    Write-Host "ERROR: Channel must be 'main' or 'eap', got '$Channel'" -ForegroundColor Red
-    exit 1
+$script:ArgModel = "Qwen3.8-27B-LLaMA-4bit"
+$script:ArgChannel = "main"
+$script:ArgCheckOnly = $false
+$script:ArgListModels = $false
+$script:ArgJson = $false
+$script:ArgHelp = $false
+
+# Skip PowerShell wrapper args (everything before the script file path)
+$rawArgs = @($MyInvocation.UnboundArguments)
+$scriptName = [System.IO.Path]::GetFileName($MyInvocation.MyCommand.Path)
+$skipCount = 0
+for ($k = 0; $k -lt $rawArgs.Length; $k++) {
+    if ($rawArgs[$k] -eq '-File' -and ($k + 1) -lt $rawArgs.Length -and [System.IO.Path]::GetFileName($rawArgs[$k + 1]) -eq $scriptName) {
+        $skipCount = $k + 2
+        break
+    }
+}
+if ($skipCount -gt 0) {
+    $rawArgs = @($rawArgs[$skipCount..($rawArgs.Length - 1)] | Where-Object { $_ -ne '' })
+} else {
+    $rawArgs = @($rawArgs | Where-Object { $_ -ne '' })
+}
+
+$p = 0
+while ($p -lt $rawArgs.Length) {
+    switch ($rawArgs[$p]) {
+        { $_ -in '--model', '-Model', '-model' } { $p++; if ($p -lt $rawArgs.Length) { $script:ArgModel = $rawArgs[$p] } }
+        { $_ -in '--channel', '-Channel', '-channel' } { $p++; if ($p -lt $rawArgs.Length) { $script:ArgChannel = $rawArgs[$p] } }
+        { $_ -in '--check-only', '-CheckOnly', '-check-only' } { $script:ArgCheckOnly = $true }
+        { $_ -in '--models', '-ListModels', '-models' } { $script:ArgListModels = $true }
+        { $_ -in '--json' } { $script:ArgJson = $true }
+        { $_ -in '--help', '-h', '-help' } { $script:ArgHelp = $true }
+        default {
+            Write-Host "ERROR: Unknown argument: $($rawArgs[$p])" -ForegroundColor Red
+            $script:ArgHelp = $true
+        }
+    }
+    $p++
 }
 
 $ErrorActionPreference = "Stop"
@@ -93,8 +123,8 @@ $Script:Platform = "windows-amd64"
 
 function Emit-Event {
     param([string]$Payload)
-    if (-not $MachineOutput) { return }
-    Write-Output "{{$payload}}"
+    if (-not $Script:MachineOutput) { return }
+    [System.Console]::WriteLine("{{$payload}}")
 }
 
 function Emit-Check {
@@ -114,7 +144,7 @@ function Emit-StepDone {
 
 function Emit-Progress {
     param([string]$File, [long]$Bytes, [long]$Total, [string]$Label, [string]$Action = "downloading")
-    Emit-Event "event:`"progress`",action:`"$Action`",file:`"$(Json-Escape $File)`",bytes:$Bytes,total:$Total,label:`"$(Json-Escape $Label)`""
+    Emit-Event "event:`"progress`",action:`"$Action`",file:`"$(Json-Escape $File)`",bytes:$([string]$Bytes),total:$([string]$Total),label:`"$(Json-Escape $Label)`""
 }
 
 function Emit-Activity {
@@ -142,6 +172,33 @@ function Check-Status {
     if (-not $Ok) { return "fail" }
     if ($Warn) { return "warn" }
     return "ok"
+}
+
+function usage {
+    Write-Host ""
+    Write-Host "Usage: install.ps1 [options]"
+    Write-Host ""
+    Write-Host "Options:"
+    Write-Host "  --model <name>     Model to install: Qwen3.8-27B-LLaMA-4bit (default)"
+    Write-Host "  --channel <name>   Update channel: main (default) or eap"
+    Write-Host "  --check-only       Report system information, then exit"
+    Write-Host "  --models           List all available models for this architecture, then exit"
+    Write-Host "  --json             Emit machine-readable events on stdout, human output on stderr"
+    Write-Host "  --help, -h         Show this help"
+}
+
+# Apply parsed args to script variables
+$Model = $script:ArgModel
+$Channel = $script:ArgChannel
+$CheckOnly = $script:ArgCheckOnly
+$ListModels = $script:ArgListModels
+$Script:MachineOutput = $script:ArgJson
+
+# Handle help / errors
+if ($script:ArgHelp) { usage; exit 1 }
+if ($Channel -notin @("main", "eap")) {
+    Write-Host "ERROR: Channel must be 'main' or 'eap', got '$Channel'" -ForegroundColor Red
+    exit 1
 }
 
 # Hello event
@@ -299,7 +356,7 @@ if ($ListModels) {
         $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
     })
 
-    if ($MachineOutput) {
+    if ($Script:MachineOutput) {
         $array = "["
         $first = $true
         foreach ($line in $platformLines) {
@@ -584,8 +641,15 @@ function Invoke-ResumableDownload {
                 $prevBytes = $curBytes
                 $prevTime = $curTime
             }
-            try { Emit-Progress $fileName $curBytes $remoteSize $Label } catch {}
             Progress-Render $curBytes $remoteSize $bytesPerSec $Label
+            # JSON progress events: emit once per second (matches install.sh)
+            if ($Script:MachineOutput -and $remoteSize -gt 0) {
+                $now = [long][System.DateTimeOffset]::Now.ToUnixTimeSeconds()
+                if ($now -gt $Script:LastProgressTime) {
+                    $Script:LastProgressTime = $now
+                    Emit-Progress $fileName $curBytes $remoteSize $Label
+                }
+            }
         }
 
         $proc.WaitForExit()
@@ -645,6 +709,8 @@ function HumanBytes {
 
 $Script:ProgressDrew = $false
 $Script:ProgressLogged = -1
+$Script:LastProgressPct = -1
+$Script:LastProgressTime = [long]0
 $Script:IsTerminal = [bool](Test-Path variable:Interactive) -or ([System.Console]::IsOutputRedirected -eq $false)
 
 function Progress-Render {
@@ -656,7 +722,7 @@ function Progress-Render {
     )
 
     # Machine output mode — skip visual progress, events carry it
-    if ($MachineOutput) { return }
+    if ($Script:MachineOutput) { return }
 
     # Non-interactive: log at 10% intervals
     if ([System.Console]::IsOutputRedirected) {
