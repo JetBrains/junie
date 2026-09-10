@@ -563,6 +563,7 @@ function Invoke-ResumableDownload {
         $arguments = @("--config", $curlConfig) + $arguments
     }
 
+    $proc = $null
     try {
         # Run curl in background, poll file size for progress
         $proc = Start-Process -FilePath $curl.Source -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardError "$env:TEMP\junie-curl-err.txt"
@@ -619,6 +620,10 @@ function Invoke-ResumableDownload {
         return $true
     }
     finally {
+        # Kill orphaned curl if script exits unexpectedly
+        if ($proc -and -not $proc.HasExited) {
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+        }
         if ($curlConfig) {
             Remove-Item -LiteralPath $curlConfig -Force -ErrorAction SilentlyContinue
         }
