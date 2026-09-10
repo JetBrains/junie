@@ -583,8 +583,8 @@ function Invoke-ResumableDownload {
                 $bytesPerSec = [long](([long]$curBytes - [long]$prevBytes) / ([long]$curTime - [long]$prevTime))
                 $prevBytes = $curBytes
                 $prevTime = $curTime
-                Emit-Progress $fileName $curBytes $remoteSize $Label
             }
+            try { Emit-Progress $fileName $curBytes $remoteSize $Label } catch {}
             Progress-Render $curBytes $remoteSize $bytesPerSec $Label
         }
 
@@ -661,7 +661,7 @@ function Progress-Render {
     # Non-interactive: log at 10% intervals
     if ([System.Console]::IsOutputRedirected) {
         if ($TotalBytes -gt 0) {
-            $step = [int]($HaveBytes * 10 / $TotalBytes)
+            $step = [int](([double]$HaveBytes * 10 / $TotalBytes))
             if ($step -gt $Script:ProgressLogged) {
                 $Script:ProgressLogged = $step
                 Write-Host "  $($step * 10)% ($(HumanBytes $HaveBytes) of $(HumanBytes $TotalBytes))"
@@ -691,7 +691,7 @@ function Progress-Render {
     # ETA
     $eta = ""
     if ($BytesPerSec -gt 0 -and $TotalBytes -gt $HaveBytes) {
-        $etaSecs = [int]($TotalBytes - $HaveBytes) / $BytesPerSec
+        $etaSecs = [int](([double]($TotalBytes - $HaveBytes)) / $BytesPerSec)
         $eta = "  eta {0:D2}:{1:D2}" -f ([int]($etaSecs / 60)), ([int]($etaSecs % 60))
     }
 
