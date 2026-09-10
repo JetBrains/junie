@@ -239,10 +239,10 @@ function Get-ArchiveField {
         [string]$Field
     )
     # Extract all values of the field and pick the Nth
-    $dq = [char]34
-    $matches = [regex]::Matches($Script:ModelsJson, "(?i)${dq}${Field}\s*:\s*${dq}[^${dq}]*)")
+    $pattern = '(?i)"{0}"\s*:\s*"([^"]*)"' -f [regex]::Escape($Field)
+    $matches = [regex]::Matches($Script:ModelsJson, $pattern)
     if ($ArchiveIndex -lt $matches.Count) {
-        return $matches[$ArchiveIndex].Groups[1].Value.Trim('"').Trim()
+        return $matches[$ArchiveIndex].Groups[1].Value
     }
     return ""
 }
@@ -503,20 +503,24 @@ function Invoke-ResumableDownload {
     }
 
     # Check for already-complete download
-    $remoteSize = 0
+    $remoteSize = [long]0
     try {
         $probeHeaders = Invoke-WebRequest -Uri $Source -Method Head -UseBasicParsing -ErrorAction Stop
         if ($probeHeaders) {
-            $remoteSize = $probeHeaders.Headers["Content-Length"] | ForEach-Object { [long]$_ } | Select-Object -First 1
+            $cl = $probeHeaders.Headers["Content-Length"]
+            if ($cl) {
+                $remoteSize = [long](($cl -split ',')[0] -replace '\D', '')
+            }
         }
     }
     catch {
-        $remoteSize = 0
+        $remoteSize = [long]0
     }
 
-    $localSize = if (Test-Path -LiteralPath $Destination) {
-        (Get-Item -LiteralPath $Destination).Length
-    } else { 0 }
+    $localSize = [long]0
+    if (Test-Path -LiteralPath $Destination) {
+        $localSize = (Get-Item -LiteralPath $Destination).Length
+    }
 
     if ($remoteSize -gt 0 -and $localSize -eq $remoteSize) {
         Write-Host "  Already downloaded ($(HumanBytes $remoteSize))" -ForegroundColor Green
@@ -534,7 +538,7 @@ function Invoke-ResumableDownload {
         Write-Host "  Resuming at $(HumanBytes $localSize)"
     }
 
-    # Build curl arguments
+    # Build curl arguments (silent — we track progress by polling the file)
     $arguments = @(
         "--fail",
         "--silent",
@@ -560,19 +564,48 @@ function Invoke-ResumableDownload {
     }
 
     try {
-        $previousErrorPreference = $ErrorActionPreference
-        try {
-            $ErrorActionPreference = "Continue"
-            & $curl.Source @arguments
-            $exitCode = $LASTEXITCODE
+        # Run curl in background, poll file size for progress
+        $proc = Start-Process -FilePath $curl.Source -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardError "$env:TEMP\junie-curl-err.txt"
+        
+        $prevBytes = $localSize
+        $prevTime = [System.DateTimeOffset]::Now.ToUnixTimeSeconds()
+        $bytesPerSec = 0
+
+        while (-not $proc.HasExited) {
+            Start-Sleep -Milliseconds 200
+            $curBytes = if (Test-Path -LiteralPath $Destination) { (Get-Item -LiteralPath $Destination).Length } else { 0 }
+            $curTime = [System.DateTimeOffset]::Now.ToUnixTimeSeconds()
+            if ($curTime -gt $prevTime) {
+                $bytesPerSec = [long]($curBytes - $prevBytes) / ($curTime - $prevTime)
+                $prevBytes = $curBytes
+                $prevTime = $curTime
+                Emit-Progress $fileName $curBytes $remoteSize $Label
+            }
+            Progress-Render $curBytes $remoteSize $bytesPerSec $Label
         }
-        finally { $ErrorActionPreference = $previousErrorPreference }
+
+        $proc.WaitForExit()
+        $exitCode = $proc.ExitCode
+
+        # Final progress frame on success
+        if ($exitCode -eq 0) {
+            $finalBytes = if (Test-Path -LiteralPath $Destination) { (Get-Item -LiteralPath $Destination).Length } else { 0 }
+            Progress-Render $finalBytes $remoteSize $bytesPerSec $Label
+            Emit-Progress $fileName $finalBytes $remoteSize $Label
+        }
+        Progress-End
 
         if ($exitCode -ne 0) {
             # Exit 33/36 = server rejected resume offset
             if (($exitCode -eq 33 -or $exitCode -eq 36) -and $remoteSize -eq 0) {
                 Write-Host "  Server rejected resume offset; verifying what we have." -ForegroundColor Yellow
                 return $true
+            }
+            # Show curl error if any
+            $errFile = "$env:TEMP\junie-curl-err.txt"
+            if (Test-Path $errFile) {
+                $errText = Get-Content $errFile -ErrorAction SilentlyContinue | Select-Object -First 2 | ForEach-Object { $_.TrimEnd("`r") }
+                if ($errText) { Write-Host "  $errText" -ForegroundColor Red }
             }
             Write-Host "  Download failed with exit code $exitCode. Partial data kept for retry." -ForegroundColor Red
             return $false
@@ -583,6 +616,7 @@ function Invoke-ResumableDownload {
         if ($curlConfig) {
             Remove-Item -LiteralPath $curlConfig -Force -ErrorAction SilentlyContinue
         }
+        Remove-Item -LiteralPath "$env:TEMP\junie-curl-err.txt" -Force -ErrorAction SilentlyContinue
     }
 }
 
@@ -592,6 +626,77 @@ function HumanBytes {
     if ($Bytes -ge 1MB) { return "{0:F1} MB" -f ($Bytes / 1MB) }
     if ($Bytes -ge 1KB) { return "{0:F0} KB" -f ($Bytes / 1KB) }
     return "{0} B" -f $Bytes
+}
+
+# ============================================================
+# Progress bar rendering
+# ============================================================
+
+$Script:ProgressDrew = $false
+$Script:ProgressLogged = -1
+$Script:IsTerminal = [bool](Test-Path variable:Interactive) -or ([System.Console]::IsOutputRedirected -eq $false)
+
+function Progress-Render {
+    param(
+        [long]$HaveBytes,
+        [long]$TotalBytes,
+        [long]$BytesPerSec,
+        [string]$Label
+    )
+
+    # Machine output mode — skip visual progress, events carry it
+    if ($MachineOutput) { return }
+
+    # Non-interactive: log at 10% intervals
+    if ([System.Console]::IsOutputRedirected) {
+        if ($TotalBytes -gt 0) {
+            $step = [int]($HaveBytes * 10 / $TotalBytes)
+            if ($step -gt $Script:ProgressLogged) {
+                $Script:ProgressLogged = $step
+                Write-Host "  $($step * 10)% ($(HumanBytes $HaveBytes) of $(HumanBytes $TotalBytes))"
+            }
+        }
+        return
+    }
+
+    $Script:ProgressDrew = $true
+
+    # Build the bar
+    $barWidth = 32
+    $ratio = if ($TotalBytes -gt 0) { [double]$HaveBytes / $TotalBytes } else { 0 }
+    if ($ratio -gt 1) { $ratio = 1 }
+    $filled = [int]($ratio * $barWidth + 0.5)
+    $bar = "█" * $filled + "░" * ($barWidth - $filled)
+
+    # Stats
+    $pct = if ($TotalBytes -gt 0) { "{0,3}%" -f ([int]($ratio * 100)) } else { "   " }
+    $size = if ($TotalBytes -gt 0) {
+        "$(HumanBytes $HaveBytes) of $(HumanBytes $TotalBytes)"
+    } else {
+        $(HumanBytes $HaveBytes)
+    }
+    $speed = if ($BytesPerSec -gt 0) { "  $(HumanBytes $BytesPerSec)/s" } else { "" }
+
+    # ETA
+    $eta = ""
+    if ($BytesPerSec -gt 0 -and $TotalBytes -gt $HaveBytes) {
+        $etaSecs = [int]($TotalBytes - $HaveBytes) / $BytesPerSec
+        $eta = "  eta {0:D2}:{1:D2}" -f ([int]($etaSecs / 60)), ([int]($etaSecs % 60))
+    }
+
+    $line = "`r  $bar  $pct  $size$speed$eta"
+    if ($Label) { $line += "  $Label" }
+
+    [System.Console]::Write($line)
+    [System.Console]::Write("`e[0K")  # Clear to end of line
+}
+
+function Progress-End {
+    if ($Script:ProgressDrew -and -not [System.Console]::IsOutputRedirected) {
+        Write-Host ""  # newline after the bar
+    }
+    $Script:ProgressDrew = $false
+    $Script:ProgressLogged = -1
 }
 
 # ============================================================
