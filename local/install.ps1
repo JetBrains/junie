@@ -567,16 +567,19 @@ function Invoke-ResumableDownload {
         # Run curl in background, poll file size for progress
         $proc = Start-Process -FilePath $curl.Source -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardError "$env:TEMP\junie-curl-err.txt"
         
-        $prevBytes = $localSize
-        $prevTime = [System.DateTimeOffset]::Now.ToUnixTimeSeconds()
-        $bytesPerSec = 0
+        $prevBytes = [long]$localSize
+        $prevTime = [long][System.DateTimeOffset]::Now.ToUnixTimeSeconds()
+        $bytesPerSec = [long]0
 
         while (-not $proc.HasExited) {
             Start-Sleep -Milliseconds 200
-            $curBytes = if (Test-Path -LiteralPath $Destination) { (Get-Item -LiteralPath $Destination).Length } else { 0 }
-            $curTime = [System.DateTimeOffset]::Now.ToUnixTimeSeconds()
+            $curBytes = [long]0
+            if (Test-Path -LiteralPath $Destination) {
+                $curBytes = [long](Get-Item -LiteralPath $Destination).Length
+            }
+            $curTime = [long][System.DateTimeOffset]::Now.ToUnixTimeSeconds()
             if ($curTime -gt $prevTime) {
-                $bytesPerSec = [long]($curBytes - $prevBytes) / ($curTime - $prevTime)
+                $bytesPerSec = [long](([long]$curBytes - [long]$prevBytes) / ([long]$curTime - [long]$prevTime))
                 $prevBytes = $curBytes
                 $prevTime = $curTime
                 Emit-Progress $fileName $curBytes $remoteSize $Label
@@ -589,7 +592,10 @@ function Invoke-ResumableDownload {
 
         # Final progress frame on success
         if ($exitCode -eq 0) {
-            $finalBytes = if (Test-Path -LiteralPath $Destination) { (Get-Item -LiteralPath $Destination).Length } else { 0 }
+            $finalBytes = [long]0
+            if (Test-Path -LiteralPath $Destination) {
+                $finalBytes = [long](Get-Item -LiteralPath $Destination).Length
+            }
             Progress-Render $finalBytes $remoteSize $bytesPerSec $Label
             Emit-Progress $fileName $finalBytes $remoteSize $Label
         }
@@ -663,7 +669,7 @@ function Progress-Render {
 
     # Build the bar
     $barWidth = 32
-    $ratio = if ($TotalBytes -gt 0) { [double]$HaveBytes / $TotalBytes } else { 0 }
+    $ratio = if ($TotalBytes -gt 0) { [double]$HaveBytes / $TotalBytes } else { 1 }
     if ($ratio -gt 1) { $ratio = 1 }
     $filled = [int]($ratio * $barWidth + 0.5)
     $bar = "█" * $filled + "░" * ($barWidth - $filled)
