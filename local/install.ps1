@@ -541,6 +541,64 @@ function Get-Sha256 {
 # Download helpers
 # ============================================================
 
+# ============================================================
+# Download with retry logic (matches install.sh download_with_retry)
+# Every attempt resumes from the bytes already on disk.
+# ============================================================
+function Invoke-DownloadWithRetry {
+    param(
+        [Parameter(Mandatory)][string]$Source,
+        [Parameter(Mandatory)][string]$Destination,
+        [int]$MaxRetries = 3,
+        [string]$Label = ""
+    )
+
+    $fileName = [System.IO.Path]::GetFileName($Destination)
+    $attempt = 1
+    $delay = 2
+
+    while ($attempt -le $MaxRetries) {
+        if ($attempt -gt 1) {
+            Write-Host "  Attempt $attempt of $MaxRetries" -ForegroundColor DarkGray
+        }
+
+        $before = [long]0
+        if (Test-Path -LiteralPath $Destination) {
+            $before = [long](Get-Item -LiteralPath $Destination).Length
+        }
+
+        if (Invoke-ResumableDownload -Source $Source -Destination $Destination -Label $Label) {
+            return $true
+        }
+
+        $after = [long]0
+        if (Test-Path -LiteralPath $Destination) {
+            $after = [long](Get-Item -LiteralPath $Destination).Length
+        }
+
+        if ($attempt -lt $MaxRetries) {
+            if ($after -gt $before) {
+                $delay = 2  # Reset backoff if we made progress
+            }
+            if ($after -gt 0) {
+                Write-Host "  Download stopped at $(HumanBytes $after). Resuming in ${delay}s..." -ForegroundColor Yellow
+            } else {
+                Write-Host "  Download failed. Retrying in ${delay}s..." -ForegroundColor Yellow
+            }
+            Start-Sleep -Seconds $delay
+            $delay = $delay * 2
+        }
+        $attempt++
+    }
+
+    Write-Host "  ERROR: Download failed after $MaxRetries attempts for $fileName" -ForegroundColor Red
+    Emit-Error "Download failed after $MaxRetries attempts"
+    if (Test-Path -LiteralPath $Destination) {
+        Write-Host "  The partial file is kept — re-run this script to resume." -ForegroundColor DarkGray
+    }
+    return $false
+}
+
 function Invoke-ResumableDownload {
     param(
         [Parameter(Mandatory)][string]$Source,
@@ -654,6 +712,7 @@ function Invoke-ResumableDownload {
 
         $proc.WaitForExit()
         $exitCode = $proc.ExitCode
+        if ($null -eq $exitCode) { $exitCode = 1 }
 
         # Final progress frame on success
         if ($exitCode -eq 0) {
@@ -765,7 +824,7 @@ function Progress-Render {
     if ($Label) { $line += "  $Label" }
 
     [System.Console]::Write($line)
-    [System.Console]::Write("`e[0K")  # Clear to end of line
+    [System.Console]::Write([char]27 + "[0K")  # ESC[0K clear to end of line
 }
 
 function Progress-End {
@@ -797,9 +856,7 @@ function Install-Engine {
     else {
         Write-Host "  Downloading $Script:EngineArchive..."
         $archivePath = Join-Path $Script:DownloadDir $Script:EngineArchive
-        if (-not (Invoke-ResumableDownload -Source $Script:EngineUrl -Destination $archivePath -Label $Script:EngineLabel)) {
-            Write-Host "  ERROR: Download failed for $Script:EngineArchive" -ForegroundColor Red
-            Emit-Error "Download failed for $Script:EngineArchive"
+        if (-not (Invoke-DownloadWithRetry -Source $Script:EngineUrl -Destination $archivePath -Label $Script:EngineLabel)) {
             exit 1
         }
 
@@ -905,9 +962,7 @@ function Install-ModelIfNeeded {
     Write-Host "  Downloading $zipFile..."
 
     $archivePath = Join-Path $Script:DownloadDir $zipFile
-    if (-not (Invoke-ResumableDownload -Source $downloadUrl -Destination $archivePath -Label $modelLabel)) {
-        Write-Host "  ERROR: Download failed for $zipFile" -ForegroundColor Red
-        Emit-Error "Download failed for $zipFile"
+    if (-not (Invoke-DownloadWithRetry -Source $downloadUrl -Destination $archivePath -Label $modelLabel)) {
         exit 1
     }
 
