@@ -653,6 +653,11 @@ function Invoke-ResumableDownload {
         Write-Host "  Resuming at $(HumanBytes $localSize)"
     }
 
+    # Use curl's own --stderr to avoid PowerShell 5.1 bug with
+    # Start-Process -RedirectStandardError (returns $null for ExitCode)
+    $curlErrFile = "$env:TEMP\junie-curl-err.txt"
+    Remove-Item -LiteralPath $curlErrFile -Force -ErrorAction SilentlyContinue
+
     # Build curl arguments (silent — we track progress by polling the file)
     $arguments = @(
         "--fail",
@@ -662,6 +667,7 @@ function Invoke-ResumableDownload {
         "--retry", "3",
         "--retry-delay", "2",
         "--continue-at", "-",
+        "--stderr", $curlErrFile,
         "--output", $Destination,
         $Source
     )
@@ -681,7 +687,7 @@ function Invoke-ResumableDownload {
     $proc = $null
     try {
         # Run curl in background, poll file size for progress
-        $proc = Start-Process -FilePath $curl.Source -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardError "$env:TEMP\junie-curl-err.txt"
+        $proc = Start-Process -FilePath $curl.Source -ArgumentList $arguments -NoNewWindow -PassThru
         
         $prevBytes = [long]$localSize
         $prevTime = [long][System.DateTimeOffset]::Now.ToUnixTimeSeconds()
@@ -711,50 +717,52 @@ function Invoke-ResumableDownload {
         }
 
         $proc.WaitForExit()
-        $exitCode = $proc.ExitCode
-        if ($null -eq $exitCode) { $exitCode = 1 }
 
-        # Final progress frame on success
-        if ($exitCode -eq 0) {
+        # PowerShell 5.1 Start-Process returns $null for ExitCode with console apps.
+        # Instead, use curl's stderr file: empty means success, non-empty means failure
+        # (--silent --show-error only writes on error).
+        $curlError = $false
+        if (Test-Path $curlErrFile) {
+            $errContent = Get-Content $curlErrFile -ErrorAction SilentlyContinue | ForEach-Object { $_.TrimEnd("`r") }
+            if ($errContent -and ($errContent -join "").Trim() -ne "") {
+                $curlError = $true
+            }
+        }
+
+        if (-not $curlError) {
+            # Success
             $finalBytes = [long]0
             if (Test-Path -LiteralPath $Destination) {
                 $finalBytes = [long](Get-Item -LiteralPath $Destination).Length
             }
             Progress-Render $finalBytes $remoteSize $bytesPerSec $Label
             Emit-Progress $fileName $finalBytes $remoteSize $Label
+            Progress-End
+            return $true
         }
-        Progress-End
 
-        if ($exitCode -ne 0) {
-            # Exit 33/36 = server rejected resume offset
-            if (($exitCode -eq 33 -or $exitCode -eq 36) -and $remoteSize -eq 0) {
-                Write-Host "  Server rejected resume offset; verifying what we have." -ForegroundColor Yellow
+        # Curl reported an error — check if file is actually complete anyway
+        if ($remoteSize -gt 0) {
+            $actualFinal = [long]0
+            if (Test-Path -LiteralPath $Destination) {
+                $actualFinal = [long](Get-Item -LiteralPath $Destination).Length
+            }
+            if ($actualFinal -eq $remoteSize) {
+                Write-Host "  Curl reported an error, but the file is complete ($(HumanBytes $actualFinal))." -ForegroundColor Yellow
+                Progress-Render $actualFinal $remoteSize $bytesPerSec $Label
+                Emit-Progress $fileName $actualFinal $remoteSize $Label
+                Progress-End
                 return $true
             }
-            # If file size matches remote size, curl failed but the file is complete
-            if ($remoteSize -gt 0) {
-                $actualFinal = [long]0
-                if (Test-Path -LiteralPath $Destination) {
-                    $actualFinal = [long](Get-Item -LiteralPath $Destination).Length
-                }
-                if ($actualFinal -eq $remoteSize) {
-                    Write-Host "  Curl reported an error, but the file is complete ($(HumanBytes $actualFinal))." -ForegroundColor Yellow
-                    Progress-Render $actualFinal $remoteSize $bytesPerSec $Label
-                    Emit-Progress $fileName $actualFinal $remoteSize $Label
-                    Progress-End
-                    return $true
-                }
-            }
-            # Show curl error if any
-            $errFile = "$env:TEMP\junie-curl-err.txt"
-            if (Test-Path $errFile) {
-                $errText = Get-Content $errFile -ErrorAction SilentlyContinue | Select-Object -First 2 | ForEach-Object { $_.TrimEnd("`r") }
-                if ($errText) { Write-Host "  $errText" -ForegroundColor Red }
-            }
-            Write-Host "  Download failed with exit code $exitCode. Partial data kept for retry." -ForegroundColor Red
-            return $false
         }
-        return $true
+
+        # Show curl error
+        if (Test-Path $curlErrFile) {
+            $errText = Get-Content $curlErrFile -ErrorAction SilentlyContinue | Select-Object -First 2 | ForEach-Object { $_.TrimEnd("`r") }
+            if ($errText) { Write-Host "  $errText" -ForegroundColor Red }
+        }
+        Write-Host "  Download failed. Partial data kept for retry." -ForegroundColor Red
+        return $false
     }
     finally {
         # Kill orphaned curl if script exits unexpectedly
@@ -764,7 +772,9 @@ function Invoke-ResumableDownload {
         if ($curlConfig) {
             Remove-Item -LiteralPath $curlConfig -Force -ErrorAction SilentlyContinue
         }
-        Remove-Item -LiteralPath "$env:TEMP\junie-curl-err.txt" -Force -ErrorAction SilentlyContinue
+        if ($curlErrFile) {
+            Remove-Item -LiteralPath $curlErrFile -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
