@@ -828,7 +828,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3256.1",
+      "version": "3257.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -840,42 +840,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3256.1/junie-nightly-3256.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3257.1/junie-nightly-3257.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3256.1/junie-nightly-3256.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3257.1/junie-nightly-3257.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3256.1/junie-nightly-3256.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3257.1/junie-nightly-3257.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3256.1/junie-nightly-3256.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3257.1/junie-nightly-3257.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3256.1/junie-nightly-3256.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3257.1/junie-nightly-3257.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3256.1/junie-nightly-3256.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3257.1/junie-nightly-3257.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1330,7 +1330,7 @@
     {
       "id": "qwen-code",
       "name": "Qwen Code",
-      "version": "0.23.2",
+      "version": "0.23.3",
       "description": "Alibaba's Qwen coding assistant",
       "repository": "https://github.com/QwenLM/qwen-code",
       "website": "https://qwenlm.github.io/qwen-code-docs/en/users/overview",
@@ -1341,7 +1341,7 @@
       "license_url": "https://github.com/QwenLM/qwen-code/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@qwen-code/qwen-code@0.23.2",
+          "package": "@qwen-code/qwen-code@0.23.3",
           "args": [
             "--acp",
             "--experimental-skills"
