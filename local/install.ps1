@@ -624,7 +624,7 @@ function Invoke-ResumableDownload {
         if ($probeHeaders) {
             $cl = $probeHeaders.Headers["Content-Length"]
             if ($cl) {
-                $remoteSize = [long](($cl -split ',')[0] -replace '\D', '')
+                $remoteSize = [long]((($cl -split ',')[0] -replace '\D', ''))
             }
         }
     }
@@ -939,7 +939,7 @@ function Install-Engine {
             Remove-Item -LiteralPath $tmpTar -Force -ErrorAction SilentlyContinue
         }
 
-        New-Item -ItemType File -LiteralPath (Engine-CompletionMarker) -Force | Out-Null
+        New-Item -ItemType File -Path (Engine-CompletionMarker) -Force | Out-Null
         Remove-Item -LiteralPath $archivePath -Force -ErrorAction SilentlyContinue
         Write-Host "  Unpack complete."
     }
@@ -1012,7 +1012,7 @@ function Install-ModelIfNeeded {
     Emit-Activity "extracting" $zipFile $modelLabel
     Copy-Item -LiteralPath $archivePath -Destination (Join-Path $modelDest $zipFile) -Force
 
-    New-Item -ItemType File -LiteralPath (Model-CompletionMarker $modelId) -Force | Out-Null
+    New-Item -ItemType File -Path (Model-CompletionMarker $modelId) -Force | Out-Null
     Write-Host "  Extraction complete." -ForegroundColor Green
 }
 
