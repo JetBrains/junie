@@ -731,6 +731,20 @@ function Invoke-ResumableDownload {
                 Write-Host "  Server rejected resume offset; verifying what we have." -ForegroundColor Yellow
                 return $true
             }
+            # If file size matches remote size, curl failed but the file is complete
+            if ($remoteSize -gt 0) {
+                $actualFinal = [long]0
+                if (Test-Path -LiteralPath $Destination) {
+                    $actualFinal = [long](Get-Item -LiteralPath $Destination).Length
+                }
+                if ($actualFinal -eq $remoteSize) {
+                    Write-Host "  Curl reported an error, but the file is complete ($(HumanBytes $actualFinal))." -ForegroundColor Yellow
+                    Progress-Render $actualFinal $remoteSize $bytesPerSec $Label
+                    Emit-Progress $fileName $actualFinal $remoteSize $Label
+                    Progress-End
+                    return $true
+                }
+            }
             # Show curl error if any
             $errFile = "$env:TEMP\junie-curl-err.txt"
             if (Test-Path $errFile) {
