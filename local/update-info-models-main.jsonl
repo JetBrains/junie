@@ -1,3 +1,3 @@
 {"platform":"macos-aarch64","id":"Qwen3.6-27B-MLX-4bit","displayName":"Qwen 3.6"}
 {"platform":"macos-aarch64","id":"Qwen3.8-27B-MLX-4bit","displayName":"Qwen 3.8"}
-{"platform":"windows-amd64","id":"Qwen3.8-27B-LLaMA-4bit","displayName":"Qwen 3.8"}
+{"platform":"windows-amd64","id":"Qwen3.8-27B-test-Q4_K_M","displayName":"Qwen 3.8"}

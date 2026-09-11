@@ -17,7 +17,7 @@
   - Minimum 40 GB RAM (60 GB recommended)
 
 .PARAMETER Model
-  Model identifier to install.  Default: Qwen3.8-27B-LLaMA-4bit
+  Model identifier to install.  Default: Qwen3.8-27B-test-Q4_K_M
 
 .PARAMETER Channel
   Update channel: main (default) or eap.
@@ -34,7 +34,7 @@
 .EXAMPLE
   .\install.ps1
 
-  .\install.ps1 --Model Qwen3.8-27B-LLaMA-4bit --Channel eap
+  .\install.ps1 --Model Qwen3.8-27B-test-Q4_K_M --Channel eap
 
   .\install.ps1 --CheckOnly
 #>
@@ -43,7 +43,7 @@
 # CLI parameter parsing (PowerShell 5.1 doesn't support -- switches)
 # ============================================================
 
-$script:ArgModel = "Qwen3.8-27B-LLaMA-4bit"
+$script:ArgModel = "Qwen3.8-27B-test-Q4_K_M"
 $script:ArgChannel = "main"
 $script:ArgCheckOnly = $false
 $script:ArgListModels = $false
@@ -179,7 +179,7 @@ function usage {
     Write-Host "Usage: install.ps1 [options]"
     Write-Host ""
     Write-Host "Options:"
-    Write-Host "  --model <name>     Model to install: Qwen3.8-27B-LLaMA-4bit (default)"
+    Write-Host "  --model <name>     Model to install: Qwen3.8-27B-test-Q4_K_M (default)"
     Write-Host "  --channel <name>   Update channel: main (default) or eap"
     Write-Host "  --check-only       Report system information, then exit"
     Write-Host "  --models           List all available models for this architecture, then exit"

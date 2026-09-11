@@ -1,5 +1,7 @@
 {
   "id": "local-qwen3.8-27b-test-4bit",
+  "draft_model": "Qwen3.8-27B-test-Q4_K_M",
+  "draft_kind": "mtp",
   "junieConfig": {
     "displayName": "Qwen 3.8",
     "providerName": "Local",
