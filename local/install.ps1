@@ -337,9 +337,12 @@ $Script:CurrentLink = Join-Path $Script:BaseDir "current"
 
 # Fetch configs
 Fetch-ModelsConfig
-# Engine config skipped — engine download not ready yet
+# Engine config skipped — engine download not ready yet. The engine is staged
+# manually on disk: versions/<version>/serverctl.ps1 already exists and the
+# desired version is recorded in the "version" file next to it.
 # Fetch-EngineConfig
-$Script:EngineVersion = "0.0.0-dev"
+$Script:VersionFile = Join-Path $Script:BaseDir "version"
+$Script:EngineVersion = (Get-Content -LiteralPath $Script:VersionFile -Raw).Trim()
 $Script:EngineDir = Join-Path $Script:VersionsDir $Script:EngineVersion
 $Script:EngineCtl = ""
 
@@ -1065,13 +1068,9 @@ function Start-Engine {
 
     $ctlPath = Join-Path $Script:EngineDir "serverctl.ps1"
     if (-not (Test-Path -LiteralPath $ctlPath -PathType Leaf)) {
-        $ctlPath = Join-Path $Script:EngineDir "serverctl.sh"
-        # If it's a .sh, we need WSL or Git Bash - warn and try
-        if (-not (Test-Path -LiteralPath $ctlPath -PathType Leaf)) {
-            Write-Host "  ERROR: serverctl.ps1 / serverctl.sh not found in $Script:EngineDir" -ForegroundColor Red
-            Emit-Error "serverctl not found in $Script:EngineDir"
-            return $false
-        }
+        Write-Host "  ERROR: serverctl.ps1 not found in $Script:EngineDir" -ForegroundColor Red
+        Emit-Error "serverctl.ps1 not found in $Script:EngineDir"
+        return $false
     }
 
     # Stop any running engine
@@ -1089,12 +1088,24 @@ function Start-Engine {
     }
 
     Write-Host "  Starting the engine..."
-    try {
-        Start-Process -FilePath "pwsh" -ArgumentList "-NoProfile", "-File", $ctlPath, "start" `
-            -WindowStyle Hidden -ErrorAction SilentlyContinue
+    # Prefer PowerShell 7 (pwsh) when available, otherwise fall back to the
+    # built-in Windows PowerShell (powershell.exe), which is always present.
+    $psHost = Get-Command pwsh -ErrorAction SilentlyContinue
+    if (-not $psHost) {
+        $psHost = Get-Command powershell -ErrorAction SilentlyContinue
     }
-    catch {
-        Write-Host "  WARNING: Could not start engine via serverctl." -ForegroundColor Yellow
+    if (-not $psHost) {
+        Write-Host "  WARNING: Could not start engine via serverctl (no PowerShell host found)." -ForegroundColor Yellow
+    }
+    else {
+        try {
+            Start-Process -FilePath $psHost.Source `
+                -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $ctlPath, "start" `
+                -WindowStyle Hidden
+        }
+        catch {
+            Write-Host "  WARNING: Could not start engine via serverctl. $_" -ForegroundColor Yellow
+        }
     }
 
     # Wait for engine readiness
@@ -1264,8 +1275,10 @@ New-Item -ItemType Directory -Path $Script:VersionsDir -Force | Out-Null
 New-Item -ItemType Directory -Path $Script:DownloadDir -Force | Out-Null
 
 # --- Step 1: Install the inference engine (DISABLED - engine not ready yet) ---
+# The engine is staged manually on disk (version file + versions/<version>/serverctl.ps1),
+# so the download/unpack step is skipped here.
 Write-Host ""
-Write-Host "  Skipping engine installation (not ready yet)" -ForegroundColor Yellow
+Write-Host "  Skipping engine installation (using staged engine v$Script:EngineVersion)" -ForegroundColor Yellow
 Write-Host "  ----------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 
@@ -1285,11 +1298,24 @@ Write-Host "  Removing downloaded archives..." -ForegroundColor DarkGray
 Remove-Item -LiteralPath $Script:DownloadDir -Recurse -Force -ErrorAction SilentlyContinue
 Emit-StepDone "models"
 
-# --- Step 3 & 4: Configure & start engine (DISABLED - engine not ready yet) ---
+# --- Step 3: Configure the engine ---
 Write-Host ""
-Write-Host "  Skipping engine configuration and start (not ready yet)" -ForegroundColor Yellow
-Write-Host "  ---------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "  Configuring Junie" -ForegroundColor Green
+Write-Host "  -----------------" -ForegroundColor DarkGray
 Write-Host ""
+Emit-StepStart "configure" "Configuring Junie"
+# Ensure server-config.json exists so the engine can read the auth token.
+Handle-ServerConfig
+Emit-StepDone "configure"
+
+# --- Step 4: Start the inference engine ---
+Write-Host ""
+Write-Host "  Starting the inference engine" -ForegroundColor Green
+Write-Host "  -----------------------------" -ForegroundColor DarkGray
+Write-Host ""
+Emit-StepStart "start" "Starting the inference engine"
+Start-Engine | Out-Null
+Emit-StepDone "start"
 
 # --- Summary ---
 $mainModelId = Get-ArchiveField -ArchiveIndex 0 -Field "modelId"
@@ -1302,9 +1328,10 @@ Write-Host ""
 
 Print-Value "Models:" "$Script:ModelsDir" $true $false ""
 Print-Value "Model path:" "$Script:ModelsDir\$mainModelId" $true $false ""
+Print-Value "Engine:" "v$Script:EngineVersion on port $Script:EnginePort" $true $false ""
 
 Write-Host ""
-Write-Host "  Model downloaded successfully. Engine installation skipped (not ready yet)."
+Write-Host "  Installation finished. The inference engine has been configured and started."
 
 Emit-Event "event:`"done`",model_id:`"$Script:JunieModelId`",port:$Script:EnginePort,model_path:`"$(Json-Escape "$Script:ModelsDir/$mainModelId")`",label:`"$(Json-Escape "$mainLabel")`""
 
