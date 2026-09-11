@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # DO NOT EDIT — generated from templates/install.sh.template by templates/generate.sh
 #
 # Junie CLI Installer
@@ -251,7 +251,7 @@ install_shim() {
   else
     # Embedded inline so it works when piped via curl ... | bash
     cat > "$shim_path" << 'SHIM_EOF'
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # JUNIE_MANAGED_SHIM
 #
