@@ -1003,13 +1003,11 @@ function Install-ModelIfNeeded {
     }
     Write-Host "  SHA256 verified $actual"
 
-    $modelDest = Join-Path $Script:ModelsDir $modelId
-    Remove-Item -LiteralPath $modelDest -Recurse -Force -ErrorAction SilentlyContinue
-    New-Item -ItemType Directory -Path $modelDest -Force | Out-Null
+    New-Item -ItemType Directory -Path $Script:ModelsDir -Force | Out-Null
 
     Write-Host "  Copying $zipFile..."
     Emit-Activity "extracting" $zipFile $modelLabel
-    Copy-Item -LiteralPath $archivePath -Destination (Join-Path $modelDest $zipFile) -Force
+    Copy-Item -LiteralPath $archivePath -Destination (Join-Path $Script:ModelsDir $zipFile) -Force
 
     New-Item -ItemType File -Path (Model-CompletionMarker $modelId) -Force | Out-Null
     Write-Host "  Extraction complete." -ForegroundColor Green
