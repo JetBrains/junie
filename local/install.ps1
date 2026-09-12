@@ -953,7 +953,8 @@ function Install-Engine {
 
     # Write the version name to the "current" file (no symlink needed)
     Write-Host "  Recording v$Script:EngineVersion as the current engine..."
-    $Script:EngineVersion | Set-Content -LiteralPath $Script:CurrentFile -Encoding UTF8
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($Script:CurrentFile, $Script:EngineVersion, $utf8NoBom)
     Write-Host ""
 }
 
