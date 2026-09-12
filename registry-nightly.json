@@ -571,7 +571,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.217.0",
+      "version": "0.218.1",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -581,7 +581,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@0.217.0",
+          "package": "droid@0.218.1",
           "args": [
             "exec",
             "--output-format",
@@ -743,7 +743,7 @@
     {
       "id": "grok-build",
       "name": "Grok Build",
-      "version": "1.0.29",
+      "version": "1.0.30",
       "description": "xAI's coding agent and CLI",
       "website": "https://x.ai/cli",
       "authors": [
@@ -753,7 +753,7 @@
       "license_url": "https://x.ai/legal/terms-of-service",
       "distribution": {
         "npx": {
-          "package": "@xai-official/grok@1.0.29",
+          "package": "@xai-official/grok@1.0.30",
           "args": [
             "agent",
             "stdio"
@@ -828,7 +828,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3285.1",
+      "version": "3286.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -840,42 +840,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3285.1/junie-nightly-3285.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3286.1/junie-nightly-3286.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3285.1/junie-nightly-3285.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3286.1/junie-nightly-3286.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3285.1/junie-nightly-3285.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3286.1/junie-nightly-3286.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3285.1/junie-nightly-3285.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3286.1/junie-nightly-3286.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3285.1/junie-nightly-3285.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3286.1/junie-nightly-3286.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3285.1/junie-nightly-3285.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3286.1/junie-nightly-3286.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
