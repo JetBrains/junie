@@ -333,7 +333,7 @@ function Fetch-EngineConfig {
 
 $Script:EngineLabel = "inference engine"
 $Script:VersionsDir = Join-Path $Script:BaseDir "versions"
-$Script:CurrentLink = Join-Path $Script:BaseDir "current"
+$Script:CurrentFile = Join-Path $Script:BaseDir "current"
 
 # Fetch configs
 Fetch-ModelsConfig
@@ -343,7 +343,7 @@ Fetch-EngineConfig
 $Script:EngineArchive = $Script:EngineUrl.Split("/")[-1]
 
 $Script:EngineDir = Join-Path $Script:VersionsDir $Script:EngineVersion
-$Script:EngineCtl = Join-Path $Script:CurrentLink "serverctl.ps1"
+$Script:EngineCtl = Join-Path $Script:EngineDir "serverctl.ps1"
 
 # ============================================================
 # List models mode
@@ -951,12 +951,9 @@ function Install-Engine {
         Write-Host "  Unpack complete."
     }
 
-    # Create/update the "current" symlink (PowerShell junction or directory symlink)
-    if (Test-Path -LiteralPath $Script:CurrentLink) {
-        Remove-Item -LiteralPath $Script:CurrentLink -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    Write-Host "  Pointing $Script:CurrentLink at $Script:EngineDir..."
-    New-Item -ItemType SymbolicLink -Path $Script:CurrentLink -Target $Script:EngineDir -Force | Out-Null
+    # Write the version name to the "current" file (no symlink needed)
+    Write-Host "  Recording v$Script:EngineVersion as the current engine..."
+    $Script:EngineVersion | Set-Content -LiteralPath $Script:CurrentFile -Encoding UTF8
     Write-Host ""
 }
 
