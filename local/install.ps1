@@ -1300,7 +1300,7 @@ Write-Host "  Removing downloaded archives..." -ForegroundColor DarkGray
 Remove-Item -LiteralPath $Script:DownloadDir -Recurse -Force -ErrorAction SilentlyContinue
 Emit-StepDone "models"
 
-# --- Step 3: Configure the engine ---
+# --- Step 3: angeure Junie ---
 Write-Host ""
 Write-Host "  Configuring Junie" -ForegroundColor Green
 Write-Host "  -----------------" -ForegroundColor DarkGray
@@ -1308,6 +1308,16 @@ Write-Host ""
 Emit-StepStart "configure" "Configuring Junie"
 # Ensure server-config.json exists so the engine can read the auth token.
 Handle-ServerConfig
+# Generate the Junie model config from the installed model template.
+# This resolves the $ENGINE_PORT and $AUTH_TOKEN placeholders and writes
+# the finished config to $JUNIE_HOME/models/<id>.json.
+$ctlPath = Join-Path $Script:EngineDir "serverctl.ps1"
+if (Test-Path -LiteralPath $ctlPath -PathType Leaf) {
+    & $ctlPath --junie-config $Script:JunieHome --model $Model
+} else {
+    Write-Host "  WARNING: serverctl.ps1 not found at $ctlPath" -ForegroundColor Yellow
+    Write-Host "  Skipping Junie config generation."
+}
 Emit-StepDone "configure"
 
 # --- Step 4: Start the inference engine ---
@@ -1329,11 +1339,15 @@ Write-Host "  ---------------------" -ForegroundColor DarkGray
 Write-Host ""
 
 Print-Value "Models:" "$Script:ModelsDir" $true $false ""
-Print-Value "Model path:" "$Script:ModelsDir\$mainModelId" $true $false ""
 Print-Value "Engine:" "v$Script:EngineVersion on port $Script:EnginePort" $true $false ""
+Print-Value "Junie model config:" "$Script:JunieHome\models\${Script:JunieModelId}.json" $true $false ""
+Print-Value "Default model:" "$Script:JunieModelId" $true $false ""
 
 Write-Host ""
-Write-Host "  Installation finished. The inference engine has been configured and started."
+Write-Host "  The engine serves http://localhost:$Script:EnginePort - the first request has to wait"
+Write-Host "  for the model to load."
+Write-Host "  Control the engine with: $ctlPath {start|stop|status|wait}"
+Write-Host ""
 
 Emit-Event "event:`"done`",model_id:`"$Script:JunieModelId`",port:$Script:EnginePort,model_path:`"$(Json-Escape "$Script:ModelsDir/$mainModelId")`",label:`"$(Json-Escape "$mainLabel")`""
 
