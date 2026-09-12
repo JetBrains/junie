@@ -337,14 +337,13 @@ $Script:CurrentLink = Join-Path $Script:BaseDir "current"
 
 # Fetch configs
 Fetch-ModelsConfig
-# Engine config skipped — engine download not ready yet. The engine is staged
-# manually on disk: versions/<version>/serverctl.ps1 already exists and the
-# desired version is recorded in the "version" file next to it.
-# Fetch-EngineConfig
-$Script:VersionFile = Join-Path $Script:BaseDir "version"
-$Script:EngineVersion = (Get-Content -LiteralPath $Script:VersionFile -Raw).Trim()
+Fetch-EngineConfig
+
+# Archive name is the last path segment of the download URL.
+$Script:EngineArchive = $Script:EngineUrl.Split("/")[-1]
+
 $Script:EngineDir = Join-Path $Script:VersionsDir $Script:EngineVersion
-$Script:EngineCtl = ""
+$Script:EngineCtl = Join-Path $Script:CurrentLink "serverctl.ps1"
 
 # ============================================================
 # List models mode
@@ -906,7 +905,7 @@ function Install-Engine {
         Remove-Item -LiteralPath $Script:EngineDir -Recurse -Force -ErrorAction SilentlyContinue
         New-Item -ItemType Directory -Path $Script:EngineDir -Force | Out-Null
 
-        # Try 7z first (handles .tar.gz better), then fall back to Expand-Archive
+        # Try 7z first (handles .zip and .tar.gz), then fall back to Expand-Archive
         $sevenZip = Get-Command 7z.exe -ErrorAction SilentlyContinue
         if ($sevenZip) {
             & 7z.exe x -o$Script:EngineDir -y $archivePath | Out-Null
@@ -923,15 +922,21 @@ function Install-Engine {
             }
         }
         else {
-            # Expand-Archive handles .gz: extract to .tar, then extract contents
-            $tmpTar = [System.IO.Path]::GetTempFileName() + ".tar"
-            Expand-Archive -LiteralPath $archivePath -DestinationPath (Split-Path $tmpTar -Parent) -Force
-            # Rename the extracted .gz result to .tar if needed
-            $extracted = Get-ChildItem -LiteralPath (Split-Path $tmpTar -Parent) | Select-Object -First 1
-            if ($extracted) {
-                $tmpTar = $extracted.FullName
+            if ($Script:EngineArchive -like '*.zip') {
+                Expand-Archive -LiteralPath $archivePath -DestinationPath $Script:EngineDir -Force
             }
-            Expand-Archive -LiteralPath $tmpTar -DestinationPath $Script:EngineDir -Force -ErrorAction SilentlyContinue
+            else {
+                # Expand-Archive handles .gz: extract to .tar, then extract contents
+                $tmpTar = [System.IO.Path]::GetTempFileName() + ".tar"
+                Expand-Archive -LiteralPath $archivePath -DestinationPath (Split-Path $tmpTar -Parent) -Force
+                # Rename the extracted .gz result to .tar if needed
+                $extracted = Get-ChildItem -LiteralPath (Split-Path $tmpTar -Parent) | Select-Object -First 1
+                if ($extracted) {
+                    $tmpTar = $extracted.FullName
+                }
+                Expand-Archive -LiteralPath $tmpTar -DestinationPath $Script:EngineDir -Force -ErrorAction SilentlyContinue
+                Remove-Item -LiteralPath $tmpTar -Force -ErrorAction SilentlyContinue
+            }
             # Flatten if needed
             $topLevel = Get-ChildItem -LiteralPath $Script:EngineDir -Directory | Select-Object -First 1
             if ($topLevel -and (Get-ChildItem -LiteralPath $Script:EngineDir).Count -eq 1) {
@@ -939,7 +944,6 @@ function Install-Engine {
                     -Destination $Script:EngineDir -Force
                 Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
             }
-            Remove-Item -LiteralPath $tmpTar -Force -ErrorAction SilentlyContinue
         }
 
         New-Item -ItemType File -Path (Engine-CompletionMarker) -Force | Out-Null
@@ -1056,7 +1060,7 @@ function Handle-ServerConfig {
 
 function Test-EngineRunning {
     try {
-        $processes = Get-Process -Name "serverctl", "junie*" -ErrorAction SilentlyContinue
+        $processes = Get-Process -Name "serverctl", "junie-llama*" -ErrorAction SilentlyContinue
         return $null -ne $processes
     }
     catch { return $false }
@@ -1274,13 +1278,14 @@ New-Item -ItemType Directory -Path $Script:ModelsDir -Force | Out-Null
 New-Item -ItemType Directory -Path $Script:VersionsDir -Force | Out-Null
 New-Item -ItemType Directory -Path $Script:DownloadDir -Force | Out-Null
 
-# --- Step 1: Install the inference engine (DISABLED - engine not ready yet) ---
-# The engine is staged manually on disk (version file + versions/<version>/serverctl.ps1),
-# so the download/unpack step is skipped here.
+# --- Step 1: Install the inference engine ---
 Write-Host ""
-Write-Host "  Skipping engine installation (using staged engine v$Script:EngineVersion)" -ForegroundColor Yellow
+Write-Host "  Installing $Script:EngineLabel" -ForegroundColor Green
 Write-Host "  ----------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
+Emit-StepStart "engine" "Installing $Script:EngineLabel"
+Install-Engine
+Emit-StepDone "engine"
 
 # --- Step 2: Download and install models ---
 Write-Host ""
