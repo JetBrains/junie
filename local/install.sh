@@ -2,6 +2,55 @@
 set -e
 
 # ============================================================
+# Prerequisites
+# ============================================================
+
+# Ensure the required commands are available before we start downloading
+# anything. We fail early with an actionable message so users on minimal
+# systems aren't stuck staring at a cryptic `command not found` halfway
+# through the install.
+# Detect the OS early so we can pick the right toolchain for every step.
+if uname -s | grep -qi "darwin"; then
+  OS_TYPE="macos"
+else
+  OS_TYPE="linux"
+  echo "ERROR: linux is not supported yet"
+  exit 1
+fi
+
+require_commands() {
+  missing=""
+  common="curl tar unzip head tput"
+  if [ "$OS_TYPE" = "macos" ]; then
+    required="$common shasum pgrep xxd sysctl sw_vers"
+  else
+    required="$common sha256sum"
+  fi
+  for cmd in $required; do
+    if ! command -v "$cmd" > /dev/null 2>&1; then
+      missing="$missing $cmd"
+    fi
+  done
+  if [ -n "$missing" ]; then
+    echo "ERROR: Required commands not found:$missing"
+    echo ""
+    if [ "$OS_TYPE" = "macos" ]; then
+      echo "These are part of macOS base system or Xcode Command Line Tools."
+      echo "Install Xcode CLI tools with:"
+      echo "  xcode-select --install"
+    else
+      echo "Install them with your distribution's package manager, e.g.:"
+      echo "  apt-get update && apt-get install -y coreutils"
+      echo "or"
+      echo "  dnf install -y coreutils"
+    fi
+    echo "then re-run this installer."
+    exit 1
+  fi
+}
+require_commands
+
+# ============================================================
 # Command-line arguments
 # ============================================================
 
@@ -9,17 +58,19 @@ PROTOCOL_VERSION=1
 
 MACHINE_OUTPUT=false
 CHECK_ONLY=false
-KEEP_CONFIG=false
-MODEL="qwen3.6"
+LIST_MODELS=false
+MODEL="Qwen3.6-27B-MLX-4bit"
+CHANNEL="main"
 
 usage() {
   echo "Usage: install.sh [options]"
   echo ""
   echo "Options:"
-  echo "  --model <name>     Model to install: qwen3.6 (default) or qwen3.8"
+  echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default) or Qwen3.8-27B-MLX-4bit"
+  echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
+  echo "  --models           List all available models for this architecture, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
-  echo "  --keep-config      Preserve the existing server-config.json instead of removing it"
   echo "  --help, -h         Show this help"
 }
 
@@ -27,7 +78,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --json) MACHINE_OUTPUT=true ;;
     --check-only) CHECK_ONLY=true ;;
-    --keep-config) KEEP_CONFIG=true ;;
+    --models) LIST_MODELS=true ;;
     --model)
       shift
       if [ $# -eq 0 ]; then
@@ -35,7 +86,13 @@ while [ $# -gt 0 ]; do
       fi
       MODEL="$1"
       ;;
-    --model=*) MODEL="${1#--model=}" ;;
+    --channel)
+      shift
+      if [ $# -eq 0 ]; then
+        echo "ERROR: --channel requires a value"; usage; exit 1
+      fi
+      CHANNEL="$1"
+      ;;
     --help|-h) usage; exit 0 ;;
     *) echo "ERROR: Unknown option: $1"; usage; exit 1 ;;
   esac
@@ -51,7 +108,6 @@ fi
 # Configuration
 # ============================================================
 
-BASE_URL="https://download.jetbrains.com/resources/junie-local"
 BASE_DIR="$HOME/.local/share/junie-local"
 # Junie configuration directory; the caller (Junie CLI) overrides it when it
 # runs with a non-default home so the model config lands where that instance
@@ -60,57 +116,184 @@ JUNIE_HOME="${JUNIE_HOME:-$HOME/.junie}"
 MODELS_DIR="$BASE_DIR/models"
 DOWNLOAD_DIR="$BASE_DIR/incomplete_downloads"
 
-# Model archives, their SHA256 checksums, model IDs, and display labels.
-# Both variants are published side by side; --model picks the one to install,
-# and installing one leaves an already installed other one untouched.
-case "$MODEL" in
-  qwen3.6)
-    MODEL_ZIP_1="Qwen3.6-27B-MLX-4bit.zip"
-    MODEL_SHA256_1="d8abf8f9260247fe2d571b5b65a5d6b80da6635f74f5e2ca195da1941ca7d48d"
-    MODEL_ID_1="Qwen3.6-27B-MLX-4bit"
-    MODEL_LABEL_1="Qwen 3.6 27B 4bit"
-    MODEL_ZIP_2="Qwen3.6-27B-MTP-MLX-4bit.zip"
-    MODEL_SHA256_2="ebbef3755e836082837f902036bfedb8201ab353310f3cbaefdb6d7b652b980f"
-    MODEL_ID_2="Qwen3.6-27B-MTP-MLX-4bit"
-    MODEL_LABEL_2="MTP draft model"
-    JUNIE_MODEL_ID="local-qwen3.6-27b-4bit"
-    JUNIE_MODEL_DISPLAY_NAME="Qwen 3.6"
-    ;;
-  qwen3.8)
-    MODEL_ZIP_1="Qwen3.8-27B-MLX-4bit.zip"
-    MODEL_SHA256_1="50e659f4d286e281502aeaa0fbea43710fd318a976c8cd331c1f8519b303ba39"
-    MODEL_ID_1="Qwen3.8-27B-MLX-4bit"
-    MODEL_LABEL_1="Qwen 3.8 27B 4bit"
-    MODEL_ZIP_2="Qwen3.8-27B-MTP-MLX-4bit.zip"
-    MODEL_SHA256_2="3131d15127297d26c5e97ab63e242be5d1a81b3c8a390fa6e5b6e5a08d7f4f90"
-    MODEL_ID_2="Qwen3.8-27B-MTP-MLX-4bit"
-    MODEL_LABEL_2="MTP draft model"
-    JUNIE_MODEL_ID="local-qwen3.8-27b-4bit"
-    JUNIE_MODEL_DISPLAY_NAME="Qwen 3.8"
-    ;;
-  *)
-    echo "ERROR: Unknown model: $MODEL (supported: qwen3.6, qwen3.8)"
-    exit 1
-    ;;
-esac
+# ============================================================
+# Platform detection
+# ============================================================
 
-# Name the engine serves the main model under. It matches the directory the
-# archive unpacks into under $MODELS_DIR.
-ENGINE_MODEL_NAME="$MODEL_ID_1"
+# Detect the target platform (e.g. macos-aarch64 or linux-amd64).
+# OS_TYPE was already set at the top of the script; UNAME_OS is kept for
+# display and for the legacy checks that still use it.
+UNAME_OS=$(uname -s)
+UNAME_ARCH=$(uname -m)
+case "$UNAME_OS" in
+  Darwin) OS_NAME="macos" ;;
+  *)      OS_NAME="linux" ;;
+esac
+case "$UNAME_ARCH" in
+  arm64|aarch64) ARCH_NAME="aarch64" ;;
+  x86_64|amd64)  ARCH_NAME="amd64" ;;
+  *)             ARCH_NAME="$UNAME_ARCH" ;;
+esac
+PLATFORM="${OS_NAME}-${ARCH_NAME}"
+
+# ============================================================
+# Model configuration: fetched from update-info-models-<channel>.jsonl
+# ============================================================
+
+# Base URL for the update-info files (engine and model metadata). Override via
+# environment variable to point at a custom location during testing/deployment.
+UPDATE_FILES_BASE_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL:-https://raw.githubusercontent.com/jetbrains-junie/junie/main/local}"
+
+# Model update metadata is published per channel as JSONL (one object per line)
+# with platform, model id (filename in models/ folder), displayName, etc.
+MODELS_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-models-${CHANNEL}.jsonl"
+
+# Global: the fetched model JSON (qwen3.6.json etc), kept for archive lookups.
+models_json=""
+
+# Extract a string field from JSON on stdin. Handles both compact
+# ("key":"value") and pretty-printed ("key": "value") formats. Prints the
+# first occurrence; empty if the field is not found.
+get_json_field() {
+  local field="$1"
+  grep -o "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 | sed "s/\"${field}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\"/\\1/"
+}
+
+# List all models available for the current platform from the channel's
+# update-info-models JSONL. In human mode prints one "id (displayName)" per
+# line; with --json emits a single "models" event with the full list.
+list_available_models() {
+  models_jsonl=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
+    printf '%sERROR: Could not fetch models list from %s%s\n' "$RED" "$MODELS_UPDATE_URL" "$RESET"
+    emit_error "Could not fetch models list from $MODELS_UPDATE_URL"
+    exit 1
+  }
+  if [ "$MACHINE_OUTPUT" = true ]; then
+    # Build a JSON array of {"id":"...","displayName":"..."} objects.
+    models_array="["
+    first=true
+    while IFS= read -r entry; do
+      case "$entry" in
+        *"\"platform\":\"${PLATFORM}\""*) ;;
+        *) continue ;;
+      esac
+      id=$(printf '%s' "$entry" | get_json_field id)
+      name=$(printf '%s' "$entry" | get_json_field displayName)
+      if [ "$first" = true ]; then
+        first=false
+      else
+        models_array="$models_array,"
+      fi
+      models_array="$models_array{\"id\":\"$(json_escape "$id")\",\"displayName\":\"$(json_escape "$name")\"}"
+    done <<EOF
+$(printf '%s\n' "$models_jsonl")
+EOF
+    models_array="$models_array]"
+    emit_event "\"event\":\"models\",\"platform\":\"$(json_escape "$PLATFORM")\",\"channel\":\"$(json_escape "$CHANNEL")\",\"models\":$models_array"
+  else
+    while IFS= read -r entry; do
+      case "$entry" in
+        *"\"platform\":\"${PLATFORM}\""*) ;;
+        *) continue ;;
+      esac
+      id=$(printf '%s' "$entry" | get_json_field id)
+      name=$(printf '%s' "$entry" | get_json_field displayName)
+      printf '  %s%s%s (%s)\n' "$GRAY" "$name" "$RESET" "$id"
+    done <<EOF
+$(printf '%s\n' "$models_jsonl")
+EOF
+  fi
+}
+
+# Extract a field from an archive entry by index. Each archive object has
+# exactly one of each field, so we extract all values of that field in order
+# and pick the Nth one.
+get_archive_field() {
+  local archive_index="$1"
+  local field="$2"
+  printf '%s' "$models_json" | grep -o "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | sed "s/\"${field}\"[[:space:]]*:[[:space:]]*\"//; s/\"$//" | sed -n "$((archive_index + 1))p"
+}
+
+fetch_models_config() {
+  # Fetch the JSONL metadata.
+  models_jsonl=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
+    printf '%sERROR: Could not fetch models config from %s%s\n' "$RED" "$MODELS_UPDATE_URL" "$RESET"
+    exit 1
+  }
+
+  # Find the entry matching our platform and the requested model.
+  model_entry=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | grep "\"id\":\"${MODEL}\"" | tail -1)
+  if [ -z "$model_entry" ]; then
+    supported=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | while IFS= read -r e; do printf '%s' "$e" | get_json_field id; done | tr '\n' ',' | sed 's/,$//')
+    printf '%sERROR: Unknown model: %s for platform %s (supported: %s)%s\n' "$RED" "$MODEL" "$PLATFORM" "$supported" "$RESET"
+    exit 1
+  fi
+
+  # Extract the model id (filename in the models/ folder).
+  MODEL_FILE_ID=$(printf '%s' "$model_entry" | get_json_field id)
+
+  # Fetch the model JSON file.
+  MODEL_CONFIG_URL="${UPDATE_FILES_BASE_URL}/models/${MODEL_FILE_ID}.json"
+  models_json=$(curl -fsSL "$MODEL_CONFIG_URL" 2>/dev/null) || {
+    printf '%sERROR: Could not fetch model config from %s%s\n' "$RED" "$MODEL_CONFIG_URL" "$RESET"
+    exit 1
+  }
+
+  # Save the model JSON locally so the engine can use it. Skip when only
+  # listing models — no install is happening.
+  if [ "$LIST_MODELS" != true ]; then
+    MODEL_CONFIG_FILE="$MODELS_DIR/${MODEL_FILE_ID}.json"
+    mkdir -p "$MODELS_DIR"
+    printf '  %sSaving model config to %s...%s\n' "$GRAY" "$MODEL_CONFIG_FILE" "$RESET"
+    echo "$models_json" > "$MODEL_CONFIG_FILE"
+  fi
+
+  # Extract the Junie model id (used for config file naming and defaults).
+  JUNIE_MODEL_ID=$(printf '%s' "$models_json" | get_json_field id)
+
+  # Count the archives to install.
+  ARCHIVE_COUNT=$(printf '%s' "$models_json" | grep -o '"modelId"' | wc -l | tr -d ' ')
+}
+
+fetch_models_config
+
+# ============================================================
+# Engine configuration: fetched from update-info-engine-<channel>.jsonl
+# ============================================================
+
+# Engine update metadata is published per channel as JSONL (one object per
+# line). Fetch the file for the requested channel and pick the entry that
+# matches our platform.
+ENGINE_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-engine-${CHANNEL}.jsonl"
+
+fetch_engine_config() {
+  engine_jsonl=$(curl -fsSL "$ENGINE_UPDATE_URL" 2>/dev/null) || {
+    printf '%sERROR: Could not fetch engine config from %s%s\n' "$RED" "$ENGINE_UPDATE_URL" "$RESET"
+    exit 1
+  }
+  engine_entry=$(printf '%s\n' "$engine_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | tail -1)
+  if [ -z "$engine_entry" ]; then
+    printf '%sERROR: No engine entry found for platform %s in channel %s%s\n' "$RED" "$PLATFORM" "$CHANNEL" "$RESET"
+    exit 1
+  fi
+
+  ENGINE_VERSION=$(printf '%s' "$engine_entry" | get_json_field version)
+  ENGINE_URL=$(printf '%s' "$engine_entry" | get_json_field downloadUrl)
+  ENGINE_SHA256=$(printf '%s' "$engine_entry" | get_json_field sha256)
+}
+
+fetch_engine_config
+
+# Archive name is the last path segment of the download URL.
+ENGINE_ARCHIVE=$(printf '%s' "$ENGINE_URL" | sed 's|.*/||')
 
 # Inference engine release. Versions are unpacked side by side under versions/
 # and the current symlink points at the one to run.
-ENGINE_VERSION="0.2.2"
-ENGINE_ARCHIVE="junie-mlx-vlm-0.2.2-macos-arm64.tar.gz"
-ENGINE_URL="https://cache-redirector.jetbrains.com/github.com/JetBrains-Hardware/junie-local/releases/download/v0.2.2/$ENGINE_ARCHIVE"
-ENGINE_SHA256="21181744477202f37caed57874ae2bbb5c083816ae084553b1fba3dd978c5763"
 ENGINE_LABEL="inference engine"
 VERSIONS_DIR="$BASE_DIR/versions"
 ENGINE_DIR="$VERSIONS_DIR/$ENGINE_VERSION"
 CURRENT_LINK="$BASE_DIR/current"
-ENGINE_BIN="$CURRENT_LINK/junie-mlx-vlm"
 ENGINE_CTL="$CURRENT_LINK/serverctl.sh"
-ENGINE_DAEMON_LOG="$BASE_DIR/junie-mlx-vlm-daemon.log"
 
 # The port the engine serves on (the Junie model config below points at it) and
 # the RAM allowance it may spend on weights and KV cache. The engine reads the
@@ -120,17 +303,10 @@ ENGINE_DAEMON_LOG="$BASE_DIR/junie-mlx-vlm-daemon.log"
 ENGINE_PORT=19239
 ENGINE_RAM_GB=35
 
-# Bearer auth token for local engine-to-Junie communication. Generated on first
-# install and stored in server-config.json (api_key field). On re-runs the
-# installer reads the existing token from server-config.json to keep it stable.
-AUTH_TOKEN=""
 
-# Junie model configuration. The id and display name come from the selected
-# model above, so each variant gets its own config file in $JUNIE_HOME/models.
-JUNIE_CUSTOM_MODEL_ID="custom:$JUNIE_MODEL_ID"
-JUNIE_MODEL_PROVIDER_NAME="Local"
-# seems to be optimal context length
-JUNIE_MAX_CONTEXT_LENGTH=150000
+# ============================================================
+# Functions
+# ============================================================
 
 # ============================================================
 # Machine-readable events (--json): one JSON object per line on stdout
@@ -199,6 +375,43 @@ check_status() {
 
 emit_event "\"event\":\"hello\",\"protocol\":$PROTOCOL_VERSION"
 
+# ============================================================
+# OS-specific utility functions
+# ============================================================
+
+# Calculate SHA-256 checksum of a file. Uses shasum on macOS and sha256sum on
+# Linux, since the two tools have different flags and output formats.
+get_checksum() {
+  local file="$1"
+  if [ "$OS_TYPE" = "macos" ]; then
+    shasum -a 256 "$file" | awk '{print $1}'
+  else
+    sha256sum "$file" | awk '{print $1}'
+  fi
+}
+
+# Generate a random hex token. xxd is not available on all Linux systems,
+# so fall back to od, which is part of POSIX coreutils.
+generate_token() {
+  if command -v xxd > /dev/null 2>&1; then
+    head -c 12 /dev/urandom | xxd -p
+  else
+    head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n'
+  fi
+}
+
+# Check whether the engine daemon is currently running. macOS has pgrep with
+# a clean -f flag; on Linux we use ps + grep and filter out the grep itself.
+# We match on "serverctl" and the base dir rather than a hardcoded binary name,
+# so the check works regardless of the platform-specific engine binary.
+is_engine_running() {
+  if [ "$OS_TYPE" = "macos" ]; then
+    pgrep -f "$ENGINE_CTL" > /dev/null 2>&1 || pgrep -f "junie.*vlm" > /dev/null 2>&1
+  else
+    ps aux | grep -E "serverctl|junie.*vlm" | grep -v grep | grep -q .
+  fi
+}
+
 # Helper: wait for user to press any key, then exit. Only a standalone run on a
 # terminal has someone to wait for: piped into a shell (`curl ... | sh`) stdin is
 # this script's own source, so the read returns at once and the prompt is noise.
@@ -212,6 +425,7 @@ wait_and_exit() {
   fi
   exit "$1"
 }
+
 
 # --- junie-ui:begin ---
 # Presentation layer: the Junie logo, section headings, checked values, and
@@ -726,20 +940,282 @@ type_line() {
 }
 # --- junie-ui:end ---
 
+# Cleanup function — kills child processes on interrupt
+cleanup() {
+  exit_code="$1"
+
+  # Avoid executing this trap recursively.
+  trap - INT TERM
+
+  # Close the progress bar and give the cursor back before printing anything.
+  progress_end
+  if [ -n "$CURL_ERR_FILE" ]; then
+    rm -f "$CURL_ERR_FILE"
+  fi
+
+  echo ""
+  if [ -d "$DOWNLOAD_DIR" ]; then
+    printf '  %sInterrupted — partial downloads preserved in %s%s\n' "$YELLOW" "$DOWNLOAD_DIR" "$RESET"
+    printf '  %sRe-run this script to resume from where it stopped.%s\n' "$GRAY" "$RESET"
+    emit_error "Interrupted — partial downloads preserved, re-run to resume"
+  else
+    printf '  %sInterrupted.%s\n' "$YELLOW" "$RESET"
+    emit_error "Interrupted"
+  fi
+
+  # curl and unzip are killed, not their partial output: the bytes already on
+  # disk are what the next run resumes from.
+  kill $(jobs -p) 2>/dev/null || true
+  wait 2>/dev/null || true
+
+  wait_and_exit "$exit_code"
+}
+
+# Check if an engine version has been fully unpacked. As with the models, a
+# completion marker is written after unpacking — a version directory without it
+# is a leftover from an interrupted run.
+engine_completion_marker() {
+  echo "$VERSIONS_DIR/.$ENGINE_VERSION.installed"
+}
+
+engine_installed() {
+  [ -f "$ENGINE_DIR/serverctl.sh" ] && [ -f "$(engine_completion_marker)" ]
+}
+
+# Function to download and unpack the inference engine, then point current at it
+install_engine() {
+  if engine_installed; then
+    printf '  %sEngine v%s is already unpacked. Skipping download.%s\n' "$GRAY" "$ENGINE_VERSION" "$RESET"
+  else
+    printf '  %sDownloading %s...%s\n' "$GRAY" "$ENGINE_ARCHIVE" "$RESET"
+    download_with_retry "$ENGINE_URL" "$DOWNLOAD_DIR/$ENGINE_ARCHIVE" 3 "$ENGINE_LABEL"
+    printf '  %sChecking SHA256...%s\n' "$GRAY" "$RESET"
+
+    emit_activity "verifying" "$ENGINE_ARCHIVE" "$ENGINE_LABEL"
+    actual_sha256=$(get_checksum "$DOWNLOAD_DIR/$ENGINE_ARCHIVE")
+    if [ "$actual_sha256" != "$ENGINE_SHA256" ]; then
+      printf '  %sERROR: SHA256 mismatch for %s%s\n' "$RED" "$ENGINE_ARCHIVE" "$RESET"
+      printf '    %sExpected: %s%s\n' "$GRAY" "$ENGINE_SHA256" "$RESET"
+      printf '    %sActual:   %s%s\n' "$GRAY" "$actual_sha256" "$RESET"
+      # A resumed download that ends up corrupt would keep failing this check
+      # forever, so drop the file and let the next run fetch it again.
+      rm -f "$DOWNLOAD_DIR/$ENGINE_ARCHIVE"
+      printf '  %sThe damaged file was removed — re-run this script to download it again.%s\n' "$GRAY" "$RESET"
+      emit_error "SHA256 mismatch for $ENGINE_ARCHIVE"
+      wait_and_exit 1
+    fi
+    printf '  %sSHA256 verified%s %s%s%s\n' "$JUNIE_GREEN" "$RESET" "$GRAY_DIM" "$actual_sha256" "$RESET"
+
+    printf '  %sUnpacking to %s...%s\n' "$GRAY" "$ENGINE_DIR" "$RESET"
+    emit_activity "extracting" "$ENGINE_ARCHIVE" "$ENGINE_LABEL"
+    # Remove leftovers from a previously interrupted unpack
+    rm -rf "$ENGINE_DIR"
+    mkdir -p "$ENGINE_DIR"
+    # The archive holds a single junie-mlx-vlm/ directory; strip it so the
+    # binary lands directly in the version directory
+    tar -xzf "$DOWNLOAD_DIR/$ENGINE_ARCHIVE" -C "$ENGINE_DIR" --strip-components=1
+    touch "$(engine_completion_marker)"
+    rm -f "$DOWNLOAD_DIR/$ENGINE_ARCHIVE"
+    printf '  %sUnpack complete.%s\n' "$JUNIE_GREEN" "$RESET"
+  fi
+
+  # A real directory at current would make ln fail — refuse rather than delete it
+  if [ -d "$CURRENT_LINK" ] && [ ! -L "$CURRENT_LINK" ]; then
+    printf '  %sERROR: %s is a directory, not a symlink.%s\n' "$RED" "$CURRENT_LINK" "$RESET"
+    printf '  %sMove it out of the way and re-run.%s\n' "$GRAY" "$RESET"
+    emit_error "$CURRENT_LINK is a directory, not a symlink"
+    wait_and_exit 1
+  fi
+
+  printf '  %sPointing %s at %s...%s\n' "$GRAY" "$CURRENT_LINK" "$ENGINE_DIR" "$RESET"
+  ln -sfn "$ENGINE_DIR" "$CURRENT_LINK"
+}
+
+# Ensure server-config.json exists with the api_key and port fields. The engine
+# handles all config updates after initial creation — we only create it here if
+# it doesn't already exist.
+handle_server_config() {
+  SERVER_CONFIG="$BASE_DIR/server-config.json"
+
+  # If the config already exists, leave it alone — the engine manages it.
+  if [ -f "$SERVER_CONFIG" ]; then
+    printf '  %sReusing existing server-config.json.%s\n' "$GRAY" "$RESET"
+    return 0
+  fi
+
+  # First run: generate a token and create the config file.
+  local token
+  token="sk-$(generate_token)"
+  printf '  %sAuth token generated.%s\n' "$GRAY" "$RESET"
+  printf '  %sWriting server-config.json with api_key and port...%s\n' "$GRAY" "$RESET"
+  cat > "$SERVER_CONFIG" <<EOF
+{
+  "api_key": "$token",
+  "port": $ENGINE_PORT
+}
+EOF
+  printf '  %sserver-config.json created with bearer auth and port.%s\n' "$JUNIE_GREEN" "$RESET"
+}
+
+# Function to start the engine daemon using serverctl.sh. The daemon serves the
+# public API and supervises the inference worker itself.
+start_engine() {
+  # Read the auth token from the config file (created in Step 3).
+  local auth_token
+  auth_token=$(get_json_field api_key < "$BASE_DIR/server-config.json")
+
+  if [ ! -f "$ENGINE_CTL" ]; then
+    printf '  %sERROR: serverctl.sh not found at %s%s\n' "$RED" "$ENGINE_CTL" "$RESET"
+    printf '  %sCannot start the engine without it.%s\n' "$GRAY" "$RESET"
+    emit_error "serverctl.sh not found at $ENGINE_CTL"
+    return 1
+  fi
+
+  # Stop an engine from an earlier run so it releases the port
+  if is_engine_running; then
+    printf '  %sStopping the running engine...%s\n' "$GRAY" "$RESET"
+    "$ENGINE_CTL" stop >/dev/null 2>&1 || true
+    waited=0
+    while [ "$waited" -lt 10 ] && is_engine_running; do
+      sleep 1
+      waited=$((waited + 1))
+    done
+  fi
+
+  # Start via serverctl.sh (the subshell keeps the daemon out of this script's
+  # job table so the interrupt handler cannot take it down with the installer).
+  # 3>&- keeps the spawned daemon from inheriting the machine-output event
+  # stream: a consumer reading our stdout would otherwise never see
+  # end-of-stream because the daemon holds the pipe open forever.
+  printf '  %sStarting the engine...%s\n' "$GRAY" "$RESET"
+  ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- )
+
+  # Wait for the engine to become ready by polling /status until phase is "ready".
+  waited=0
+  while [ "$waited" -lt 30 ]; do
+    phase=$(curl -s -m 5 -H "Authorization: Bearer $auth_token" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
+      | get_json_field phase || true)
+    if [ "$phase" = "ready" ]; then
+      print_value "Engine:" "ready on port $ENGINE_PORT" true false ""
+      return 0
+    fi
+    if [ "$phase" = "error" ]; then
+      break
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  printf '  %sWARNING: the engine is not answering on port %s yet.%s\n' "$YELLOW" "$ENGINE_PORT" "$RESET"
+  printf '  %sCheck the engine logs in %s%s\n' "$GRAY" "$BASE_DIR" "$RESET"
+  emit_warning "engine did not start listening on port $ENGINE_PORT — see logs in $BASE_DIR"
+  return 1
+}
+
+# Function to download and verify a model archive
+download_and_verify() {
+  download_url="$1"
+  archive="$2"
+  expected_sha256="$3"
+  archive_label="$4"
+
+  printf '  %sDownloading %s...%s\n' "$GRAY" "$archive" "$RESET"
+  download_with_retry "$download_url" "$DOWNLOAD_DIR/$archive" 3 "$archive_label"
+  printf '  %sChecking SHA256...%s\n' "$GRAY" "$RESET"
+
+  emit_activity "verifying" "$archive" "$archive_label"
+  actual=$(get_checksum "$DOWNLOAD_DIR/$archive")
+  if [ "$actual" != "$expected_sha256" ]; then
+    printf '  %sERROR: SHA256 mismatch for %s%s\n' "$RED" "$archive" "$RESET"
+    printf '    %sExpected: %s%s\n' "$GRAY" "$expected_sha256" "$RESET"
+    printf '    %sActual:   %s%s\n' "$GRAY" "$actual" "$RESET"
+    # Keeping a corrupt archive would make every later run resume into the same
+    # mismatch, so it is dropped and re-downloaded from scratch next time.
+    rm -f "$DOWNLOAD_DIR/$archive"
+    printf '  %sThe damaged archive was removed — re-run this script to download it again.%s\n' "$GRAY" "$RESET"
+    emit_error "SHA256 mismatch for $archive"
+    wait_and_exit 1
+  fi
+  printf '  %sSHA256 verified%s %s%s%s\n' "$JUNIE_GREEN" "$RESET" "$GRAY_DIM" "$actual" "$RESET"
+}
+
+# Check if a model has been fully unzipped to the models directory.
+# Each archive unpacks into $MODELS_DIR/<model_id>. A completion marker file is
+# written after extraction — a model directory without it is a leftover from an
+# interrupted extraction.
+model_completion_marker() {
+  echo "$MODELS_DIR/.$1.installed"
+}
+
+model_installed() {
+  model_id="$1"
+  [ -d "$MODELS_DIR/$model_id" ] && [ -f "$(model_completion_marker "$model_id")" ]
+}
+
+# Download and install each model only if not already present.
+# Takes the archive index within the model JSON's archives array.
+install_model_if_needed() {
+  archive_index="$1"
+
+  zip_file=$(get_archive_field "$archive_index" name)
+  download_url=$(get_archive_field "$archive_index" downloadUrl)
+  sha256_sum=$(get_archive_field "$archive_index" sha256)
+  model_id=$(get_archive_field "$archive_index" modelId)
+  model_label=$(get_archive_field "$archive_index" label)
+
+  if model_installed "$model_id"; then
+    printf '  %sModel %s is already installed. Skipping.%s\n\n' "$GRAY" "$model_id" "$RESET"
+    return 0
+  fi
+
+  printf '  %sModel %s is not installed. Proceeding...%s\n\n' "$GRAY" "$model_label" "$RESET"
+  download_and_verify "$download_url" "$zip_file" "$sha256_sum" "$model_label"
+  printf '  %sExtracting %s...%s\n' "$GRAY" "$zip_file" "$RESET"
+  emit_activity "extracting" "$zip_file" "$model_label"
+  # Remove leftovers from a previously interrupted extraction — the path is
+  # spelled out instead of using $MODELS_DIR so the rm -rf target is explicit
+  rm -rf "$BASE_DIR/models/$model_id"
+  extract_with_progress "$DOWNLOAD_DIR/$zip_file" "$MODELS_DIR" "$MODELS_DIR/$model_id" "$model_label"
+  touch "$(model_completion_marker "$model_id")"
+  printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
+}
+
+if [ "$LIST_MODELS" = true ]; then
+  if [ "$MACHINE_OUTPUT" != true ]; then
+    echo "Available models for $PLATFORM ($CHANNEL channel):"
+  fi
+  list_available_models
+  exit 0
+fi
+
+# ============================================================
+# System validation
+# ============================================================
+
 # ============================================================
 # Collect system information
 # ============================================================
 
-# OS detection
+# OS detection — collect all platform-specific system info in one place.
 UNAME_OUT=$(uname -s)
-OS_FULL_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
-OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
-
-# CPU model
-CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
-
-# Total memory in GB
-MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+if [ "$OS_TYPE" = "macos" ]; then
+  OS_FULL_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
+  OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
+  CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
+  MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+else
+  OS_FULL_VERSION=$(grep '^VERSION_ID=' /etc/os-release 2>/dev/null | tr -d '"=' | cut -d' ' -f1)
+  if [ -z "$OS_FULL_VERSION" ]; then
+    OS_FULL_VERSION=$(uname -r)
+  fi
+  OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
+  if command -v lscpu > /dev/null 2>&1; then
+    CPU_MODEL=$(lscpu 2>/dev/null | grep 'Model name' | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
+  else
+    CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
+  fi
+  MEM_BYTES=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2 * 1024}' || echo "0")
+fi
 MEM_GB=$((MEM_BYTES / 1073741824))
 
 # ============================================================
@@ -751,38 +1227,117 @@ section "System information"
 
 ALL_OK=true
 
-# OS check (hard requirement: macOS 26+)
+# OS check
+# macOS: require 26+
+# Linux: require kernel 5.15+ (for CUDA and modern GPU drivers)
 OS_OK=true
-if [ "$UNAME_OUT" != "Darwin" ]; then
-  OS_OK=false
-  ALL_OK=false
-elif [ "$OS_VERSION" -lt 26 ]; then
-  OS_OK=false
-  ALL_OK=false
-fi
-if [ "$UNAME_OUT" = "Darwin" ]; then
+OS_REQUIREMENT=""
+if [ "$OS_TYPE" = "macos" ]; then
+  if [ "$UNAME_OUT" != "Darwin" ]; then
+    OS_OK=false
+    ALL_OK=false
+  elif [ "$OS_VERSION" -lt 26 ]; then
+    OS_OK=false
+    ALL_OK=false
+  fi
   OS_DISPLAY="macOS $OS_FULL_VERSION"
+  OS_REQUIREMENT="macOS 26 or higher"
 else
-  OS_DISPLAY="$UNAME_OUT $OS_FULL_VERSION"
+  KERNEL_VERSION=$(uname -r | cut -d '.' -f 1-2)
+  KERNEL_MAJOR=$(echo "$KERNEL_VERSION" | cut -d '.' -f 1)
+  KERNEL_MINOR=$(echo "$KERNEL_VERSION" | cut -d '.' -f 2)
+  if [ "$KERNEL_MAJOR" -lt 5 ] || { [ "$KERNEL_MAJOR" -eq 5 ] && [ "$KERNEL_MINOR" -lt 15 ]; }; then
+    OS_OK=false
+    ALL_OK=false
+  fi
+  OS_DISPLAY="Linux $OS_FULL_VERSION (kernel $(uname -r))"
+  OS_REQUIREMENT="Linux kernel 5.15 or higher"
 fi
-print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "macOS 26 or higher"
-emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "macOS 26 or higher"
+print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "$OS_REQUIREMENT"
+emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
-# CPU check (hard requirement: Apple M5 or newer)
-#
-# The generation is read out of the brand string ("Apple M5 Pro" -> 5) and
-# compared numerically, so every chip released after the M5 clears the check
-# without this having to be extended for each new generation. Everything below an
-# M5 is turned away, as is an Intel Mac, whose brand string carries no
-# "Apple M<n>" at all.
-CPU_GENERATION=$(printf '%s' "$CPU_MODEL" | sed -n 's/.*Apple M\([0-9][0-9]*\).*/\1/p')
+# Accelerator check
+# macOS: require Apple M5 or newer (MLX)
+# Linux: require NVIDIA GPU with 24 GB VRAM and CUDA 12+ (CUDA)
 CPU_OK=true
-if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 5 ]; then
-  CPU_OK=false
-  ALL_OK=false
+ACCEL_DISPLAY="$CPU_MODEL"
+ACCEL_REQUIREMENT=""
+GPU_NAME=""
+GPU_VRAM_GB=0
+CUDA_OK=true
+CUDA_DISPLAY=""
+CUDA_REQUIREMENT=""
+
+if [ "$OS_TYPE" = "macos" ]; then
+  # The generation is read out of the brand string ("Apple M5 Pro" -> 5) and
+  # compared numerically, so every chip released after the M5 clears the check
+  # without this having to be extended for each new generation.
+  CPU_GENERATION=$(printf '%s' "$CPU_MODEL" | sed -n 's/.*Apple M\([0-9][0-9]*\).*/\1/p')
+  if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 5 ]; then
+    CPU_OK=false
+    ALL_OK=false
+  fi
+  ACCEL_REQUIREMENT="Apple M5 or newer"
+else
+  # NVIDIA GPU check via nvidia-smi (not required in require_commands, so it
+  # may be absent — handle that gracefully here with a clear message)
+  if ! command -v nvidia-smi > /dev/null 2>&1; then
+    CPU_OK=false
+    ALL_OK=false
+    CUDA_OK=false
+    ACCEL_DISPLAY="nvidia-smi not found"
+    ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+    CUDA_DISPLAY="CUDA not detected"
+    CUDA_REQUIREMENT="CUDA 12+"
+  else
+    GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
+    if [ -z "$GPU_INFO" ]; then
+      CPU_OK=false
+      ALL_OK=false
+      ACCEL_DISPLAY="No NVIDIA GPU detected"
+      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+    else
+      GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
+      GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
+      GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
+      DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
+      ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
+      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+      
+      if [ "$GPU_VRAM_GB" -lt 24 ]; then
+        CPU_OK=false
+        ALL_OK=false
+      fi
+    fi
+
+    # CUDA version check — nvidia-smi reports the highest supported CUDA version
+    # in its output header, e.g. "CUDA Version: 12.2"
+    CUDA_MAJOR=$(nvidia-smi 2>/dev/null | grep 'CUDA Version' | awk '{print $NF}' | cut -d '.' -f 1)
+    if [ -z "$CUDA_MAJOR" ]; then
+      CUDA_OK=false
+      ALL_OK=false
+      CUDA_DISPLAY="CUDA version not detected"
+      CUDA_REQUIREMENT="CUDA 12+"
+    elif [ "$CUDA_MAJOR" -lt 12 ]; then
+      CUDA_OK=false
+      ALL_OK=false
+      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
+      CUDA_REQUIREMENT="CUDA 12+"
+    else
+      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
+      CUDA_REQUIREMENT="CUDA 12+"
+    fi
+  fi
 fi
-print_value "CPU:" "$CPU_MODEL" "$CPU_OK" false "M5 or newer"
-emit_check "cpu" "$(check_status "$CPU_OK" false)" "$CPU_MODEL" "M5 or newer"
+
+print_value "CPU:" "$CPU_MODEL" true false ""
+emit_check "cpu" "ok" "$CPU_MODEL" ""
+print_value "GPU:" "$ACCEL_DISPLAY" "$CPU_OK" false "$ACCEL_REQUIREMENT"
+emit_check "gpu" "$(check_status "$CPU_OK" false)" "$ACCEL_DISPLAY" "$ACCEL_REQUIREMENT"
+if [ "$OS_TYPE" = "linux" ]; then
+  print_value "CUDA:" "$CUDA_DISPLAY" "$CUDA_OK" false "$CUDA_REQUIREMENT"
+  emit_check "cuda" "$(check_status "$CUDA_OK" false)" "$CUDA_DISPLAY" "$CUDA_REQUIREMENT"
+fi
 
 # RAM check (hard: >= 40 GB, recommended: >= 60 GB)
 RAM_OK=true
@@ -818,36 +1373,9 @@ if [ "$ALL_OK" = false ]; then
   wait_and_exit 1
 fi
 
-# Cleanup function — kills child processes on interrupt
-cleanup() {
-  exit_code="$1"
-
-  # Avoid executing this trap recursively.
-  trap - INT TERM
-
-  # Close the progress bar and give the cursor back before printing anything.
-  progress_end
-  if [ -n "$CURL_ERR_FILE" ]; then
-    rm -f "$CURL_ERR_FILE"
-  fi
-
-  echo ""
-  if [ -d "$DOWNLOAD_DIR" ]; then
-    printf '  %sInterrupted — partial downloads preserved in %s%s\n' "$YELLOW" "$DOWNLOAD_DIR" "$RESET"
-    printf '  %sRe-run this script to resume from where it stopped.%s\n' "$GRAY" "$RESET"
-    emit_error "Interrupted — partial downloads preserved, re-run to resume"
-  else
-    printf '  %sInterrupted.%s\n' "$YELLOW" "$RESET"
-    emit_error "Interrupted"
-  fi
-
-  # curl and unzip are killed, not their partial output: the bytes already on
-  # disk are what the next run resumes from.
-  kill $(jobs -p) 2>/dev/null || true
-  wait 2>/dev/null || true
-
-  wait_and_exit "$exit_code"
-}
+# ============================================================
+# Main installation flow
+# ============================================================
 
 trap 'cleanup 130' INT
 trap 'cleanup 143' TERM
@@ -857,254 +1385,6 @@ printf '  %sCreating directories...%s\n' "$GRAY" "$RESET"
 mkdir -p "$MODELS_DIR"
 mkdir -p "$VERSIONS_DIR"
 mkdir -p "$DOWNLOAD_DIR"
-
-# Check if an engine version has been fully unpacked. As with the models, a
-# completion marker is written after unpacking — a version directory without it
-# is a leftover from an interrupted run.
-engine_completion_marker() {
-  echo "$VERSIONS_DIR/.$ENGINE_VERSION.installed"
-}
-
-engine_installed() {
-  [ -x "$ENGINE_DIR/junie-mlx-vlm" ] && [ -f "$ENGINE_DIR/serverctl.sh" ] && [ -f "$(engine_completion_marker)" ]
-}
-
-# Function to download and unpack the inference engine, then point current at it
-install_engine() {
-  if engine_installed; then
-    printf '  %sEngine v%s is already unpacked. Skipping download.%s\n' "$GRAY" "$ENGINE_VERSION" "$RESET"
-  else
-    echo "  Downloading $ENGINE_ARCHIVE..."
-    download_with_retry "$ENGINE_URL" "$DOWNLOAD_DIR/$ENGINE_ARCHIVE" 3 "$ENGINE_LABEL"
-    printf '  %sChecking SHA256...%s\n' "$GRAY" "$RESET"
-
-    emit_activity "verifying" "$ENGINE_ARCHIVE" "$ENGINE_LABEL"
-    actual_sha256=$(shasum -a 256 "$DOWNLOAD_DIR/$ENGINE_ARCHIVE" | awk '{print $1}')
-    if [ "$actual_sha256" != "$ENGINE_SHA256" ]; then
-      printf '  %sERROR: SHA256 mismatch for %s%s\n' "$RED" "$ENGINE_ARCHIVE" "$RESET"
-      echo "    Expected: $ENGINE_SHA256"
-      echo "    Actual:   $actual_sha256"
-      # A resumed download that ends up corrupt would keep failing this check
-      # forever, so drop the file and let the next run fetch it again.
-      rm -f "$DOWNLOAD_DIR/$ENGINE_ARCHIVE"
-      printf '  %sThe damaged file was removed — re-run this script to download it again.%s\n' "$GRAY" "$RESET"
-      emit_error "SHA256 mismatch for $ENGINE_ARCHIVE"
-      wait_and_exit 1
-    fi
-    printf '  %sSHA256 verified%s %s%s%s\n' "$JUNIE_GREEN" "$RESET" "$GRAY_DIM" "$actual_sha256" "$RESET"
-
-    echo "  Unpacking to $ENGINE_DIR..."
-    emit_activity "extracting" "$ENGINE_ARCHIVE" "$ENGINE_LABEL"
-    # Remove leftovers from a previously interrupted unpack
-    rm -rf "$ENGINE_DIR"
-    mkdir -p "$ENGINE_DIR"
-    # The archive holds a single junie-mlx-vlm/ directory; strip it so the
-    # binary lands directly in the version directory
-    tar -xzf "$DOWNLOAD_DIR/$ENGINE_ARCHIVE" -C "$ENGINE_DIR" --strip-components=1
-    touch "$(engine_completion_marker)"
-    rm -f "$DOWNLOAD_DIR/$ENGINE_ARCHIVE"
-    echo "  Unpack complete."
-  fi
-
-  # A real directory at current would make ln fail — refuse rather than delete it
-  if [ -d "$CURRENT_LINK" ] && [ ! -L "$CURRENT_LINK" ]; then
-    echo "  ERROR: $CURRENT_LINK is a directory, not a symlink."
-    echo "  Move it out of the way and re-run."
-    emit_error "$CURRENT_LINK is a directory, not a symlink"
-    wait_and_exit 1
-  fi
-
-  echo "  Pointing $CURRENT_LINK at $ENGINE_DIR..."
-  ln -sfn "$ENGINE_DIR" "$CURRENT_LINK"
-  echo ""
-}
-
-# Generate a random bearer token: "sk-" plus 12 random bytes in hex.
-generate_auth_token() {
-  AUTH_TOKEN=$(printf 'sk-%s' "$(head -c 12 /dev/urandom | xxd -p)")
-  echo "  Auth token generated."
-}
-
-# Read the bearer token from an existing server-config.json using plutil.
-read_auth_token_from_server_config() {
-  SERVER_CONFIG="$BASE_DIR/server-config.json"
-  if [ -f "$SERVER_CONFIG" ]; then
-    AUTH_TOKEN=$(plutil -extract api_key raw "$SERVER_CONFIG" 2>/dev/null || true)
-  fi
-}
-
-# Write server-config.json with the api_key field set to the generated bearer
-# token. The engine will read this on startup and enforce auth on all endpoints.
-# With --keep-config the previous file is left in place.
-handle_server_config() {
-  SERVER_CONFIG="$BASE_DIR/server-config.json"
-
-  # On re-run, try to read the existing token from server-config.json before
-  # removing it, so we can reuse it in the fresh config.
-  if [ -z "$AUTH_TOKEN" ] && [ -f "$SERVER_CONFIG" ]; then
-    read_auth_token_from_server_config
-  fi
-
-  if [ -f "$SERVER_CONFIG" ]; then
-    if [ "$KEEP_CONFIG" = true ]; then
-      echo "  Keeping existing server-config.json (--keep-config)."
-    else
-      echo "  Removing existing server-config.json (use --keep-config to preserve)."
-      rm -f "$SERVER_CONFIG"
-    fi
-  fi
-
-  if [ -z "$AUTH_TOKEN" ]; then
-    generate_auth_token
-  fi
-
-  if [ "$KEEP_CONFIG" != true ]; then
-    echo "  Writing server-config.json with api_key..."
-    cat > "$SERVER_CONFIG" <<EOF
-{
-  "api_key": "$AUTH_TOKEN"
-}
-EOF
-    echo "  server-config.json created with bearer auth."
-  fi
-}
-
-# Function to start the engine daemon using serverctl.sh. The daemon serves the
-# public API and supervises the inference worker itself.
-start_engine() {
-  # Remove the config file by default so the engine writes a fresh one on first start.
-  handle_server_config
-
-  if [ ! -x "$ENGINE_BIN" ]; then
-    echo "  WARNING: engine binary not found at $ENGINE_BIN"
-    echo "  Skipping engine startup."
-    emit_warning "engine binary not found at $ENGINE_BIN — start it manually"
-    return 1
-  fi
-
-  if [ ! -f "$ENGINE_CTL" ]; then
-    echo "  WARNING: serverctl.sh not found at $ENGINE_CTL — falling back to direct start"
-    emit_warning "serverctl.sh missing — using direct binary start"
-  fi
-
-  # Stop an engine from an earlier run so it releases the port
-  if pgrep -f junie-mlx-vlm > /dev/null 2>&1; then
-    echo "  Stopping the running engine..."
-    if [ -f "$ENGINE_CTL" ]; then
-      "$ENGINE_CTL" stop >/dev/null 2>&1 || true
-    else
-      pkill -f junie-mlx-vlm || true
-    fi
-    waited=0
-    while [ "$waited" -lt 10 ] && pgrep -f junie-mlx-vlm > /dev/null 2>&1; do
-      sleep 1
-      waited=$((waited + 1))
-    done
-  fi
-
-  # Start via serverctl.sh (the subshell keeps the daemon out of this script's
-  # job table so the interrupt handler cannot take it down with the installer).
-  # 3>&- keeps the spawned daemon from inheriting the machine-output event
-  # stream: a consumer reading our stdout would otherwise never see
-  # end-of-stream because the daemon holds the pipe open forever.
-  echo "  Starting the engine (log: $ENGINE_DAEMON_LOG)..."
-  if [ -f "$ENGINE_CTL" ]; then
-    ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- )
-  else
-    ( nohup "$ENGINE_BIN" daemon < /dev/null >> "$ENGINE_DAEMON_LOG" 2>&1 3>&- & )
-  fi
-
-  # Wait for the engine to become ready. serverctl.sh wait polls /status until
-  # phase is "ready"; fall back to a simple port check if it is unavailable.
-  if [ -f "$ENGINE_CTL" ]; then
-    waited=0
-    while [ "$waited" -lt 30 ]; do
-      phase=$(curl -s -m 5 -H "Authorization: Bearer $AUTH_TOKEN" "http://localhost:$ENGINE_PORT/status" 2>/dev/null \
-        | plutil -extract phase raw -o - -- - 2>/dev/null || true)
-      if [ "$phase" = "ready" ]; then
-        echo "  Engine is ready on port $ENGINE_PORT."
-        return 0
-      fi
-      if [ "$phase" = "error" ]; then
-        break
-      fi
-      sleep 1
-      waited=$((waited + 1))
-    done
-  else
-    waited=0
-    while [ "$waited" -lt 26 ]; do
-      if nc -z localhost "$ENGINE_PORT" 2>/dev/null; then
-        echo "  Engine is listening on port $ENGINE_PORT."
-        return 0
-      fi
-      sleep 1
-      waited=$((waited + 1))
-    done
-  fi
-
-  echo "  WARNING: the engine is not answering on port $ENGINE_PORT yet."
-  echo "  Check the log at $ENGINE_DAEMON_LOG"
-  emit_warning "engine did not start listening on port $ENGINE_PORT — see $ENGINE_DAEMON_LOG"
-  return 1
-}
-
-# Function to create Junie model config file with bearer auth
-create_junie_model_config() {
-  JUNIE_MODELS_DIR="$JUNIE_HOME/models"
-  JUNIE_CONFIG_FILE="$JUNIE_MODELS_DIR/${JUNIE_MODEL_ID}.json"
-
-  # Create the models directory if it doesn't exist
-  if [ ! -d "$JUNIE_MODELS_DIR" ]; then
-    mkdir -p "$JUNIE_MODELS_DIR"
-  fi
-
-  # Ensure the auth token is available; if handle_server_config already ran,
-  # AUTH_TOKEN is already set. Otherwise read from server-config.json or generate.
-  if [ -z "$AUTH_TOKEN" ]; then
-    read_auth_token_from_server_config
-  fi
-  if [ -z "$AUTH_TOKEN" ]; then
-    generate_auth_token
-  fi
-
-  # Write the Junie model config with the bearer token as apiKey.
-  echo "  Creating Junie model config at $JUNIE_CONFIG_FILE..."
-  cat > "$JUNIE_CONFIG_FILE" <<EOF
-{
-  "displayName": "$JUNIE_MODEL_DISPLAY_NAME",
-  "providerName": "$JUNIE_MODEL_PROVIDER_NAME",
-  "id": "$ENGINE_MODEL_NAME",
-  "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
-  "apiType": "OpenAICompletion",
-  "apiKey": "$AUTH_TOKEN",
-  "temperature": 0.6,
-  "maxContextLength": $JUNIE_MAX_CONTEXT_LENGTH,
-  "extraBody": {
-    "enable_thinking": false
-  }
-}
-EOF
-  echo "  Junie model config created with bearer auth."
-  return 0
-}
-
-# Function to set the local model as the default in Junie settings
-set_default_junie_model() {
-  JUNIE_SETTINGS="$JUNIE_HOME/settings.json"
-
-  if [ ! -f "$JUNIE_SETTINGS" ]; then
-    echo "  WARNING: Junie settings not found at $JUNIE_SETTINGS"
-    echo "  Skipping default model configuration."
-    emit_warning "Junie settings not found — the local model was not set as default"
-    return 1
-  fi
-
-  echo "  Setting local model as default in Junie..."
-  plutil -replace "modelForLaunch" -string "$JUNIE_CUSTOM_MODEL_ID" "$JUNIE_SETTINGS"
-  echo "  Default model set to $JUNIE_MODEL_ID."
-  return 0
-}
 
 # ============================================================
 # Step 1: Install the inference engine
@@ -1120,71 +1400,10 @@ emit_step_done "engine"
 section "Installing models"
 emit_step_start "models" "Installing models"
 
-# Function to download and verify a model archive
-download_and_verify() {
-  archive="$1"
-  expected_sha256="$2"
-  archive_label="$3"
-
-  echo "  Downloading $archive..."
-  download_with_retry "$BASE_URL/$archive" "$DOWNLOAD_DIR/$archive" 3 "$archive_label"
-  printf '  %sChecking SHA256...%s\n' "$GRAY" "$RESET"
-
-  emit_activity "verifying" "$archive" "$archive_label"
-  actual=$(shasum -a 256 "$DOWNLOAD_DIR/$archive" | awk '{print $1}')
-  if [ "$actual" != "$expected_sha256" ]; then
-    printf '  %sERROR: SHA256 mismatch for %s%s\n' "$RED" "$archive" "$RESET"
-    echo "    Expected: $expected_sha256"
-    echo "    Actual:   $actual"
-    # Keeping a corrupt archive would make every later run resume into the same
-    # mismatch, so it is dropped and re-downloaded from scratch next time.
-    rm -f "$DOWNLOAD_DIR/$archive"
-    printf '  %sThe damaged archive was removed — re-run this script to download it again.%s\n' "$GRAY" "$RESET"
-    emit_error "SHA256 mismatch for $archive"
-    wait_and_exit 1
-  fi
-  printf '  %sSHA256 verified%s %s%s%s\n' "$JUNIE_GREEN" "$RESET" "$GRAY_DIM" "$actual" "$RESET"
-}
-
-# Check if a model has been fully unzipped to the models directory.
-# Each archive unpacks into $MODELS_DIR/<model_id>. A completion marker file is
-# written after extraction — a model directory without it is a leftover from an
-# interrupted extraction.
-model_completion_marker() {
-  echo "$MODELS_DIR/.$1.installed"
-}
-
-model_installed() {
-  model_id="$1"
-  [ -d "$MODELS_DIR/$model_id" ] && [ -f "$(model_completion_marker "$model_id")" ]
-}
-
-# Download and install each model only if not already present
-install_model_if_needed() {
-  zip_file="$1"
-  sha256_sum="$2"
-  model_id="$3"
-  model_label="$4"
-
-  if model_installed "$model_id"; then
-    printf '  %sModel %s is already installed. Skipping.%s\n\n' "$GRAY" "$model_id" "$RESET"
-    return 0
-  fi
-
-  printf '  %sModel %s is not installed. Proceeding...%s\n\n' "$GRAY" "$model_id" "$RESET"
-  download_and_verify "$zip_file" "$sha256_sum" "$model_label"
-  echo "  Extracting $zip_file..."
-  emit_activity "extracting" "$zip_file" "$model_label"
-  # Remove leftovers from a previously interrupted extraction — the path is
-  # spelled out instead of using $MODELS_DIR so the rm -rf target is explicit
-  rm -rf "$BASE_DIR/models/$model_id"
-  extract_with_progress "$DOWNLOAD_DIR/$zip_file" "$MODELS_DIR" "$MODELS_DIR/$model_id" "$model_label"
-  touch "$(model_completion_marker "$model_id")"
-  printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
-}
-
-install_model_if_needed "$MODEL_ZIP_1" "$MODEL_SHA256_1" "$MODEL_ID_1" "$MODEL_LABEL_1"
-install_model_if_needed "$MODEL_ZIP_2" "$MODEL_SHA256_2" "$MODEL_ID_2" "$MODEL_LABEL_2"
+# Download and install each archive listed in the model JSON.
+for i in $(seq 0 $((ARCHIVE_COUNT - 1))); do
+  install_model_if_needed "$i"
+done
 
 # Cleanup model downloads
 printf '  %sRemoving downloaded archives...%s\n' "$GRAY" "$RESET"
@@ -1196,10 +1415,33 @@ emit_step_done "models"
 # ============================================================
 section "Configuring Junie"
 emit_step_start "configure" "Configuring Junie"
-# These degrade gracefully with warnings; without `|| true` a return 1
-# would abort the script under `set -e`.
-create_junie_model_config || true
-set_default_junie_model || true
+# Ensure server-config.json exists so the engine can read the auth token.
+handle_server_config
+# Generate the Junie model config from the installed model template via
+# serverctl.sh. Capture its output so we can show clean, consistent progress
+# messages instead of the engine's raw chatter, while still surfacing errors.
+if [ -x "$ENGINE_CTL" ]; then
+  JUNIE_CONFIG_FILE="$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json"
+  config_output="$("$ENGINE_CTL" --junie-config "$JUNIE_HOME" --model "$MODEL" 2>&1)"
+  config_ok=$?
+  if [ "$config_ok" -eq 0 ] && [ -f "$JUNIE_CONFIG_FILE" ]; then
+    print_value "Junie model config:" "$JUNIE_CONFIG_FILE" true false ""
+    print_value "Default model:" "$JUNIE_MODEL_ID" true false ""
+  else
+    if [ -n "$config_output" ]; then
+      printf '%s\n' "$config_output"
+    fi
+    if [ "$config_ok" -ne 0 ]; then
+      printf '  %sWARNING: Junie config generation failed (exit code %s).%s\n' "$YELLOW" "$config_ok" "$RESET"
+    else
+      printf '  %sWARNING: Junie config file was not created at %s.%s\n' "$YELLOW" "$JUNIE_CONFIG_FILE" "$RESET"
+    fi
+    emit_warning "Junie config generation failed"
+  fi
+else
+  printf '  %sWARNING: serverctl.sh not found at %s%s\n' "$YELLOW" "$ENGINE_CTL" "$RESET"
+  printf '  %sSkipping Junie config generation.%s\n' "$GRAY" "$RESET"
+fi
 emit_step_done "configure"
 
 # ============================================================
@@ -1221,12 +1463,14 @@ echo ""
 print_value "Engine:" "$ENGINE_DIR" true false ""
 print_value "Current version:" "$CURRENT_LINK -> $ENGINE_DIR" true false ""
 print_value "Models:" "$MODELS_DIR" true false ""
-print_value "Engine log:" "$ENGINE_DAEMON_LOG" true false ""
+print_value "Logs:" "$BASE_DIR" true false ""
 print_value "Junie model config:" "$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json" true false ""
 print_value "Default model:" "$JUNIE_MODEL_ID" true false ""
 echo ""
 printf '  %sThe engine serves http://localhost:%s — the first request has to wait%s\n' "$GRAY" "$ENGINE_PORT" "$RESET"
 printf '  %sfor the model to load.%s\n' "$GRAY" "$RESET"
 printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$ENGINE_CTL" "$RESET"
-emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MODEL_ID_1")\",\"label\":\"$(json_escape "$MODEL_LABEL_1")\""
+MAIN_MODEL_ID=$(get_archive_field 0 modelId)
+MAIN_LABEL=$(get_archive_field 0 label)
+emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MAIN_MODEL_ID")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
 wait_and_exit 0

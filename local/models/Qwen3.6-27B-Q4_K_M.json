@@ -1,0 +1,28 @@
+{
+  "id": "local-qwen3.6-27b-q4-k-m",
+  "draft_model": "Qwen3.6-27B-Q4_K_M",
+  "draft_kind": "mtp",
+  "junieConfig": {
+    "displayName": "Qwen 3.6",
+    "providerName": "Local",
+    "id": "Qwen3.6-27B-Q4_K_M",
+    "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
+    "apiType": "OpenAICompletion",
+    "apiKey": "$AUTH_TOKEN",
+    "temperature": 0.6,
+    "maxContextLength": 100000,
+    "extraBody": {
+      "enable_thinking": false
+    }
+  },
+  "archives": [
+    {
+      "modelId": "Qwen3.6-27B-Q4_K_M",
+      "label": "Qwen 3.6 27B Q4_K_M",
+      "name": "Qwen3.6-27B-Q4_K_M.gguf",
+      "downloadUrl": "https://huggingface.co/unsloth/Qwen3.6-27B-MTP-GGUF/resolve/main/Qwen3.6-27B-Q4_K_M.gguf",
+      "sha256": "a7cbd3ecc0e3f9b333edee61ae66bc87ed713c5d49587a8355814722ed329e0f",
+      "size": 17106773120
+    }
+  ]
+}
