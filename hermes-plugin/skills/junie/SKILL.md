@@ -26,7 +26,7 @@ This skill does **not** drive Junie step by step, does not replace `patch` / `te
 
 ## Prerequisites
 
-- **Install:** `curl -fsSL https://junie.jetbrains.com/install.sh | bash` (EAP: `install-eap.sh`; PowerShell on Windows). The binary lands at `~/.local/bin/junie`; check with `junie --version`.
+- **Install:** follow the [Junie CLI quickstart](https://junie.jetbrains.com/docs/junie-cli.html#step-1-install-junie-cli) (installer script on macOS/Linux, PowerShell on Windows; Homebrew and npm also available). The binary lands at `~/.local/bin/junie`; check with `junie --version`.
 - **Auth, pick one:**
   - JetBrains/Junie token: `JUNIE_API_KEY='perm-...'` in the environment (generate at https://junie.jetbrains.com/tokens), or pass `--auth "$JUNIE_API_KEY"`.
   - Interactive login: run `junie` once and sign in on the Account screen.

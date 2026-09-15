@@ -193,9 +193,9 @@ def _client_info() -> Any:
 def _require_acp() -> None:
     if _acp is None:
         raise RuntimeError(
-            "The Agent Client Protocol SDK is required for the junie-acp provider. "
-            "Install it with `pip install 'hermes-agent[acp]'` (or "
-            "`pip install agent-client-protocol`)."
+            "The Agent Client Protocol SDK is required for the junie-acp "
+            "provider. Add the `acp` extra to your hermes-agent install (the "
+            "SDK is the `agent-client-protocol` package)."
         ) from _ACP_IMPORT_ERROR
 
 

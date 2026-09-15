@@ -8,11 +8,7 @@ This is a Hermes **plugin**, not a fork: installing it changes nothing in Hermes
 
 ## Install
 
-You need the Junie CLI first:
-
-```bash
-curl -fsSL https://junie.jetbrains.com/install.sh | bash
-```
+You need the Junie CLI first — follow the [quickstart](https://junie.jetbrains.com/docs/junie-cli.html#step-1-install-junie-cli), or the install instructions in this repository's [README](../README.md). Verify with `junie --version`.
 
 Then authenticate — a JetBrains account, a [Junie API key](https://junie.jetbrains.com/cli), or your own model provider (BYOK). See the [authentication docs](https://junie.jetbrains.com/docs/junie-cli.html#step-3-authenticate).
 
@@ -22,18 +18,9 @@ Install the plugin:
 hermes plugins install JetBrains/junie/hermes-plugin
 ```
 
-Or drop it in by hand:
+Or drop it in by hand: copy this `hermes-plugin/` directory to `~/.hermes/plugins/junie-acp/`.
 
-```bash
-git clone --depth 1 https://github.com/JetBrains/junie
-cp -r junie/hermes-plugin ~/.hermes/plugins/junie-acp
-```
-
-Hermes needs the ACP extra for the protocol SDK:
-
-```bash
-pip install 'hermes-agent[acp]'
-```
+Hermes needs its `acp` extra for the protocol SDK — see [Hermes' installation docs](https://hermes-agent.nousresearch.com/docs/getting-started/installation) for how to add an extra to your install.
 
 ## Use
 
@@ -97,8 +84,9 @@ The plugin is the ACP *client*, so file access from Junie goes through it:
 
 ## Development
 
+With Hermes (including its `acp` extra) available:
+
 ```bash
-pip install 'hermes-agent[acp]'
 PYTHONPATH=/path/to/hermes-agent python -m pytest hermes-plugin/tests -q
 ```
 
