@@ -14,7 +14,6 @@
   - NVIDIA GPU with sufficient VRAM
   - CUDA 12+ driver
   - Microsoft Visual C++ Redistributable
-  - Minimum 40 GB RAM (60 GB recommended)
 
 .PARAMETER Model
   Model identifier to install.  Default: Qwen3.6-27B-Q4_K_M
@@ -119,7 +118,7 @@ $Script:DownloadDir = Join-Path $Script:BaseDir "incomplete_downloads"
 
 # Engine port and RAM allowance (matches install.sh defaults)
 $Script:EnginePort = 19239
-$Script:EngineRamGb = 35
+$Script:EngineRamGb = 24
 
 # Update files base URL - override via env var for testing
 $Script:UpdateFilesBaseUrl =
@@ -544,16 +543,6 @@ function Assert-VisualCppRuntime {
     $Script:VcRedistDisplay = "Missing: $($missingDlls -join ', ')"
     $Script:VcRedistRequirement = "Microsoft Visual C++ Redistributable 2015+"
     Write-Host "Microsoft Visual C++ Runtime is missing: $($missingDlls -join ', ')" -ForegroundColor Yellow
-}
-
-function Get-SystemRam {
-    $cs = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction SilentlyContinue
-    if ($cs) {
-        $Script:MemGb = [math]::Floor($cs.TotalPhysicalMemory / 1GB)
-    }
-    else {
-        $Script:MemGb = 0
-    }
 }
 
 # ============================================================
@@ -1240,13 +1229,6 @@ if (-not $Script:VcRedistOk) {
     $Script:AllOk = $false
 }
 
-Get-SystemRam
-$ramOk = $Script:MemGb -ge 40
-$ramWarn = $Script:MemGb -ge 40 -and $Script:MemGb -lt 60
-if (-not $ramOk) {
-    $Script:AllOk = $false
-}
-
 # CPU model
 try {
     $cpuModel = (Get-CimInstance -ClassName Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1).Name
@@ -1273,9 +1255,6 @@ Emit-Check "cuda" (Check-Status $Script:CudaOk $false) "$Script:CudaDisplay" "$S
 
 Print-Value "VC++ Redist:" "$Script:VcRedistDisplay" $Script:VcRedistOk $false "$Script:VcRedistRequirement"
 Emit-Check "vc_redist" (Check-Status $Script:VcRedistOk $false) "$Script:VcRedistDisplay" "$Script:VcRedistRequirement"
-
-Print-Value "RAM:" "$($Script:MemGb) GB" $ramOk $ramWarn "minimum 40 GB, 60 GB recommended"
-Emit-Check "ram" (Check-Status $ramOk $ramWarn) "$($Script:MemGb) GB" "minimum 40 GB, 60 GB recommended"
 
 # Resolve the install metadata (model and engine configs) now that the checks
 # are done. This is the first thing in the script that touches the network or
