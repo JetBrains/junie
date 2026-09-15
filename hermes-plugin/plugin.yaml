@@ -1,0 +1,6 @@
+name: junie-acp
+kind: model-provider
+version: 1.0.0
+description: JetBrains Junie coding agent as a Hermes model provider over ACP
+author: JetBrains
+homepage: https://junie.jetbrains.com/
