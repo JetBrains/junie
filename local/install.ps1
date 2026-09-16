@@ -12,7 +12,7 @@
   System checks are modelled after the JBInferenceRunner setup.ps1:
   - 64-bit Windows 10+ (build 19041+)
   - NVIDIA GPU with sufficient VRAM
-  - CUDA 12+ driver
+  - NVIDIA driver 581+
   - Microsoft Visual C++ Redistributable
 
 .PARAMETER Model
@@ -442,10 +442,10 @@ function Get-NvidiaGpu {
     if (-not $nvidiaSmi) {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "nvidia-smi not found"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and CUDA 12+"
-        $Script:CudaOk = $false
-        $Script:CudaDisplay = "CUDA not detected"
-        $Script:CudaRequirement = "CUDA 12+"
+        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
+        $Script:DriverOk = $false
+        $Script:DriverDisplay = "Driver not detected"
+        $Script:DriverRequirement = "Driver 581+"
         return $null
     }
 
@@ -456,7 +456,7 @@ function Get-NvidiaGpu {
     if ($LASTEXITCODE -ne 0) {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "nvidia-smi failed"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
         return $null
     }
 
@@ -464,7 +464,7 @@ function Get-NvidiaGpu {
     if ($columns.Count -ne 4) {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "GPU info parse error"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
         return $null
     }
 
@@ -482,14 +482,14 @@ function Get-NvidiaGpu {
     catch {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "GPU info parse error: $_"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
         return $null
     }
 
     $Script:GpuOk = $true
     $gpuVramGiB = ($gpu.MemoryMiB / 1024).ToString("F2", [Globalization.CultureInfo]::InvariantCulture)
     $Script:AccelDisplay = "$($gpu.Name) ($gpuVramGiB GiB VRAM, $($gpu.MemoryMiB) MiB reported, driver $($gpu.DriverVersion))"
-    $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+    $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
 
     # Allow 256 MiB of reporting headroom for 24 GiB cards (e.g. RTX 4090 reports 24564 MiB).
     $minimumReportedVramMiB = (24 * 1024) - 256
@@ -497,29 +497,13 @@ function Get-NvidiaGpu {
         $Script:GpuOk = $false
     }
 
-    # CUDA version from nvidia-smi header
-    $cudaHeader = & $nvidiaSmi.Source 2>$null | Select-String "CUDA Version" | Select-Object -First 1
-    if ($cudaHeader) {
-        $cudaMatch = [regex]::Match($cudaHeader.ToString(), "CUDA Version:\s*(\d+)\.")
-        if ($cudaMatch.Success) {
-            $cudaMajor = [int]$cudaMatch.Groups[1].Value
-            $Script:CudaOk = $cudaMajor -ge 12
-            $Script:CudaDisplay = "CUDA $cudaMajor.x"
-            $Script:CudaRequirement = "CUDA 12+"
-            if (-not $Script:CudaOk) {
-                $Script:GpuOk = $false
-            }
-        }
-        else {
-            $Script:CudaOk = $false
-            $Script:CudaDisplay = "CUDA version not detected"
-            $Script:CudaRequirement = "CUDA 12+"
-        }
-    }
-    else {
-        $Script:CudaOk = $false
-        $Script:CudaDisplay = "CUDA version not detected"
-        $Script:CudaRequirement = "CUDA 12+"
+    # Driver version check: require at least 581
+    $driverMajor = $gpu.DriverVersion.Major
+    $Script:DriverOk = $driverMajor -ge 581
+    $Script:DriverDisplay = "Driver $($gpu.DriverVersion)"
+    $Script:DriverRequirement = "Driver 581+"
+    if (-not $Script:DriverOk) {
+        $Script:GpuOk = $false
     }
 
     return $gpu
@@ -1204,7 +1188,7 @@ function Print-Value {
 # --- System checks ---
 $Script:OsOk = $true
 $Script:GpuOk = $true
-$Script:CudaOk = $true
+$Script:DriverOk = $true
 $Script:VcRedistOk = $true
 $Script:VcRedistDisplay = "Installed"
 $Script:VcRedistRequirement = ""
@@ -1222,7 +1206,7 @@ $gpu = Get-NvidiaGpu
 if (-not $Script:GpuOk) {
     $Script:AllOk = $false
 }
-if (-not $Script:CudaOk) {
+if (-not $Script:DriverOk) {
     $Script:AllOk = $false
 }
 
@@ -1252,8 +1236,8 @@ Emit-Check "cpu" "ok" "$cpuModel" ""
 Print-Value "GPU:" "$Script:AccelDisplay" $Script:GpuOk $false "$Script:AccelRequirement"
 Emit-Check "gpu" (Check-Status $Script:GpuOk $false) "$Script:AccelDisplay" "$Script:AccelRequirement"
 
-Print-Value "CUDA:" "$Script:CudaDisplay" $Script:CudaOk $false "$Script:CudaRequirement"
-Emit-Check "cuda" (Check-Status $Script:CudaOk $false) "$Script:CudaDisplay" "$Script:CudaRequirement"
+Print-Value "Driver:" "$Script:DriverDisplay" $Script:DriverOk $false "$Script:DriverRequirement"
+Emit-Check "driver" (Check-Status $Script:DriverOk $false) "$Script:DriverDisplay" "$Script:DriverRequirement"
 
 Print-Value "VC++ Redist:" "$Script:VcRedistDisplay" $Script:VcRedistOk $false "$Script:VcRedistRequirement"
 Emit-Check "vc_redist" (Check-Status $Script:VcRedistOk $false) "$Script:VcRedistDisplay" "$Script:VcRedistRequirement"
