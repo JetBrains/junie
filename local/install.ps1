@@ -491,9 +491,7 @@ function Get-NvidiaGpu {
     $Script:AccelDisplay = "$($gpu.Name) ($gpuVramGiB GiB VRAM, $($gpu.MemoryMiB) MiB reported, driver $($gpu.DriverVersion))"
     $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and CUDA 12+"
 
-    # nvidia-smi can report slightly less than physical capacity (for example,
-    # 24564 MiB on a 24 GiB RTX 4090). Allow 256 MiB of reporting/reservation
-    # headroom for 24 GiB-class cards; this is not a free-memory or model-fit check.
+    # Allow 256 MiB of reporting headroom for 24 GiB cards (e.g. RTX 4090 reports 24564 MiB).
     $minimumReportedVramMiB = (24 * 1024) - 256
     if ($gpu.MemoryMiB -lt $minimumReportedVramMiB) {
         $Script:GpuOk = $false
