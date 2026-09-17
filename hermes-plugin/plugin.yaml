@@ -4,3 +4,14 @@ version: 1.0.0
 description: JetBrains Junie coding agent as a Hermes model provider over ACP
 author: JetBrains
 homepage: https://junie.jetbrains.com/
+# The provider registration seam this plugin is built on — ProviderProfile
+# .create_client plus the external_process launch fields — landed in Hermes
+# v2026.9.7 (0.21.1). On anything older the plugin registers a profile Hermes
+# cannot build a client from.
+#
+# Advisory for now: the general PluginManager skips a plugin whose
+# requires_hermes is unsatisfied, but model-provider discovery imports the
+# directory after reading only `kind`, so nothing enforces this on this path
+# yet. It is surfaced in `hermes plugins catalog` listings, and it is the
+# honest place to record the floor.
+requires_hermes: ">=0.21.1"

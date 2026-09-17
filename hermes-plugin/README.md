@@ -22,6 +22,8 @@ Or drop it in by hand: copy this `hermes-plugin/` directory to `~/.hermes/plugin
 
 The installer finishes with *"Plugin installed but not enabled"* — that gate belongs to Hermes' general plugin surface (hooks, tools, the bundled delegation skill). **The provider itself is available immediately**: model-provider discovery is a separate path. Run `hermes plugins enable junie-acp` if you also want the skill.
 
+Requires **Hermes v2026.9.7 or newer** — that release added the provider registration seam this plugin is built on.
+
 Hermes needs its `acp` extra for the protocol SDK — see [Hermes' installation docs](https://hermes-agent.nousresearch.com/docs/getting-started/installation) for how to add an extra to your install.
 
 ## Use

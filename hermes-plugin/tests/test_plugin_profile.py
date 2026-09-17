@@ -182,3 +182,10 @@ def test_the_manifest_declares_the_provider_kind():
     manifest = (PLUGIN_DIR / "plugin.yaml").read_text(encoding="utf-8")
     assert "kind: model-provider" in manifest
     assert "name: junie-acp" in manifest
+
+
+def test_the_manifest_declares_the_hermes_floor():
+    """The seam this plugin needs landed in Hermes 0.21.1 (v2026.9.7); an older
+    Hermes cannot build a client from the profile."""
+    manifest = (PLUGIN_DIR / "plugin.yaml").read_text(encoding="utf-8")
+    assert 'requires_hermes: ">=0.21.1"' in manifest
