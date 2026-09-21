@@ -51,11 +51,11 @@ and starts the engine:
 curl -fsSL https://junie.jetbrains.com/install.sh | bash -s -- --local-model
 ```
 
-`LOCAL_MODEL_URL` in `install.sh.template` points at
-`raw.githubusercontent.com/jetbrains-junie/junie/main/local/install.sh` — the
-same host, repo, and branch as the `channels.tsv` update-info URLs. Note that
-`junie.jetbrains.com` cannot be used here: it ignores the path and redirects
-every request to the Junie installer itself.
+`LOCAL_MODEL_URL` in `install.sh.template` uses
+`https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/install.sh`. Set
+`JUNIE_LOCAL_UPDATE_FILES_BASE_URL` to override the shared root for the local
+installer and its metadata. The child installer inherits the variable.
+See [the custom distribution layout](../local/README.md#custom-distributions).
 
 The local model requires macOS 26+ on an Apple M5 or newer with at least 40 GB of
 RAM; `local/install.sh` runs its own preflight checks and reports what is missing.

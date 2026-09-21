@@ -6,6 +6,15 @@ Installation scripts and update metadata for the Junie local model (on-device in
 
 - **macOS**: Apple M5 or newer, macOS 26+ (MLX backend)
 - **Linux**: NVIDIA GPU with 24 GB VRAM, CUDA 12+, 40 GB system RAM, kernel 5.15+
+- **Windows x64**: NVIDIA GPU with 24 GB VRAM and driver 581+
+- **Windows ARM64**: NVIDIA Blackwell GPU with 24 GB VRAM and driver 581+
+
+## Custom distributions
+
+Before launching Junie, set `JUNIE_LOCAL_UPDATE_FILES_BASE_URL` to a custom root
+without a trailing slash, such as a raw GitHub branch's `local/` directory.
+It must contain `install.{sh,ps1}`, `update-info-*.jsonl`, and `models/*.json`.
+Leave unset to keep the existing sources.
 
 ## Files
 
@@ -24,6 +33,9 @@ Supported options:
 - `--check-only` — Report system information and exit without installing
 - `--json` — Emit machine-readable events on stdout
 - `--keep-config` — Preserve an existing `server-config.json`
+
+On Windows, `install.ps1` detects `windows-amd64` or `windows-aarch64`, including
+under emulation.
 
 ### Update Channel Files
 

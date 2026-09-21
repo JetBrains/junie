@@ -120,17 +120,37 @@ $Script:DownloadDir = Join-Path $Script:BaseDir "incomplete_downloads"
 $Script:EnginePort = 19239
 $Script:EngineRamGb = 24
 
-# Update files base URL - override via env var for testing
-$Script:UpdateFilesBaseUrl =
-    if ($env:JUNIE_LOCAL_UPDATE_FILES_BASE_URL) {
-        $env:JUNIE_LOCAL_UPDATE_FILES_BASE_URL
+# Optional custom root, also used by Junie CLI to fetch the installer.
+$Script:UpdateFilesBaseUrl = $env:JUNIE_LOCAL_UPDATE_FILES_BASE_URL
+if ($null -eq $Script:UpdateFilesBaseUrl) {
+    $Script:UpdateFilesBaseUrl = "https://raw.githubusercontent.com/jetbrains-junie/junie/main/local"
+}
+
+# Detect the native OS architecture, even when PowerShell runs under emulation.
+function Get-NativeWindowsPlatform {
+    $architecture = ""
+
+    try {
+        $architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
     }
-    else {
-        "https://raw.githubusercontent.com/jetbrains-junie/junie/main/local"
+    catch {
+        # Fall back to environment variables on older PowerShell, accounting for emulation.
+        if ($env:PROCESSOR_ARCHITEW6432) {
+            $architecture = $env:PROCESSOR_ARCHITEW6432
+        }
+        else {
+            $architecture = $env:PROCESSOR_ARCHITECTURE
+        }
     }
 
-# Platform identifier (matches install.sh convention)
-$Script:Platform = "windows-amd64"
+    switch ($architecture.ToUpperInvariant()) {
+        { $_ -in "ARM64", "AARCH64" } { return "windows-aarch64" }
+        { $_ -in "X64", "AMD64", "X86_64" } { return "windows-amd64" }
+        default { throw "Unsupported Windows architecture: $architecture. Junie Local requires x64 or ARM64 Windows." }
+    }
+}
+
+$Script:Platform = Get-NativeWindowsPlatform
 
 # ============================================================
 # Helpers: machine-readable events (--json)
@@ -1215,11 +1235,16 @@ if (-not $Script:VcRedistOk) {
     $Script:AllOk = $false
 }
 
-# CPU model
+# Read the CPU model from the registry to avoid blocking on CIM.
 try {
-    $cpuModel = (Get-CimInstance -ClassName Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1).Name
+    $cpuModel = (Get-ItemProperty `
+        -LiteralPath "HKLM:\HARDWARE\DESCRIPTION\System\CentralProcessor\0" `
+        -Name "ProcessorNameString" `
+        -ErrorAction Stop).ProcessorNameString
 }
-catch { $cpuModel = "unknown" }
+catch {
+    $cpuModel = if ($env:PROCESSOR_IDENTIFIER) { $env:PROCESSOR_IDENTIFIER } else { "unknown" }
+}
 
 # --- Display system info ---
 Write-Host ""

@@ -78,11 +78,18 @@ for name in "${INSTALLERS[@]}"; do
   fi
 
   # The installer fetches the local model installer kept in this repo.
-  installer_url="$(sed -n 's/^LOCAL_MODEL_URL="\(.*\)"$/\1/p' "$installer")"
+  installer_url="$(unset JUNIE_LOCAL_UPDATE_FILES_BASE_URL; eval "$(sed -n '/^LOCAL_MODEL_URL=/p' "$installer")"; printf '%s' "$LOCAL_MODEL_URL")"
   if [[ "$installer_url" == "$LOCAL_MODEL_URL" ]]; then
     pass "$name" "points at the in-repo local installer"
   else
     fail "$name" "LOCAL_MODEL_URL: expected $LOCAL_MODEL_URL, got ${installer_url:-<unset>}"
+  fi
+
+  custom_url="$(export JUNIE_LOCAL_UPDATE_FILES_BASE_URL='https://example.test/custom'; eval "$(sed -n '/^LOCAL_MODEL_URL=/p' "$installer")"; printf '%s' "$LOCAL_MODEL_URL")"
+  if [[ "$custom_url" == 'https://example.test/custom/install.sh' ]]; then
+    pass "$name" "custom root preserves the installer filename"
+  else
+    fail "$name" "unexpected custom URL: $custom_url"
   fi
 
   function_src="$(extract "$installer" '^install_local_model() {$' '^}$')"
@@ -162,7 +169,7 @@ for name in "${INSTALLERS_WITHOUT_LOCAL_MODEL[@]}"; do
 done
 
 # The URL the installers fetch must resolve to a script that exists in the repo.
-local_script="${LOCAL_MODEL_URL##*/main/}"
+local_script="local/install.sh"
 if [[ -x "$REPO_ROOT/$local_script" ]]; then
   pass "$local_script" "present and executable"
 else
