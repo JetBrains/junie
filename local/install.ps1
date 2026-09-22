@@ -419,22 +419,13 @@ if ($ListModels) {
 # System checks (modelled after setup.ps1 reference)
 # ============================================================
 
-function Assert-SupportedWindows {
-    if ($env:OS -ne "Windows_NT" -or -not [Environment]::Is64BitOperatingSystem) {
-        throw "This installer requires 64-bit Windows."
-    }
-
-    # Check Windows 10+ (build 19041+)
+function Test-WindowsRequirements {
     $osVersion = [Environment]::OSVersion.Version
-    if ($osVersion.Major -lt 10 -or ($osVersion.Major -eq 10 -and $osVersion.Build -lt 19041)) {
-        throw "Windows 10 build 19041 or newer is required. Detected: $($osVersion.Major).$($osVersion.Minor) build $($osVersion.Build)"
-    }
-
     $Script:OsDisplay = "Windows $($osVersion.Major).$($osVersion.Minor) build $($osVersion.Build)"
-    $Script:OsRequirement = "Windows 10 build 19041 or newer"
-    $Script:OsOk = $true
-
-    Write-Host "64-bit Windows is available: $Script:OsDisplay"
+    $Script:OsRequirement = "64-bit Windows 10 build 19041 or newer"
+    $Script:OsOk = $env:OS -eq "Windows_NT" -and [Environment]::Is64BitOperatingSystem -and (
+        $osVersion.Major -gt 10 -or ($osVersion.Major -eq 10 -and $osVersion.Build -ge 19041)
+    )
 }
 
 function Get-NvidiaGpu {
@@ -1194,12 +1185,9 @@ $Script:VcRedistDisplay = "Installed"
 $Script:VcRedistRequirement = ""
 $Script:AllOk = $true
 
-try {
-    Assert-SupportedWindows
-}
-catch {
-    Write-Host "ERROR: $_" -ForegroundColor Red
-    exit 1
+Test-WindowsRequirements
+if (-not $Script:OsOk) {
+    $Script:AllOk = $false
 }
 
 $gpu = Get-NvidiaGpu
@@ -1246,7 +1234,7 @@ Emit-Check "vc_redist" (Check-Status $Script:VcRedistOk $false) "$Script:VcRedis
 # are done. This is the first thing in the script that touches the network or
 # writes to disk, and --check-only exits right below without needing any of it,
 # so a check never pays for it - it reports an empty engine version instead.
-if (-not $CheckOnly) {
+if (-not $CheckOnly -and $Script:AllOk) {
     Resolve-InstallMetadata
 }
 
