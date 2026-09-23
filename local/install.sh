@@ -57,6 +57,7 @@ require_commands
 PROTOCOL_VERSION=1
 
 MACHINE_OUTPUT=false
+KEEP_CONFIG=false
 CHECK_ONLY=false
 LIST_MODELS=false
 MODEL="Qwen3.6-27B-MLX-4bit"
@@ -68,6 +69,7 @@ usage() {
   echo "Options:"
   echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default) or Qwen3.8-27B-MLX-4bit"
   echo "  --channel <name>   Update channel: main (default) or eap"
+  echo "  --keep-config      Preserve existing engine connection settings"
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
@@ -78,6 +80,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --json) MACHINE_OUTPUT=true ;;
     --check-only) CHECK_ONLY=true ;;
+    --keep-config) KEEP_CONFIG=true ;;
     --models) LIST_MODELS=true ;;
     --model)
       shift
@@ -313,6 +316,13 @@ resolve_install_metadata() {
 # on first start. Nothing here consumes the RAM allowance yet — it is only
 # displayed and reported in the "config" event.
 ENGINE_PORT=19239
+if [ -f "$BASE_DIR/server-config.json" ]; then
+  saved_port=$(plutil -extract port raw -o - "$BASE_DIR/server-config.json" 2>/dev/null || true)
+  case "$saved_port" in
+    ''|*[!0-9]*) ;;
+    *) ENGINE_PORT="$saved_port" ;;
+  esac
+fi
 ENGINE_RAM_GB=35
 
 
@@ -412,16 +422,14 @@ generate_token() {
   fi
 }
 
-# Check whether the engine daemon is currently running. macOS has pgrep with
-# a clean -f flag; on Linux we use ps + grep and filter out the grep itself.
-# We match on "serverctl" and the base dir rather than a hardcoded binary name,
-# so the check works regardless of the platform-specific engine binary.
+# Inspect only this installation's authenticated endpoint. Matching process names
+# can confuse another Junie installation (or the installer itself) with ours.
 is_engine_running() {
-  if [ "$OS_TYPE" = "macos" ]; then
-    pgrep -f "$ENGINE_CTL" > /dev/null 2>&1 || pgrep -f "junie.*vlm" > /dev/null 2>&1
-  else
-    ps aux | grep -E "serverctl|junie.*vlm" | grep -v grep | grep -q .
-  fi
+  [ -f "$BASE_DIR/server-config.json" ] || return 1
+  local auth_token
+  auth_token=$(get_json_field api_key < "$BASE_DIR/server-config.json")
+  curl -fsS -m 2 -H "Authorization: Bearer $auth_token" \
+    "http://localhost:$ENGINE_PORT/health" >/dev/null 2>&1
 }
 
 # Helper: wait for user to press any key, then exit. Only a standalone run on a
@@ -1060,12 +1068,13 @@ handle_server_config() {
   token="sk-$(generate_token)"
   printf '  %sAuth token generated.%s\n' "$GRAY" "$RESET"
   printf '  %sWriting server-config.json with api_key and port...%s\n' "$GRAY" "$RESET"
-  cat > "$SERVER_CONFIG" <<EOF
+  (umask 077; cat > "$SERVER_CONFIG" <<EOF
 {
   "api_key": "$token",
   "port": $ENGINE_PORT
 }
 EOF
+  )
   printf '  %sserver-config.json created with bearer auth and port.%s\n' "$JUNIE_GREEN" "$RESET"
 }
 
@@ -1442,8 +1451,8 @@ handle_server_config
 # messages instead of the engine's raw chatter, while still surfacing errors.
 if [ -x "$ENGINE_CTL" ]; then
   JUNIE_CONFIG_FILE="$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json"
-  config_output="$("$ENGINE_CTL" --junie-config "$JUNIE_HOME" --model "$MODEL" 2>&1)"
-  config_ok=$?
+  config_ok=0
+  config_output="$("$ENGINE_CTL" --junie-config "$JUNIE_HOME" --model "$MODEL" 2>&1)" || config_ok=$?
   if [ "$config_ok" -eq 0 ] && [ -f "$JUNIE_CONFIG_FILE" ]; then
     print_value "Junie model config:" "$JUNIE_CONFIG_FILE" true false ""
     print_value "Default model:" "$JUNIE_MODEL_ID" true false ""
@@ -1456,11 +1465,13 @@ if [ -x "$ENGINE_CTL" ]; then
     else
       printf '  %sWARNING: Junie config file was not created at %s.%s\n' "$YELLOW" "$JUNIE_CONFIG_FILE" "$RESET"
     fi
-    emit_warning "Junie config generation failed"
+    emit_error "Junie config generation failed"
+    exit 1
   fi
 else
   printf '  %sWARNING: serverctl.sh not found at %s%s\n' "$YELLOW" "$ENGINE_CTL" "$RESET"
-  printf '  %sSkipping Junie config generation.%s\n' "$GRAY" "$RESET"
+  emit_error "serverctl.sh not found"
+  exit 1
 fi
 emit_step_done "configure"
 
@@ -1469,7 +1480,7 @@ emit_step_done "configure"
 # ============================================================
 section "Starting the inference engine"
 emit_step_start "start" "Starting the inference engine"
-start_engine || true
+start_engine || exit 1
 emit_step_done "start"
 
 if [ "$KEEP_CONFIG" = true ]; then
