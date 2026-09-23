@@ -529,7 +529,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.5.10",
+      "version": "0.5.11",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimcode.dev/docs/acp.html",
       "authors": [
@@ -539,7 +539,7 @@
       "license_url": "https://dimagent.cn/terms",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.5.10",
+          "package": "dimcode@0.5.11",
           "args": [
             "acp"
           ]
@@ -572,7 +572,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.225.1",
+      "version": "0.225.2",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -582,7 +582,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@0.225.1",
+          "package": "droid@0.225.2",
           "args": [
             "exec",
             "--output-format",
@@ -829,7 +829,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3462.1",
+      "version": "3463.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -841,42 +841,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3462.1/junie-nightly-3462.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3463.1/junie-nightly-3463.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3462.1/junie-nightly-3462.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3463.1/junie-nightly-3463.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3462.1/junie-nightly-3462.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3463.1/junie-nightly-3463.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3462.1/junie-nightly-3462.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3463.1/junie-nightly-3463.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3462.1/junie-nightly-3462.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3463.1/junie-nightly-3463.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3462.1/junie-nightly-3462.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3463.1/junie-nightly-3463.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -889,7 +889,7 @@
     {
       "id": "kilo",
       "name": "Kilo",
-      "version": "7.7.7",
+      "version": "7.7.9",
       "description": "The open source coding agent",
       "repository": "https://github.com/Kilo-Org/kilocode",
       "website": "https://kilo.ai/",
@@ -902,48 +902,48 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.7/kilo-darwin-arm64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.9/kilo-darwin-arm64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "adbbbd51f5996b6ae7ae5d46f66d0310a703d3b09eb77cb719a1302dc7593d8c"
+            "sha256": "599b64a830714a1178d85c721a0f1820ad6552ed08ab202759ca32e5618b85dc"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.7/kilo-darwin-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.9/kilo-darwin-x64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "8e9ba002bdfa8ef0be8257364a5a7a129fe5a808df33de4349e580a83a1100d9"
+            "sha256": "cd6fb03e8a23329bfde8dca0030404fc8378cd552de8a317c2acfae120f6d2c7"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.7/kilo-linux-arm64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.9/kilo-linux-arm64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "fb11928b7cb372cd198dd0e151f27f78984b43f58186fb606daa7956435d7489"
+            "sha256": "59cfc760b28e80db62b86312c96cdd99d4f0d215bac0ce460503aea1ef4e28e5"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.7/kilo-linux-x64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.9/kilo-linux-x64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "1d9454595f8b0d6900d25084874c0aa0575ff2c740b01db0f7b7286f2471f884"
+            "sha256": "037515229f140c5a9b744deb3f3fb35e6d8a04c27ccfdfaedcfd67cb097e8bad"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.7/kilo-windows-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.7.9/kilo-windows-x64.zip",
             "cmd": "./kilo.exe",
             "args": [
               "acp"
             ],
-            "sha256": "aec93ba12df89015f1a6124850c27c06538a6c3ae63152cf75feb7d468ff9a7e"
+            "sha256": "2f67c4f076ddba77a282e30695d72a17cf5b9710bdf20b1049974bc2a00be73c"
           }
         },
         "npx": {
-          "package": "@kilocode/cli@7.7.7",
+          "package": "@kilocode/cli@7.7.9",
           "args": [
             "acp"
           ]
@@ -953,7 +953,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.1.30",
+      "version": "1.1.31",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -965,8 +965,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.30/kimchi_darwin_arm64.tar.gz",
-            "sha256": "9f91f8c0308a87be3fb7c0646b7924aeca58023452d97bf6ccc2530af6563bcd",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_darwin_arm64.tar.gz",
+            "sha256": "0e8b240de0d44ca40e2bfb2ac986cf43bcac6b9685d7dd9371eebd05e62e2c01",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -974,8 +974,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.30/kimchi_darwin_amd64.tar.gz",
-            "sha256": "47a29af344bfc4d71704e5128532a60e62197fdcc797b35f32731228b5ce2658",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_darwin_amd64.tar.gz",
+            "sha256": "55f2693ce2e470f7693af80d34db4cb29ace9b5bd3411ea5eb45fbf0021a610c",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -983,8 +983,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.30/kimchi_linux_arm64.tar.gz",
-            "sha256": "b4c580c3525cf7f78c5e6909eeedc0addaf632c38852ad682aafcf876631e12b",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_linux_arm64.tar.gz",
+            "sha256": "e1058b64b90298ae723e572a0d4b0f8ba81487356d2d0db646782bc0e65d9070",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -992,8 +992,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.30/kimchi_linux_amd64.tar.gz",
-            "sha256": "d825f4ae3cf5ad2a232a4561df0ca7bdda17f2a65ec9449f6bd13ab6a6725748",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_linux_amd64.tar.gz",
+            "sha256": "720bf6808172844144191e87994581338b74947afc53e8e64ce5e6ed5f23a29c",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1001,8 +1001,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.30/kimchi_windows_amd64.zip",
-            "sha256": "662b6ea801dbc2f7dec3857fa22c1f9b579949792100907f8974703146ad760f",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_windows_amd64.zip",
+            "sha256": "7f2d9496d7e5ce2381f1e2b71457fddb0694c829b92af748c1b4f10c7f9121b8",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
