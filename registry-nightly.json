@@ -197,7 +197,7 @@
     {
       "id": "codebuddy-code",
       "name": "Codebuddy Code",
-      "version": "2.156.0",
+      "version": "2.157.0",
       "description": "Tencent Cloud's official intelligent coding tool",
       "website": "https://www.codebuddy.cn/cli/",
       "authors": [
@@ -207,7 +207,7 @@
       "license_url": "https://www.codebuddy.cn/agreement/",
       "distribution": {
         "npx": {
-          "package": "@tencent-ai/codebuddy-code@2.156.0",
+          "package": "@tencent-ai/codebuddy-code@2.157.0",
           "args": [
             "--acp"
           ]
@@ -686,7 +686,7 @@
     {
       "id": "goose",
       "name": "goose",
-      "version": "1.51.0",
+      "version": "1.52.0",
       "description": "A local, extensible, open source AI agent that automates engineering tasks",
       "repository": "https://github.com/block/goose",
       "website": "https://block.github.io/goose/",
@@ -698,44 +698,44 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.51.0/goose-aarch64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.52.0/goose-aarch64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "6cbb36e1b0b9c44d05ff8b3d526d2191eb02610b3fd18f475faa4edab2514535"
+            "sha256": "10f7aca02d265750f43ec6948a63757ea372b1ef52b5c116f55b79d382769ae7"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.51.0/goose-x86_64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.52.0/goose-x86_64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "0c34ceb1e245db40f9261eef82b4d7b2adb7ce89c126f5ef66cfd63ed84e31cf"
+            "sha256": "a71d9357b560ba6a07b2f73ff5d211411a358e5e3f7a1727e98659cc8f58393b"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.51.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.52.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "f3419d00648d0f5aeb408ca5716f78e3f9489f3866267a1328aa8c034ab115ba"
+            "sha256": "7923f7b7c76f0ebf29b8622c8b9a4c486f6ce60475967f0f63246e7399f0097c"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.51.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.52.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "de5bf71c6bf470fbb55276de871bbbd65c844aa066d3b09b1552da83f8e367e2"
+            "sha256": "2609109a43012ddece0f78e1e4a179b82749c424f2164b97186d3ad38518d262"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.51.0/goose-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/block/goose/releases/download/v1.52.0/goose-x86_64-pc-windows-msvc.zip",
             "cmd": "./goose-package\\goose.exe",
             "args": [
               "acp"
             ],
-            "sha256": "55af3e3c574e2de4d306626d0e71fcf6f730b02e53ffee497a9dba6df5357c4f"
+            "sha256": "13f51e2294a8c92ce440988beb1873ed688e33d8fc72c0f75755b2ed5b3d54bc"
           }
         }
       },
@@ -829,7 +829,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3472.1",
+      "version": "3473.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -841,42 +841,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3472.1/junie-nightly-3472.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3473.1/junie-nightly-3473.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3472.1/junie-nightly-3472.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3473.1/junie-nightly-3473.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3472.1/junie-nightly-3472.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3473.1/junie-nightly-3473.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3472.1/junie-nightly-3472.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3473.1/junie-nightly-3473.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3472.1/junie-nightly-3472.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3473.1/junie-nightly-3473.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3472.1/junie-nightly-3472.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3473.1/junie-nightly-3473.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -953,7 +953,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.1.31",
+      "version": "1.1.32",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -965,8 +965,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_darwin_arm64.tar.gz",
-            "sha256": "0e8b240de0d44ca40e2bfb2ac986cf43bcac6b9685d7dd9371eebd05e62e2c01",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.32/kimchi_darwin_arm64.tar.gz",
+            "sha256": "f3c4ff5305e5054f1abf59a0ad61077f89d3dcf2bab650aa2d9aada98b3050d0",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -974,8 +974,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_darwin_amd64.tar.gz",
-            "sha256": "55f2693ce2e470f7693af80d34db4cb29ace9b5bd3411ea5eb45fbf0021a610c",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.32/kimchi_darwin_amd64.tar.gz",
+            "sha256": "54ffa63cb594253970b89f65a41d4f9d69c2c88dd6a9345d0f05733ab278a429",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -983,8 +983,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_linux_arm64.tar.gz",
-            "sha256": "e1058b64b90298ae723e572a0d4b0f8ba81487356d2d0db646782bc0e65d9070",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.32/kimchi_linux_arm64.tar.gz",
+            "sha256": "8443462d45ae4a10dbb07f353d9392086299f1116b8afbfb9b8db171507e67fa",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -992,8 +992,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_linux_amd64.tar.gz",
-            "sha256": "720bf6808172844144191e87994581338b74947afc53e8e64ce5e6ed5f23a29c",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.32/kimchi_linux_amd64.tar.gz",
+            "sha256": "f38fdd6c7ff0a06c2f51b7dd7a32cd26b66b61eebe60e0336cdf3faf0a934b6a",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1001,8 +1001,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.31/kimchi_windows_amd64.zip",
-            "sha256": "7f2d9496d7e5ce2381f1e2b71457fddb0694c829b92af748c1b4f10c7f9121b8",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.32/kimchi_windows_amd64.zip",
+            "sha256": "83208a9380892bd71433b7828980e9f1bd21e7a493053b4e6436c68e2184c8d6",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
@@ -1116,7 +1116,7 @@
     {
       "id": "mistral-vibe",
       "name": "Mistral Vibe",
-      "version": "2.25.7",
+      "version": "2.25.8",
       "description": "Mistral's open-source coding assistant",
       "repository": "https://github.com/mistralai/mistral-vibe",
       "website": "https://mistral.ai/products/vibe",
@@ -1129,29 +1129,29 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.7/vibe-acp-darwin-aarch64-2.25.7.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.8/vibe-acp-darwin-aarch64-2.25.8.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "287146739954ef4498ec83de57e6281a83bbffd979ccd8993d440aac49744504"
+            "sha256": "357305c3c728883eec26232763f4e414fcec51aafdcc75d04e2f78755f7917ce"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.7/vibe-acp-darwin-x86_64-2.25.7.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.8/vibe-acp-darwin-x86_64-2.25.8.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "8bde840b851d7e9dc481d65697233459cca2c6535c6d77ff815dfd65829163df"
+            "sha256": "5f1731d76d8c3f8031c2cfd7990cd79c9c4b234d2595e78b10b7b91b469fd6dc"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.7/vibe-acp-linux-aarch64-2.25.7.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.8/vibe-acp-linux-aarch64-2.25.8.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "8ecef7e8bcfc3ba38d62d0e6411e40e50c8137f79c161fc4a5bef2d4b65d54de"
+            "sha256": "09913291476fd2f8fc5c2b330602d6afded3ae6c016e197d9dcf805922bf82e8"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.7/vibe-acp-linux-x86_64-2.25.7.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.8/vibe-acp-linux-x86_64-2.25.8.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "912d4c3068529ff4773c3bca89268ed401dab5f0f90628100eb88eb0d1a0b189"
+            "sha256": "dbe693ee66f29fdfcf9029dcbf3b2d4da138554b193e432b089840148ecf08b3"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.7/vibe-acp-windows-x86_64-2.25.7.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v2.25.8/vibe-acp-windows-x86_64-2.25.8.zip",
             "cmd": "./vibe-acp.exe",
-            "sha256": "d320220ef4a44860c199768af12291fd834a68262039cf89f828ed56476ab163"
+            "sha256": "4eb3099bd06b034f62582f7b5ed701febbce3cf013ef95490aca9c79e82c4bd1"
           }
         }
       }
