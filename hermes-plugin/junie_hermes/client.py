@@ -72,6 +72,7 @@ from agent.acp_openai_bridge import (
 )
 from agent.file_safety import get_read_block_error, is_write_denied
 from agent.redact import redact_sensitive_text
+from .secret_shield import shield_prompt
 from tools.environments.local import hermes_subprocess_env
 
 logger = logging.getLogger(__name__)
@@ -1380,12 +1381,20 @@ class JunieACPClient:
         # redo the coding work it already did, so send only the results and let
         # _ado_turn reuse the live session (falling back to the full prompt if
         # that session is gone).
+        # Secret Shield: scan prompts for credentials (opt-in, off by default).
+        # Mode determines behavior: warn (log only), mask (replace), block (raise).
+        prompt_text, shield_findings = shield_prompt(prompt_text)
+
         _trailing = _trailing_tool_results(messages)
         continuation_prompt = (
             _format_tool_results_as_prompt(_trailing)
             if _trailing and self._answers_last_request(_trailing)
             else None
         )
+        if continuation_prompt:
+            continuation_prompt, cont_findings = shield_prompt(continuation_prompt)
+            shield_findings += cont_findings
+
         # Normalise timeout: run_agent.py may pass an httpx.Timeout object
         # (used natively by the OpenAI SDK) rather than a plain float.
         if timeout is None:
