@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Regression test: the `--local-model` flag must be accepted, unknown flags must
 # be rejected, and the local model setup must run only when the flag is given.

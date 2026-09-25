@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Self-test for the one-shot channel-switching logic in the shim embedded in
 # install.sh (`junie --eap` and friends).

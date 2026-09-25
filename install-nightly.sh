@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # DO NOT EDIT — generated from templates/install.sh.template by templates/generate.sh
 #
 # Junie CLI Installer
@@ -242,7 +242,7 @@ fi
 # Install shim (skipped in one-shot mode so the existing shim stays intact)
 if [[ -z "$ONESHOT" ]]; then
 cat > "$JUNIE_BIN/junie" << 'SHIM_EOF'
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # JUNIE_MANAGED_SHIM
 #
