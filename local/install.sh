@@ -140,9 +140,8 @@ PLATFORM="${OS_NAME}-${ARCH_NAME}"
 # Model configuration: fetched from update-info-models-<channel>.jsonl
 # ============================================================
 
-# Base URL for the update-info files (engine and model metadata). Override via
-# environment variable to point at a custom location during testing/deployment.
-UPDATE_FILES_BASE_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL:-https://raw.githubusercontent.com/jetbrains-junie/junie/main/local}"
+# Optional custom root, also used by Junie CLI to fetch the installer.
+UPDATE_FILES_BASE_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL-https://raw.githubusercontent.com/jetbrains-junie/junie/main/local}"
 
 # Model update metadata is published per channel as JSONL (one object per line)
 # with platform, model id (filename in models/ folder), displayName, etc.

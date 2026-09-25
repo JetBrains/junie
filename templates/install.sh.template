@@ -18,7 +18,7 @@ INSTALL_TAG="<install_tag>"
 GITHUB_RELEASES="https://github.com/jetbrains-junie/junie/releases"
 JUNIE_BIN="$HOME/.local/bin"
 JUNIE_DATA="$HOME/.local/share/junie"
-LOCAL_MODEL_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/install.sh"
+LOCAL_MODEL_URL="${JUNIE_LOCAL_UPDATE_FILES_BASE_URL-https://raw.githubusercontent.com/jetbrains-junie/junie/main/local}/install.sh"
 
 # One-shot mode (set by the shim for `junie --<channel>`): install/refresh this
 # channel's latest build but do NOT touch the existing shim, the `current`
