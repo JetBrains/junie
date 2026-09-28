@@ -144,3 +144,22 @@ Fields:
 2. Add a new line to `update-info-models-main.jsonl` (and/or `update-info-models-eap.jsonl`) for each model on the new platform.
 3. Update the model detail JSON files in `models/` to include archives for the new platform if they differ from the existing ones.
 4. Update `install.sh` to support the new platform (OS detection, download URLs, etc.).
+
+## Splash preview in Nightly
+
+The EAP catalog used by Junie Nightly adds **Qwen 3.8/3.6 Blend (Splash
+preview)** alongside the existing MLX models. Select it through `/local`.
+It requires Apple M5 or newer and macOS 26.4+. The normal installer downloads
+the engine and packed model; no separate Splash installation is needed.
+
+The preview engine bundles the unchanged MLX 0.3.2 worker and Splash 1.1.0.
+The gateway reads `worker_backend` and `splash_package` from the installed
+model descriptor. Junie continues using the same local settings and Chat
+Completions interface. The KV quantization toggle selects INT8 or BF16 for
+Splash. Switching back to an installed MLX model uses its original worker.
+
+Only EAP metadata selects this bundle. Stable releases and existing MLX model
+entries are unchanged. The model archive is pinned to a Hugging Face commit
+and SHA-256; the engine archive has an immutable preview version and checksum.
+The gateway/packaging implementation is in `JetBrains/mlx-vlm`; consolidation
+into `junie-local` platform bundles can follow without changing this interface.

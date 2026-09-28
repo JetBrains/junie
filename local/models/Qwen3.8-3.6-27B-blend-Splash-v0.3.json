@@ -1,0 +1,38 @@
+{
+  "id": "local-qwen3.8-3.6-27b-blend-splash-v03",
+  "draft_model": "Qwen3.8-27B-test-DFlash2-v0.3",
+  "draft_kind": "dflash",
+  "junieConfig": {
+    "displayName": "Qwen 3.8/3.6 Blend (Splash preview)",
+    "providerName": "Local",
+    "id": "Qwen3.8-3.6-27B-blend-Splash-v0.3",
+    "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
+    "apiType": "OpenAICompletion",
+    "apiKey": "$AUTH_TOKEN",
+    "maxContextLength": 150000,
+    "temperature": 1.0,
+    "extraBody": {
+      "enable_thinking": true,
+      "reasoning_effort": "low",
+      "preserve_thinking": true,
+      "top_p": 0.95,
+      "top_k": 20,
+      "min_p": 0.0,
+      "presence_penalty": 0.0,
+      "repetition_penalty": 1.0,
+      "stop": []
+    }
+  },
+  "archives": [
+    {
+      "modelId": "Qwen3.8-3.6-27B-blend-Splash-v0.3",
+      "label": "Qwen 3.8/3.6 Blend with DFlash2 v0.3",
+      "name": "Qwen3.8-3.6-27B-blend-Splash-v0.3.zip",
+      "downloadUrl": "https://huggingface.co/vvsotnikov/Qwen3.8-3.6-27B-blend-Splash-v0.3/resolve/50f57b3153115648ff3b52e324d4fc5a7650eb7d/Qwen3.8-3.6-27B-blend-Splash-v0.3.zip",
+      "sha256": "a23025819251ab98ec8bc179b4ccbf724b8120c7a8322fd347b9c77c6c1f24b8",
+      "size": 17382687471
+    }
+  ],
+  "worker_backend": "splash",
+  "splash_package": "Qwen3.8-3.6-27B-blend-Splash-v0.3"
+}
