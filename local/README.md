@@ -6,6 +6,7 @@ Installation scripts and update metadata for the Junie local model (on-device in
 
 - **macOS**: Apple M5 or newer, macOS 26+ (MLX backend)
 - **Linux**: NVIDIA GPU with 24 GB VRAM, CUDA 12+, 40 GB system RAM, kernel 5.15+
+- **Windows ARM64**: NVIDIA Blackwell GPU with 24 GB VRAM and driver 581+
 
 ## Files
 
@@ -24,6 +25,9 @@ Supported options:
 - `--check-only` — Report system information and exit without installing
 - `--json` — Emit machine-readable events on stdout
 - `--keep-config` — Preserve an existing `server-config.json`
+
+On Windows, `install.ps1` detects `windows-amd64` or `windows-aarch64`, including
+under emulation.
 
 ### Update Channel Files
 

@@ -129,8 +129,31 @@ $Script:UpdateFilesBaseUrl =
         "https://raw.githubusercontent.com/jetbrains-junie/junie/main/local"
     }
 
-# Platform identifier (matches install.sh convention)
-$Script:Platform = "windows-amd64"
+# Detect the native OS architecture, even when PowerShell runs under emulation.
+function Get-NativeWindowsPlatform {
+    $architecture = ""
+
+    try {
+        $architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+    }
+    catch {
+        # Fall back to environment variables on older PowerShell, accounting for emulation.
+        if ($env:PROCESSOR_ARCHITEW6432) {
+            $architecture = $env:PROCESSOR_ARCHITEW6432
+        }
+        else {
+            $architecture = $env:PROCESSOR_ARCHITECTURE
+        }
+    }
+
+    switch ($architecture.ToUpperInvariant()) {
+        { $_ -in "ARM64", "AARCH64" } { return "windows-aarch64" }
+        { $_ -in "X64", "AMD64", "X86_64" } { return "windows-amd64" }
+        default { throw "Unsupported Windows architecture: $architecture. Junie Local requires x64 or ARM64 Windows." }
+    }
+}
+
+$Script:Platform = Get-NativeWindowsPlatform
 
 # ============================================================
 # Helpers: machine-readable events (--json)
