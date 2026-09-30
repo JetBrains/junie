@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Regression test: installers must select the greatest numeric version for the
 # current platform, regardless of JSONL entry order.

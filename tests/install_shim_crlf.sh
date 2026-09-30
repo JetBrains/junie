@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Regression test for JUNIE-3256: the Windows shim (`junie.bat`) must be written
 # with CRLF line endings. cmd.exe `goto`/`call` label seeking is unreliable on

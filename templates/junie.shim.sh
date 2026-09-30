@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # JUNIE_MANAGED_SHIM
 #
