@@ -179,7 +179,7 @@
     {
       "id": "cline",
       "name": "Cline",
-      "version": "3.0.65",
+      "version": "3.0.66",
       "description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
       "repository": "https://github.com/cline/cline",
       "website": "https://cline.bot/cli",
@@ -191,7 +191,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/cline.svg",
       "distribution": {
         "npx": {
-          "package": "cline@3.0.65",
+          "package": "cline@3.0.66",
           "args": [
             "--acp"
           ]
@@ -533,7 +533,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.5.15",
+      "version": "0.5.16",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimcode.dev/docs/acp.html",
       "authors": [
@@ -543,7 +543,7 @@
       "license_url": "https://dimagent.cn/terms",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.5.15",
+          "package": "dimcode@0.5.16",
           "args": [
             "acp"
           ]
@@ -576,7 +576,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.229.0",
+      "version": "0.230.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -586,7 +586,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@0.229.0",
+          "package": "droid@0.230.0",
           "args": [
             "exec",
             "--output-format",
@@ -833,7 +833,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3583.1",
+      "version": "3589.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -845,42 +845,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3583.1/junie-nightly-3583.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3589.1/junie-nightly-3589.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3583.1/junie-nightly-3583.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3589.1/junie-nightly-3589.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3583.1/junie-nightly-3583.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3589.1/junie-nightly-3589.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3583.1/junie-nightly-3583.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3589.1/junie-nightly-3589.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3583.1/junie-nightly-3583.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3589.1/junie-nightly-3589.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3583.1/junie-nightly-3583.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3589.1/junie-nightly-3589.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -957,7 +957,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.1.39",
+      "version": "1.2.2",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -969,8 +969,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.39/kimchi_darwin_arm64.tar.gz",
-            "sha256": "c3ec4f70e4f4f7ef7d59c72f9224149888d3f6bc5f432e148007f5a738b25996",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.2.2/kimchi_darwin_arm64.tar.gz",
+            "sha256": "05df6f984be6d15908779f4f65e871f483263aeff0a003a254801a1b901dbf4a",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -978,8 +978,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.39/kimchi_darwin_amd64.tar.gz",
-            "sha256": "5c5901b252cc794d4c9fcb92163315a3adc4acd706563bd797e08e52fc7cd9ee",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.2.2/kimchi_darwin_amd64.tar.gz",
+            "sha256": "bb76529d057070de2ec33487b40a1489a8db9bd9aa1819c3125d3d697a32b596",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -987,8 +987,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.39/kimchi_linux_arm64.tar.gz",
-            "sha256": "9ebfaf5d8009219ce3b15cdb5cdf3c3159948dd52e644fac42a83b4cb8f2bc20",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.2.2/kimchi_linux_arm64.tar.gz",
+            "sha256": "2936828cfb8608e4358b6dec8dc9fcd283b0e8e23dd9c15b7c04f532212e1733",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -996,8 +996,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.39/kimchi_linux_amd64.tar.gz",
-            "sha256": "2645f462d81ff28efb62a810443a0000b6ea3aad18b5f6cbb1a9c04c7089b20f",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.2.2/kimchi_linux_amd64.tar.gz",
+            "sha256": "909491edd264544ec8d3f478baf98de334a37ed0ff07f385e26ab220803d4e39",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1005,8 +1005,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.1.39/kimchi_windows_amd64.zip",
-            "sha256": "d141d2bfb318ce15f18d2745e4ea9bb73ffb73215a5e71e37f6857808de6bfa5",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.2.2/kimchi_windows_amd64.zip",
+            "sha256": "280518217d89d3626aad427c2829abff47ada6f6c5f20c2b1f3ce9e754eeb263",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
