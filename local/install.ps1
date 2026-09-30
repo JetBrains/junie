@@ -129,8 +129,33 @@ $Script:UpdateFilesBaseUrl =
         "https://raw.githubusercontent.com/jetbrains-junie/junie/main/local"
     }
 
-# Platform identifier (matches install.sh convention)
-$Script:Platform = "windows-amd64"
+# Detect the native OS architecture, even when PowerShell runs under emulation.
+function Get-NativeWindowsPlatform {
+    $architecture = ""
+
+    try {
+        $architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+    }
+    catch {
+        # Fall back to environment variables on older PowerShell, accounting for emulation.
+        if ($env:PROCESSOR_ARCHITEW6432) {
+            $architecture = $env:PROCESSOR_ARCHITEW6432
+        }
+        else {
+            $architecture = $env:PROCESSOR_ARCHITECTURE
+        }
+    }
+
+    if (-not $architecture) { $architecture = "unknown" }
+    switch ($architecture.ToUpperInvariant()) {
+        { $_ -in "ARM64", "AARCH64" } { return "windows-aarch64" }
+        { $_ -in "X64", "AMD64", "X86_64" } { return "windows-amd64" }
+        default { return "windows-$($architecture.ToLowerInvariant())" }
+    }
+}
+
+$Script:Platform = Get-NativeWindowsPlatform
+$Script:PlatformSupported = $Script:Platform -in @("windows-amd64", "windows-aarch64")
 
 # ============================================================
 # Helpers: machine-readable events (--json)
@@ -382,7 +407,7 @@ function Resolve-InstallMetadata {
 # List models mode
 # ============================================================
 
-if ($ListModels) {
+if ($ListModels -and $Script:PlatformSupported) {
     $modelsUpdateUrl = "$Script:UpdateFilesBaseUrl/update-info-models-$Script:Channel.jsonl"
     $jsonl = (Invoke-WebRequest -Uri $modelsUpdateUrl -UseBasicParsing).Content
     $lines = $jsonl -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
@@ -421,9 +446,9 @@ if ($ListModels) {
 
 function Test-WindowsRequirements {
     $osVersion = [Environment]::OSVersion.Version
-    $Script:OsDisplay = "Windows $($osVersion.Major).$($osVersion.Minor) build $($osVersion.Build)"
-    $Script:OsRequirement = "64-bit Windows 10 build 19041 or newer"
-    $Script:OsOk = $env:OS -eq "Windows_NT" -and [Environment]::Is64BitOperatingSystem -and (
+    $Script:OsDisplay = "Windows $($osVersion.Major).$($osVersion.Minor) build $($osVersion.Build) ($($Script:Platform -replace '^windows-', ''))"
+    $Script:OsRequirement = "x64 or ARM64 Windows 10 build 19041 or newer"
+    $Script:OsOk = $Script:PlatformSupported -and $env:OS -eq "Windows_NT" -and [Environment]::Is64BitOperatingSystem -and (
         $osVersion.Major -gt 10 -or ($osVersion.Major -eq 10 -and $osVersion.Build -ge 19041)
     )
 }
@@ -1090,24 +1115,16 @@ function Start-Engine {
     }
 
     Write-Host "  Starting the engine..."
-    # Prefer PowerShell 7 (pwsh) when available, otherwise fall back to the
-    # built-in Windows PowerShell (powershell.exe), which is always present.
-    $psHost = Get-Command pwsh -ErrorAction SilentlyContinue
-    if (-not $psHost) {
-        $psHost = Get-Command powershell -ErrorAction SilentlyContinue
+    # Use the running PowerShell installation; PATH may contain an unusable Store alias.
+    $psExecutable = if ($PSVersionTable.PSEdition -eq 'Core') { 'pwsh.exe' } else { 'powershell.exe' }
+    $psHost = Join-Path $PSHOME $psExecutable
+    try {
+        Start-Process -FilePath $psHost `
+            -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$ctlPath`"", "start" `
+            -WindowStyle Hidden
     }
-    if (-not $psHost) {
-        Write-Host "  WARNING: Could not start engine via serverctl (no PowerShell host found)." -ForegroundColor Yellow
-    }
-    else {
-        try {
-            Start-Process -FilePath $psHost.Source `
-                -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $ctlPath, "start" `
-                -WindowStyle Hidden
-        }
-        catch {
-            Write-Host "  WARNING: Could not start engine via serverctl. $_" -ForegroundColor Yellow
-        }
+    catch {
+        Write-Host "  WARNING: Could not start engine via serverctl. $_" -ForegroundColor Yellow
     }
 
     # Wait for engine readiness
