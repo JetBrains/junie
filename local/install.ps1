@@ -1115,24 +1115,16 @@ function Start-Engine {
     }
 
     Write-Host "  Starting the engine..."
-    # Prefer PowerShell 7 (pwsh) when available, otherwise fall back to the
-    # built-in Windows PowerShell (powershell.exe), which is always present.
-    $psHost = Get-Command pwsh -ErrorAction SilentlyContinue
-    if (-not $psHost) {
-        $psHost = Get-Command powershell -ErrorAction SilentlyContinue
+    # Use the running PowerShell installation; PATH may contain an unusable Store alias.
+    $psExecutable = if ($PSVersionTable.PSEdition -eq 'Core') { 'pwsh.exe' } else { 'powershell.exe' }
+    $psHost = Join-Path $PSHOME $psExecutable
+    try {
+        Start-Process -FilePath $psHost `
+            -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$ctlPath`"", "start" `
+            -WindowStyle Hidden
     }
-    if (-not $psHost) {
-        Write-Host "  WARNING: Could not start engine via serverctl (no PowerShell host found)." -ForegroundColor Yellow
-    }
-    else {
-        try {
-            Start-Process -FilePath $psHost.Source `
-                -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $ctlPath, "start" `
-                -WindowStyle Hidden
-        }
-        catch {
-            Write-Host "  WARNING: Could not start engine via serverctl. $_" -ForegroundColor Yellow
-        }
+    catch {
+        Write-Host "  WARNING: Could not start engine via serverctl. $_" -ForegroundColor Yellow
     }
 
     # Wait for engine readiness
