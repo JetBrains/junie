@@ -146,14 +146,16 @@ function Get-NativeWindowsPlatform {
         }
     }
 
+    if (-not $architecture) { $architecture = "unknown" }
     switch ($architecture.ToUpperInvariant()) {
         { $_ -in "ARM64", "AARCH64" } { return "windows-aarch64" }
         { $_ -in "X64", "AMD64", "X86_64" } { return "windows-amd64" }
-        default { throw "Unsupported Windows architecture: $architecture. Junie Local requires x64 or ARM64 Windows." }
+        default { return "windows-$($architecture.ToLowerInvariant())" }
     }
 }
 
 $Script:Platform = Get-NativeWindowsPlatform
+$Script:PlatformSupported = $Script:Platform -in @("windows-amd64", "windows-aarch64")
 
 # ============================================================
 # Helpers: machine-readable events (--json)
@@ -405,7 +407,7 @@ function Resolve-InstallMetadata {
 # List models mode
 # ============================================================
 
-if ($ListModels) {
+if ($ListModels -and $Script:PlatformSupported) {
     $modelsUpdateUrl = "$Script:UpdateFilesBaseUrl/update-info-models-$Script:Channel.jsonl"
     $jsonl = (Invoke-WebRequest -Uri $modelsUpdateUrl -UseBasicParsing).Content
     $lines = $jsonl -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
@@ -444,9 +446,9 @@ if ($ListModels) {
 
 function Test-WindowsRequirements {
     $osVersion = [Environment]::OSVersion.Version
-    $Script:OsDisplay = "Windows $($osVersion.Major).$($osVersion.Minor) build $($osVersion.Build)"
-    $Script:OsRequirement = "64-bit Windows 10 build 19041 or newer"
-    $Script:OsOk = $env:OS -eq "Windows_NT" -and [Environment]::Is64BitOperatingSystem -and (
+    $Script:OsDisplay = "Windows $($osVersion.Major).$($osVersion.Minor) build $($osVersion.Build) ($($Script:Platform -replace '^windows-', ''))"
+    $Script:OsRequirement = "x64 or ARM64 Windows 10 build 19041 or newer"
+    $Script:OsOk = $Script:PlatformSupported -and $env:OS -eq "Windows_NT" -and [Environment]::Is64BitOperatingSystem -and (
         $osVersion.Major -gt 10 -or ($osVersion.Major -eq 10 -and $osVersion.Build -ge 19041)
     )
 }
