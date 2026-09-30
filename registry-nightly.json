@@ -201,7 +201,7 @@
     {
       "id": "codebuddy-code",
       "name": "Codebuddy Code",
-      "version": "2.159.0",
+      "version": "2.160.0",
       "description": "Tencent Cloud's official intelligent coding tool",
       "website": "https://www.codebuddy.cn/cli/",
       "authors": [
@@ -211,7 +211,7 @@
       "license_url": "https://www.codebuddy.cn/agreement/",
       "distribution": {
         "npx": {
-          "package": "@tencent-ai/codebuddy-code@2.159.0",
+          "package": "@tencent-ai/codebuddy-code@2.160.0",
           "args": [
             "--acp"
           ]
@@ -222,7 +222,7 @@
     {
       "id": "codex-acp",
       "name": "Codex",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "description": "ACP adapter for OpenAI's coding assistant",
       "repository": "https://github.com/agentclientprotocol/codex-acp",
       "authors": [
@@ -234,7 +234,7 @@
       "license_url": "https://github.com/agentclientprotocol/codex-acp/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@agentclientprotocol/codex-acp@2.0.0"
+          "package": "@agentclientprotocol/codex-acp@2.0.1"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/codex-acp.svg"
@@ -394,7 +394,7 @@
     {
       "id": "cursor",
       "name": "Cursor",
-      "version": "2026.09.26",
+      "version": "2026.09.28",
       "description": "Cursor's coding agent",
       "website": "https://cursor.com/docs/cli/acp",
       "authors": [
@@ -405,42 +405,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://downloads.cursor.com/lab/2026.09.26-dd393fe/darwin/arm64/agent-cli-package.tar.gz",
+            "archive": "https://downloads.cursor.com/lab/2026.09.28-64d2043/darwin/arm64/agent-cli-package.tar.gz",
             "cmd": "./dist-package/cursor-agent",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://downloads.cursor.com/lab/2026.09.26-dd393fe/darwin/x64/agent-cli-package.tar.gz",
+            "archive": "https://downloads.cursor.com/lab/2026.09.28-64d2043/darwin/x64/agent-cli-package.tar.gz",
             "cmd": "./dist-package/cursor-agent",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://downloads.cursor.com/lab/2026.09.26-dd393fe/linux/arm64/agent-cli-package.tar.gz",
+            "archive": "https://downloads.cursor.com/lab/2026.09.28-64d2043/linux/arm64/agent-cli-package.tar.gz",
             "cmd": "./dist-package/cursor-agent",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://downloads.cursor.com/lab/2026.09.26-dd393fe/linux/x64/agent-cli-package.tar.gz",
+            "archive": "https://downloads.cursor.com/lab/2026.09.28-64d2043/linux/x64/agent-cli-package.tar.gz",
             "cmd": "./dist-package/cursor-agent",
             "args": [
               "acp"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://downloads.cursor.com/lab/2026.09.26-dd393fe/windows/arm64/agent-cli-package.zip",
+            "archive": "https://downloads.cursor.com/lab/2026.09.28-64d2043/windows/arm64/agent-cli-package.zip",
             "cmd": "./dist-package\\cursor-agent.cmd",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://downloads.cursor.com/lab/2026.09.26-dd393fe/windows/x64/agent-cli-package.zip",
+            "archive": "https://downloads.cursor.com/lab/2026.09.28-64d2043/windows/x64/agent-cli-package.zip",
             "cmd": "./dist-package\\cursor-agent.cmd",
             "args": [
               "acp"
@@ -554,7 +554,7 @@
     {
       "id": "dirac",
       "name": "Dirac",
-      "version": "0.5.16",
+      "version": "0.5.17",
       "description": "Reduces API costs by more than 50%, produces better and faster work. Uses Hash anchored parallel edits, AST manipulation and a whole lot of neat optimizations. Fully Open Source.",
       "repository": "https://github.com/dirac-run/dirac",
       "website": "https://dirac.run",
@@ -566,7 +566,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/dirac.svg",
       "distribution": {
         "npx": {
-          "package": "dirac-cli@0.5.16",
+          "package": "dirac-cli@0.5.17",
           "args": [
             "--acp"
           ]
@@ -628,7 +628,7 @@
     {
       "id": "gemini",
       "name": "Gemini CLI",
-      "version": "0.61.0",
+      "version": "0.62.0",
       "description": "Google's official CLI for Gemini",
       "repository": "https://github.com/google-gemini/gemini-cli",
       "website": "https://geminicli.com",
@@ -639,7 +639,7 @@
       "license_url": "https://github.com/google-gemini/gemini-cli/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@google/gemini-cli@0.61.0",
+          "package": "@google/gemini-cli@0.62.0",
           "args": [
             "--acp"
           ]
@@ -833,7 +833,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3578.1",
+      "version": "3579.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -845,42 +845,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3578.1/junie-nightly-3578.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3579.1/junie-nightly-3579.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3578.1/junie-nightly-3578.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3579.1/junie-nightly-3579.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3578.1/junie-nightly-3578.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3579.1/junie-nightly-3579.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3578.1/junie-nightly-3578.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3579.1/junie-nightly-3579.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3578.1/junie-nightly-3578.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3579.1/junie-nightly-3579.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3578.1/junie-nightly-3578.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3579.1/junie-nightly-3579.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1379,7 +1379,7 @@
     {
       "id": "sigit",
       "name": "siGit Code",
-      "version": "1.5.10",
+      "version": "1.5.11",
       "description": "Local-first coding agent. Runs entirely on your machine with optional on-device LLM inference via Onde.",
       "repository": "https://github.com/getsigit/sigit",
       "website": "https://github.com/getsigit/sigit",
@@ -1391,38 +1391,38 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.10/sigit-macos-arm64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.11/sigit-macos-arm64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "098ac56df15021bdfe79130208632180bdf2e54a70a38d8607fefd6241217a26"
+            "sha256": "b249236e876aa1c4f7adcee04e6d71e2a8a24923a0664d33474211697be7ca34"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.10/sigit-macos-amd64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.11/sigit-macos-amd64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "92fa5b2cf1953dc74f83b8ab2b3b0e40fe5f792312d52e9a4374d2765c68d8a6"
+            "sha256": "5755fc2dcdc2a37712a01b2f45304eb16697c58c8c539f88b49733ab927a89b8"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.10/sigit-linux-arm64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.11/sigit-linux-arm64",
             "cmd": "./sigit-linux-arm64",
-            "sha256": "eaef71e91e537ef18b79cb87d673707ce891e5475262c4cfcd67f60b5ad96811"
+            "sha256": "8f8e8ba90fec2786abf9793d402eefaacba371c7dbe7710c0a4cc5aeb9bf47a2"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.10/sigit-linux-amd64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.11/sigit-linux-amd64",
             "cmd": "./sigit-linux-amd64",
-            "sha256": "b0fa31eff449c20148f54cd5f4a265d4d26ddc9c8292e7fb057a67d48a380f6e"
+            "sha256": "67204be0ca11b226f69256df0f884dca47204836dfeeb3f432ab7b19aefb9ce9"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.10/sigit-win-arm64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.11/sigit-win-arm64.exe",
             "cmd": "./sigit-win-arm64.exe",
-            "sha256": "75d890be5f10f8a242a54fc810f8fdab527df71b579ae5d8ee55505c6c9ce92b"
+            "sha256": "e55cc0196511f0851c6180e23177827ae193bdc77caf2c1ef87b3b4ed3d1b0da"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.10/sigit-win-amd64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.5.11/sigit-win-amd64.exe",
             "cmd": "./sigit-win-amd64.exe",
-            "sha256": "7a9b859e18f14311acadab851dae06fbc7d2f1c040407e4712455c1465f580c3"
+            "sha256": "75cfde90a98786781513e6ba2f8682aa879146e7396957d488106439c806341f"
           }
         },
         "npx": {
-          "package": "@smbcloud/sigit@1.5.10"
+          "package": "@smbcloud/sigit@1.5.11"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/sigit.svg"
