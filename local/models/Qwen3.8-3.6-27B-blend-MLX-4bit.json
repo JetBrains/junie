@@ -35,7 +35,7 @@
     {
       "modelId": "Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit",
       "label": "Qwen 3.8/3.6 27B Blend DFlash2",
-      "name": "Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit.zip",
+      "name": "Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit",
       "downloadUrl": "https://junie-local.erokhins.com/Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit.zip",
       "sha256": "21335ab33a1e254def58a05d9cb573e21a2e00d3fe71dbb2c33e861870a2abf2",
       "size": 1082907496
