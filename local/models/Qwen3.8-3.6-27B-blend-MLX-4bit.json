@@ -1,7 +1,7 @@
 {
   "id": "local-qwen3.8-3.6-27b-blend-4bit",
-  "draft_model": "Qwen3.8-3.6-27B-blend-MTP-MLX-4bit",
-  "draft_kind": "mtp",
+  "draft_model": "Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit",
+  "draft_kind": "dflash",
   "junieConfig": {
     "displayName": "Qwen 3.8/3.6 Blend",
     "providerName": "Local",
@@ -12,6 +12,7 @@
     "maxContextLength": 150000,
     "temperature": 1.0,
     "extraBody": {
+      "stop": [],
       "enable_thinking": true,
       "reasoning_effort": "low",
       "preserve_thinking": true,
@@ -32,12 +33,12 @@
       "size": 16081528808
     },
     {
-      "modelId": "Qwen3.8-3.6-27B-blend-MTP-MLX-4bit",
-      "label": "Qwen 3.8/3.6 27B Blend MTP",
-      "name": "Qwen3.8-3.6-27B-blend-MTP-MLX-4bit.zip",
-      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/Qwen3.8-3.6-27B-blend-MTP-MLX-4bit.zip",
-      "sha256": "d7993ad3ca4d663c107b50cf76fbdfb768a6a6336079a91e162a5501a60da89e",
-      "size": 265694541
+      "modelId": "Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit",
+      "label": "Qwen 3.8/3.6 27B Blend DFlash2",
+      "name": "Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit.zip",
+      "downloadUrl": "https://junie-local.erokhins.com/Qwen3.8-3.6-27B-blend-DFlash2-MLX-4bit.zip",
+      "sha256": "21335ab33a1e254def58a05d9cb573e21a2e00d3fe71dbb2c33e861870a2abf2",
+      "size": 1082907496
     }
   ]
 }
