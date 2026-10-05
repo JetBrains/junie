@@ -1,6 +1,8 @@
 {
   "id": "local-qwen3.6-27b-q4-k-m",
+  "main_model": "Qwen3.6-27B-Q4_K_M",
   "draft_model": "Qwen3.6-27B-Q4_K_M",
+  "vision_model": "mmproj-Qwen3.6-27B-Q8_0",
   "draft_kind": "mtp",
   "junieConfig": {
     "displayName": "Qwen 3.6",
@@ -23,6 +25,14 @@
       "downloadUrl": "https://download.jetbrains.com/resources/junie-local/Qwen3.6-27B-Q4_K_M.gguf",
       "sha256": "1d8c08021c512f85bdfdff4864c766d1170157326ee50c8f1103d87d47b02ffd",
       "size": 16810713536
+    },
+    {
+      "modelId": "mmproj-Qwen3.6-27B-Q8_0",
+      "label": "Qwen 3.6 27B (vision)",
+      "name": "mmproj-Qwen3.6-27B-Q8_0.gguf",
+      "downloadUrl": "https://download.jetbrains.com/resources/junie-local/mmproj-Qwen3.6-27B-Q8_0.gguf",
+      "sha256": "2b00927bd925333bf35d6dfab556daf4ecbf64fc088cc4d340fe3d64cb07fe7f",
+      "size": 629247200
     }
   ]
 }
