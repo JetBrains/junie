@@ -281,11 +281,24 @@ function Get-JsonField {
 # Fetch model & engine configuration from remote JSONL
 # ============================================================
 
+# Reads a text resource. Unlike Invoke-WebRequest, WebClient always returns a
+# string and also understands file:// URLs, which makes local overrides via
+# JUNIE_LOCAL_UPDATE_FILES_BASE_URL work the same way they do on Unix.
+function Get-UpdateFileText {
+    param([Parameter(Mandatory)][string]$Url)
+    $client = New-Object System.Net.WebClient
+    try {
+        $client.Encoding = [System.Text.Encoding]::UTF8
+        return $client.DownloadString($Url)
+    }
+    finally { $client.Dispose() }
+}
+
 function Fetch-ModelsConfig {
     $modelsUpdateUrl = "$Script:UpdateFilesBaseUrl/update-info-models-$Script:Channel.jsonl"
 
     $jsonl = try {
-        Invoke-WebRequest -Uri $modelsUpdateUrl -UseBasicParsing -ErrorAction Stop
+        Get-UpdateFileText $modelsUpdateUrl
     }
     catch {
         Write-Host "ERROR: Could not fetch models config from $modelsUpdateUrl" -ForegroundColor Red
@@ -293,7 +306,7 @@ function Fetch-ModelsConfig {
         exit 1
     }
 
-    $lines = $jsonl.Content -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
+    $lines = $jsonl -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
 
     # Find the entry matching platform + model
     $dq = [char]34
@@ -315,7 +328,7 @@ function Fetch-ModelsConfig {
     # Fetch the model JSON file
     $modelConfigUrl = "$Script:UpdateFilesBaseUrl/models/$Script:ModelFileId.json"
     $Script:ModelsJson = try {
-        (Invoke-WebRequest -Uri $modelConfigUrl -UseBasicParsing -ErrorAction Stop).Content
+        Get-UpdateFileText $modelConfigUrl
     }
     catch {
         Write-Host "ERROR: Could not fetch model config from $modelConfigUrl" -ForegroundColor Red
@@ -355,14 +368,14 @@ function Fetch-EngineConfig {
     $engineUpdateUrl = "$Script:UpdateFilesBaseUrl/update-info-engine-$Script:Channel.jsonl"
 
     $jsonl = try {
-        Invoke-WebRequest -Uri $engineUpdateUrl -UseBasicParsing -ErrorAction Stop
+        Get-UpdateFileText $engineUpdateUrl
     }
     catch {
         Write-Host "ERROR: Could not fetch engine config from $engineUpdateUrl" -ForegroundColor Red
         exit 1
     }
 
-    $lines = $jsonl.Content -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
+    $lines = $jsonl -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
     $dq = [char]34
     $entry = @($lines | Where-Object {
         $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
@@ -409,7 +422,7 @@ function Resolve-InstallMetadata {
 
 if ($ListModels -and $Script:PlatformSupported) {
     $modelsUpdateUrl = "$Script:UpdateFilesBaseUrl/update-info-models-$Script:Channel.jsonl"
-    $jsonl = (Invoke-WebRequest -Uri $modelsUpdateUrl -UseBasicParsing).Content
+    $jsonl = Get-UpdateFileText $modelsUpdateUrl
     $lines = $jsonl -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
     $dq = [char]34
     $platformLines = @($lines | Where-Object {
