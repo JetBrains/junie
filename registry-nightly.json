@@ -576,7 +576,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.233.0",
+      "version": "0.234.0",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -586,7 +586,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@0.233.0",
+          "package": "droid@0.234.0",
           "args": [
             "exec",
             "--output-format",
@@ -833,7 +833,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3655.1",
+      "version": "3657.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -845,42 +845,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3655.1/junie-nightly-3655.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3657.1/junie-nightly-3657.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3655.1/junie-nightly-3655.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3657.1/junie-nightly-3657.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3655.1/junie-nightly-3655.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3657.1/junie-nightly-3657.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3655.1/junie-nightly-3655.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3657.1/junie-nightly-3657.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3655.1/junie-nightly-3655.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3657.1/junie-nightly-3657.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3655.1/junie-nightly-3655.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3657.1/junie-nightly-3657.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1379,7 +1379,7 @@
     {
       "id": "sigit",
       "name": "siGit Code",
-      "version": "1.6.1",
+      "version": "1.6.2",
       "description": "Local-first coding agent. Runs entirely on your machine with optional on-device LLM inference via Onde.",
       "repository": "https://github.com/getsigit/sigit",
       "website": "https://github.com/getsigit/sigit",
@@ -1391,38 +1391,38 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.1/sigit-macos-arm64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.2/sigit-macos-arm64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "e7a811b0d66475845687193518befd38beaa0b1d1dfb2c5de2ba36913b456b2c"
+            "sha256": "fe4b6ce6a92a58a123e398543050dcf373b1feff1f772cb3a2cc38cc736cb986"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.1/sigit-macos-amd64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.2/sigit-macos-amd64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "831554b02e21de67f691e13410e4e04561004f7dc94d60cf188b78b9e7f6229f"
+            "sha256": "431bb408b3ead0085d16611805fe6f44c544ba9e4e3984ed3cebf23c1fbafa25"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.1/sigit-linux-arm64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.2/sigit-linux-arm64",
             "cmd": "./sigit-linux-arm64",
-            "sha256": "8c6064d7372f34a66d77210fbd08536917c97ae8035db44b56fc4029e717a468"
+            "sha256": "cfab6a5284df8234c634a6647d22db0df74758d660039c71a4347256d7c8b555"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.1/sigit-linux-amd64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.2/sigit-linux-amd64",
             "cmd": "./sigit-linux-amd64",
-            "sha256": "b674940aeee6d3840150d098df2e12dfc71e69ef3c55f2ecbe8bd01eb978f342"
+            "sha256": "3fc0ddb6daac851ae0ac45cc220256db36dff902dec0a6f9f5dea11843087a5c"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.1/sigit-win-arm64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.2/sigit-win-arm64.exe",
             "cmd": "./sigit-win-arm64.exe",
-            "sha256": "71fb16a6b0846361a61df70a8b34493051178da727355e3205fba68bbfd034ae"
+            "sha256": "b547a1f215588a0ff98add62778b5ccc8623c88bd25b9c582389e6f569d0edae"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.1/sigit-win-amd64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.6.2/sigit-win-amd64.exe",
             "cmd": "./sigit-win-amd64.exe",
-            "sha256": "49517f5fa8e70a0ecd06693137625470d43e7d0595e605690e6bf8f8af055e5a"
+            "sha256": "af53abd8cf8ab4ec017100c966df5b9a228bf6d1c0f66c91c1c023082be3e4dd"
           }
         },
         "npx": {
-          "package": "@smbcloud/sigit@1.6.1"
+          "package": "@smbcloud/sigit@1.6.2"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/sigit.svg"
