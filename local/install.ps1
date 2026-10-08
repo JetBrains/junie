@@ -364,6 +364,22 @@ function Get-ArchiveField {
     return ""
 }
 
+# Resolves the archive index for the model's "main" weights. Models that ship
+# extra archives (e.g. a vision mmproj file, see main_model/vision_model in
+# the model JSON) identify the main one explicitly; older models without that
+# field fall back to archive 0, which has always been the main archive.
+function Get-MainArchiveIndex {
+    $mainModelId = $Script:ModelsJson | Get-JsonField -Field "main_model"
+    if ($mainModelId) {
+        for ($i = 0; $i -lt $Script:ArchiveCount; $i++) {
+            if ((Get-ArchiveField -ArchiveIndex $i -Field "modelId") -eq $mainModelId) {
+                return $i
+            }
+        }
+    }
+    return 0
+}
+
 function Fetch-EngineConfig {
     $engineUpdateUrl = "$Script:UpdateFilesBaseUrl/update-info-engine-$Script:Channel.jsonl"
 
@@ -1354,8 +1370,9 @@ Start-Engine | Out-Null
 Emit-StepDone "start"
 
 # --- Summary ---
-$mainModelId = Get-ArchiveField -ArchiveIndex 0 -Field "modelId"
-$mainLabel = Get-ArchiveField -ArchiveIndex 0 -Field "label"
+$mainArchiveIndex = Get-MainArchiveIndex
+$mainModelId = Get-ArchiveField -ArchiveIndex $mainArchiveIndex -Field "modelId"
+$mainLabel = Get-ArchiveField -ArchiveIndex $mainArchiveIndex -Field "label"
 
 Write-Host ""
 Write-Host "  Installation complete" -ForegroundColor Green
