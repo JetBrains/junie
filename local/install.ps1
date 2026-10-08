@@ -1076,34 +1076,21 @@ function Install-ModelIfNeeded {
 # Server config
 # ============================================================
 
-function Handle-ServerConfig {
+# serverctl update-configs owns server-config.json: it generates the api_key and
+# picks a free port on first install, and keeps both on re-install. The installer
+# only reads the port back so the readiness check and summary use the real one.
+function Sync-EnginePortFromConfig {
     $serverConfig = Join-Path $Script:BaseDir "server-config.json"
-
-    if (Test-Path -LiteralPath $serverConfig -PathType Leaf) {
-        Write-Host "  Reusing existing server-config.json."
-        return
-    }
-
-    # Generate auth token
-    $keyBytes = New-Object byte[] 32
-    $random = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    if (-not (Test-Path -LiteralPath $serverConfig -PathType Leaf)) { return }
     try {
-        $random.GetBytes($keyBytes)
+        $port = (Get-Content -LiteralPath $serverConfig -Raw | ConvertFrom-Json).port
+        if ($port -is [int] -or $port -is [long]) {
+            if ($port -ge 1 -and $port -le 65535) {
+                $Script:EnginePort = [int]$port
+            }
+        }
     }
-    finally {
-        $random.Dispose()
-    }
-    $token = "sk-$([Convert]::ToBase64String($keyBytes))"
-    Write-Host "  Auth token generated."
-
-    $config = @{
-        api_key = $token
-        port    = $Script:EnginePort
-    }
-    Write-Host "  Writing server-config.json with api_key and port..."
-    New-Item -ItemType Directory -Path (Split-Path $serverConfig -Parent) -Force | Out-Null
-    $config | ConvertTo-Json -Depth 2 | Set-Content -LiteralPath $serverConfig -Encoding UTF8
-    Write-Host "  server-config.json created with bearer auth and port."
+    catch { }
 }
 
 # ============================================================
@@ -1120,6 +1107,11 @@ function Test-EngineRunning {
 
 function Start-Engine {
     $serverConfig = Join-Path $Script:BaseDir "server-config.json"
+    if (-not (Test-Path -LiteralPath $serverConfig -PathType Leaf)) {
+        Write-Host "  ERROR: server-config.json not found in $Script:BaseDir" -ForegroundColor Red
+        Emit-Error "server-config.json not found in $Script:BaseDir"
+        return $false
+    }
     $authToken = (Get-Content -LiteralPath $serverConfig -Raw | ConvertFrom-Json).api_key
 
     $ctlPath = Join-Path $Script:EngineDir "serverctl.ps1"
@@ -1284,6 +1276,9 @@ if (-not $CheckOnly -and $Script:AllOk) {
     Resolve-InstallMetadata
 }
 
+# A re-install keeps the port saved in server-config.json, so report that one.
+Sync-EnginePortFromConfig
+
 # Config event
 Emit-Event "`"event`":`"config`",`"port`":$Script:EnginePort,`"ram_gb`":$Script:EngineRamGb,`"engine_version`":`"$(Json-Escape $Script:EngineVersion)`",`"model`":`"$(Json-Escape $Model)`",`"checks_passed`":$($Script:AllOk.ToString().ToLowerInvariant())"
 
@@ -1340,20 +1335,27 @@ Write-Host "  Removing downloaded archives..." -ForegroundColor DarkGray
 Remove-Item -LiteralPath $Script:DownloadDir -Recurse -Force -ErrorAction SilentlyContinue
 Emit-StepDone "models"
 
-# --- Step 3: angeure Junie ---
+# --- Step 3: Configure Junie ---
 Write-Host ""
 Write-Host "  Configuring Junie" -ForegroundColor Green
 Write-Host "  -----------------" -ForegroundColor DarkGray
 Write-Host ""
 Emit-StepStart "configure" "Configuring Junie"
-# Ensure server-config.json exists so the engine can read the auth token.
-Handle-ServerConfig
-# Generate the Junie model config from the installed model template.
-# This resolves the $ENGINE_PORT and $AUTH_TOKEN placeholders and writes
-# the finished config to $JUNIE_HOME/models/<id>.json.
+# Rebuild server-config.json from the engine template (keeping a saved api_key,
+# port and max_context_length, generating a key and a free port when missing)
+# and write the Junie model config to $JUNIE_HOME/models/<id>.json.
+# Other hand-edited server-config.json fields are reset on every install.
 $ctlPath = Join-Path $Script:EngineDir "serverctl.ps1"
 if (Test-Path -LiteralPath $ctlPath -PathType Leaf) {
-    & $ctlPath --junie-config $Script:JunieHome --model $Model
+    # Show serverctl's stdout as regular installer output; its stderr goes straight to the console.
+    & $ctlPath update-configs --junie-home $Script:JunieHome --model $Model |
+        ForEach-Object { Write-Host "  $_" }
+    $profilePath = Join-Path $Script:JunieHome "models\$Script:JunieModelId.json"
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profilePath -PathType Leaf)) {
+        Write-Host "  WARNING: Junie config generation failed." -ForegroundColor Yellow
+        Emit-Warning "serverctl update-configs failed"
+    }
+    Sync-EnginePortFromConfig
 } else {
     Write-Host "  WARNING: serverctl.ps1 not found at $ctlPath" -ForegroundColor Yellow
     Write-Host "  Skipping Junie config generation."
