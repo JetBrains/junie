@@ -1132,7 +1132,8 @@ function Start-Engine {
     if (Test-EngineRunning) {
         Write-Host "  Stopping the running engine..."
         try {
-            & $ctlPath stop 2>$null
+            # Keep its output out of this function's return value.
+            & $ctlPath stop 2>$null | Out-Null
         }
         catch { }
         $waited = 0
@@ -1196,6 +1197,19 @@ function Start-Engine {
     Write-Host "  Check the engine logs in $Script:BaseDir"
     Emit-Warning "engine did not start listening on port $Script:EnginePort - see logs in $Script:BaseDir"
     return $false
+}
+
+# Send one short chat request so the first Junie request does not pay for the first generation.
+function Warm-Engine {
+    $ctlPath = Join-Path $Script:EngineDir "serverctl.ps1"
+    if (-not (Test-Path -LiteralPath $ctlPath -PathType Leaf)) { return }
+    Write-Host "  Warming up the engine..."
+    # Show serverctl's stdout as regular installer output; its stderr goes straight to the console.
+    & $ctlPath warmup --model $Model | ForEach-Object { Write-Host "  $_" }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  WARNING: engine warm-up failed. The first request may be slower." -ForegroundColor Yellow
+        Emit-Warning "serverctl warmup failed"
+    }
 }
 
 # ============================================================
@@ -1386,11 +1400,13 @@ Emit-StepDone "configure"
 
 # --- Step 4: Start the inference engine ---
 Write-Host ""
-Write-Host "  Starting the inference engine" -ForegroundColor Green
-Write-Host "  -----------------------------" -ForegroundColor DarkGray
+Write-Host "  Starting and warming up the inference engine" -ForegroundColor Green
+Write-Host "  ----------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
-Emit-StepStart "start" "Starting the inference engine"
-Start-Engine | Out-Null
+Emit-StepStart "start" "Starting and warming up the inference engine"
+if (Start-Engine) {
+    Warm-Engine
+}
 Emit-StepDone "start"
 
 # --- Summary ---
