@@ -1097,12 +1097,19 @@ function Sync-EnginePortFromConfig {
 # Start engine
 # ============================================================
 
-function Test-EngineRunning {
+# The engine runs as junie-local.exe; its llama-server.exe child exits with it.
+# Only processes installed under $Script:BaseDir (any engine version) count.
+function Get-EngineProcesses {
+    $root = [System.IO.Path]::GetFullPath($Script:BaseDir).TrimEnd('\') + '\'
     try {
-        $processes = Get-Process -Name "serverctl", "junie-llama*" -ErrorAction SilentlyContinue
-        return $null -ne $processes
+        return @(Get-Process -Name "junie-local" -ErrorAction SilentlyContinue |
+            Where-Object { $_.Path -and $_.Path.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase) })
     }
-    catch { return $false }
+    catch { return @() }
+}
+
+function Test-EngineRunning {
+    return (Get-EngineProcesses).Count -gt 0
 }
 
 function Start-Engine {
@@ -1132,6 +1139,21 @@ function Start-Engine {
         while ($waited -lt 10 -and (Test-EngineRunning)) {
             Start-Sleep -Seconds 1
             $waited++
+        }
+        # serverctl could not stop it in time: kill junie-local, llama-server exits with it.
+        $remaining = Get-EngineProcesses
+        if ($remaining.Count -gt 0) {
+            Write-Host "  The engine did not stop via serverctl, killing it..." -ForegroundColor Yellow
+            $remaining | Stop-Process -Force -ErrorAction SilentlyContinue
+            $waited = 0
+            while ($waited -lt 5 -and (Test-EngineRunning)) {
+                Start-Sleep -Seconds 1
+                $waited++
+            }
+            if (Test-EngineRunning) {
+                Write-Host "  WARNING: could not stop the running engine." -ForegroundColor Yellow
+                Emit-Warning "could not stop the running engine"
+            }
         }
     }
 
