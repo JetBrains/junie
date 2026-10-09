@@ -54,6 +54,27 @@ With `--json` it emits a single `engine_update` event:
 `status` is `up_to_date`, `update_available`, or `not_installed` when no engine
 is installed yet.
 
+`--update` performs the update that the check reports. It installs the engine
+the channel feed points at and then re-runs the model install for every model
+already installed on this device (the saved `models/<id>.json` configs are the
+record of what is installed), so model updates are picked up too. `--model` is
+ignored: no model is added or removed. Weights already on disk are kept as they
+are; only archives the model JSON lists but this device does not have yet are
+downloaded. The Junie model config is regenerated for each of those models, and
+the engine is restarted and warmed up as usual:
+
+```powershell
+.\install.ps1 --update
+.\install.ps1 --update --channel eap --json
+```
+
+With `--json` it emits an `update` event with the plan, followed by the regular
+install events:
+
+```json
+{"event":"update","installed_engine_version":"0.3.3","engine_version":"0.3.4","models":["Qwen3.6-27B-Q4_K_M"]}
+```
+
 The Junie CLI installer can chain into it right after installing Junie, the same
 way `install.sh` does with `--local-model`. Since the documented Windows install
 is piped (`irm ... | iex`) and cannot receive arguments, use the environment
