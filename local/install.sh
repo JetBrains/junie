@@ -60,6 +60,7 @@ MACHINE_OUTPUT=false
 CHECK_ONLY=false
 LIST_MODELS=false
 CHECK_ENGINE_UPDATE=false
+UPDATE=false
 MODEL="Qwen3.6-27B-MLX-4bit"
 CHANNEL="main"
 
@@ -72,6 +73,7 @@ usage() {
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
   echo "  --check-engine-update  Check whether a newer inference engine is available, then exit"
+  echo "  --update           Update the engine and re-install every model already installed here"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
   echo "  --help, -h         Show this help"
 }
@@ -82,6 +84,7 @@ while [ $# -gt 0 ]; do
     --check-only) CHECK_ONLY=true ;;
     --models) LIST_MODELS=true ;;
     --check-engine-update) CHECK_ENGINE_UPDATE=true ;;
+    --update) UPDATE=true ;;
     --model)
       shift
       if [ $# -eq 0 ]; then
@@ -326,6 +329,19 @@ resolve_install_metadata() {
   fetch_models_config
   fetch_engine_config
   resolve_engine_paths
+}
+
+# The models already installed on this device, as the feed ids accepted by
+# --model. Every successful install saves <id>.json next to the weights, so
+# those files are the record of what this device has.
+get_installed_model_ids() {
+  local file name
+  [ -d "$MODELS_DIR" ] || return 0
+  for file in "$MODELS_DIR"/*.json; do
+    [ -f "$file" ] || continue
+    name=$(basename "$file" .json)
+    printf '%s\n' "$name"
+  done | sort
 }
 
 # The port the engine serves on (the Junie model config below points at it) and
@@ -1462,12 +1478,31 @@ fi
 print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
 emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
 
+# --update works on what this device already has: the model set comes from the
+# saved model configs instead of --model, and nothing new is added.
+UPDATE_MODEL_IDS=""
+if [ "$UPDATE" = true ]; then
+  UPDATE_MODEL_IDS=$(get_installed_model_ids)
+  if [ -n "$UPDATE_MODEL_IDS" ]; then
+    # serverctl and the summary need one concrete model; use the first.
+    MODEL=$(printf '%s\n' "$UPDATE_MODEL_IDS" | head -1)
+  fi
+fi
+
 # Resolve the install metadata (model and engine configs) now that the checks
 # are done. This is the first thing in the script that touches the network or
 # writes to disk, and --check-only exits right below without needing any of it,
 # so a check never pays for it — it reports an empty engine version instead.
 if [ "$CHECK_ONLY" != true ]; then
-  resolve_install_metadata
+  if [ "$UPDATE" = true ]; then
+    fetch_engine_config
+    resolve_engine_paths
+    if [ -n "$UPDATE_MODEL_IDS" ]; then
+      fetch_models_config
+    fi
+  else
+    resolve_install_metadata
+  fi
 fi
 
 # A re-install keeps the port saved in server-config.json, so report that one.
@@ -1476,6 +1511,22 @@ sync_engine_port_from_config
 # The install configuration is not shown; it still travels as an event so a
 # machine consumer sees the port, the RAM allowance and the engine version.
 emit_event "\"event\":\"config\",\"port\":$ENGINE_PORT,\"ram_gb\":$ENGINE_RAM_GB,\"engine_version\":\"$(json_escape "$ENGINE_VERSION")\",\"model\":\"$(json_escape "$MODEL")\",\"checks_passed\":$ALL_OK"
+
+# Update plan event: what --update is about to work on.
+if [ "$UPDATE" = true ]; then
+  models_array="["
+  first=true
+  for installed_model_id in $UPDATE_MODEL_IDS; do
+    if [ "$first" = true ]; then
+      first=false
+    else
+      models_array="$models_array,"
+    fi
+    models_array="$models_array\"$(json_escape "$installed_model_id")\""
+  done
+  models_array="$models_array]"
+  emit_event "\"event\":\"update\",\"installed_engine_version\":\"$(json_escape "$(get_installed_engine_version)")\",\"engine_version\":\"$(json_escape "$ENGINE_VERSION")\",\"models\":$models_array"
+fi
 
 if [ "$CHECK_ONLY" = true ]; then
   if [ "$ALL_OK" = true ]; then
@@ -1522,10 +1573,33 @@ emit_step_done "engine"
 section "Installing models"
 emit_step_start "models" "Installing models"
 
-# Download and install each archive listed in the model JSON.
-for i in $(seq 0 $((ARCHIVE_COUNT - 1))); do
-  install_model_if_needed "$i"
-done
+# Record the Junie model id of every model handled here, so the configuration
+# step below can verify the profile it is supposed to (re)generate. One
+# "<feed id>|<junie id>" pair per line.
+NL=$(printf '\nx'); NL=${NL%x}
+HANDLED_MODELS=""
+
+if [ "$UPDATE" = true ]; then
+  if [ -z "$UPDATE_MODEL_IDS" ]; then
+    printf '  %sNo models are installed on this device. Nothing to update.%s\n' "$YELLOW" "$RESET"
+  fi
+  for installed_model_id in $UPDATE_MODEL_IDS; do
+    printf '  %s%s%s\n' "$GRAY" "$installed_model_id" "$RESET"
+    MODEL="$installed_model_id"
+    fetch_models_config
+    HANDLED_MODELS="${HANDLED_MODELS}${installed_model_id}|${JUNIE_MODEL_ID}${NL}"
+    # Download and install each archive listed in the model JSON.
+    for i in $(seq 0 $((ARCHIVE_COUNT - 1))); do
+      install_model_if_needed "$i"
+    done
+  done
+else
+  HANDLED_MODELS="${MODEL}|${JUNIE_MODEL_ID}${NL}"
+  # Download and install each archive listed in the model JSON.
+  for i in $(seq 0 $((ARCHIVE_COUNT - 1))); do
+    install_model_if_needed "$i"
+  done
+fi
 
 # Cleanup model downloads
 printf '  %sRemoving downloaded archives...%s\n' "$GRAY" "$RESET"
@@ -1544,23 +1618,31 @@ emit_step_start "configure" "Configuring Junie"
 # Capture serverctl's output so we can show clean, consistent progress messages
 # instead of the engine's raw chatter, while still surfacing errors.
 if [ -x "$ENGINE_CTL" ]; then
-  JUNIE_CONFIG_FILE="$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json"
-  config_output="$("$ENGINE_CTL" update-configs --junie-home "$JUNIE_HOME" --model "$MODEL" 2>&1)"
-  config_ok=$?
-  if [ "$config_ok" -eq 0 ] && [ -f "$JUNIE_CONFIG_FILE" ]; then
-    print_value "Junie model config:" "$JUNIE_CONFIG_FILE" true false ""
-    print_value "Default model:" "$JUNIE_MODEL_ID" true false ""
-  else
-    if [ -n "$config_output" ]; then
-      printf '%s\n' "$config_output"
-    fi
-    if [ "$config_ok" -ne 0 ]; then
-      printf '  %sWARNING: Junie config generation failed (exit code %s).%s\n' "$YELLOW" "$config_ok" "$RESET"
+  # One pass per model handled above: --update refreshes the profile of every
+  # installed model, a plain install has the single requested one.
+  for handled in $HANDLED_MODELS; do
+    configured_model_id=${handled%%|*}
+    configured_junie_id=${handled#*|}
+    JUNIE_CONFIG_FILE="$JUNIE_HOME/models/${configured_junie_id}.json"
+    config_output="$("$ENGINE_CTL" update-configs --junie-home "$JUNIE_HOME" --model "$configured_model_id" 2>&1)"
+    config_ok=$?
+    if [ "$config_ok" -eq 0 ] && [ -f "$JUNIE_CONFIG_FILE" ]; then
+      print_value "Junie model config:" "$JUNIE_CONFIG_FILE" true false ""
+      if [ "$UPDATE" != true ]; then
+        print_value "Default model:" "$configured_junie_id" true false ""
+      fi
     else
-      printf '  %sWARNING: Junie config file was not created at %s.%s\n' "$YELLOW" "$JUNIE_CONFIG_FILE" "$RESET"
+      if [ -n "$config_output" ]; then
+        printf '%s\n' "$config_output"
+      fi
+      if [ "$config_ok" -ne 0 ]; then
+        printf '  %sWARNING: Junie config generation failed for %s (exit code %s).%s\n' "$YELLOW" "$configured_model_id" "$config_ok" "$RESET"
+      else
+        printf '  %sWARNING: Junie config file was not created at %s.%s\n' "$YELLOW" "$JUNIE_CONFIG_FILE" "$RESET"
+      fi
+      emit_warning "serverctl update-configs failed for $configured_model_id"
     fi
-    emit_warning "serverctl update-configs failed"
-  fi
+  done
   sync_engine_port_from_config
 else
   printf '  %sWARNING: serverctl.sh not found at %s%s\n' "$YELLOW" "$ENGINE_CTL" "$RESET"
@@ -1574,7 +1656,10 @@ emit_step_done "configure"
 section "Starting and warming up the inference engine"
 emit_step_start "start" "Starting and warming up the inference engine"
 if start_engine; then
-  warm_engine
+  # Nothing to warm up when --update found no model on this device.
+  if [ "$UPDATE" != true ] || [ -n "$UPDATE_MODEL_IDS" ]; then
+    warm_engine
+  fi
 fi
 emit_step_done "start"
 
@@ -1583,15 +1668,31 @@ if [ "$KEEP_CONFIG" = true ]; then
   printf '  %sNote: --keep-config is set, the previous server-config.json was preserved.%s\n' "$GRAY_DIM" "$RESET"
 fi
 
-section "Installation complete"
-type_line "Local model installed." "$JUNIE_GREEN$BOLD"
+if [ "$UPDATE" = true ]; then
+  section "Update complete"
+  type_line "Local model updated." "$JUNIE_GREEN$BOLD"
+else
+  section "Installation complete"
+  type_line "Local model installed." "$JUNIE_GREEN$BOLD"
+fi
 echo ""
 print_value "Engine:" "$ENGINE_DIR" true false ""
 print_value "Current version:" "$CURRENT_LINK -> $ENGINE_DIR" true false ""
 print_value "Models:" "$MODELS_DIR" true false ""
 print_value "Logs:" "$BASE_DIR" true false ""
 print_value "Junie model config:" "$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json" true false ""
-print_value "Installed model:" "$JUNIE_MODEL_ID" true false ""
+if [ "$UPDATE" = true ]; then
+  updated_models=""
+  for handled in $HANDLED_MODELS; do
+    if [ -n "$updated_models" ]; then
+      updated_models="$updated_models, "
+    fi
+    updated_models="$updated_models${handled#*|}"
+  done
+  print_value "Updated models:" "$updated_models" true false ""
+else
+  print_value "Installed model:" "$JUNIE_MODEL_ID" true false ""
+fi
 echo ""
 printf '  %sRun /model in Junie and pick %s to start using it.%s\n' "$GRAY" "$JUNIE_MODEL_ID" "$RESET"
 printf '  %sThe engine serves http://localhost:%s and the model is loaded.%s\n' "$GRAY" "$ENGINE_PORT" "$RESET"
