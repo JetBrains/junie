@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   Junie Local Model Installer for Windows
 
@@ -650,7 +650,7 @@ function Invoke-DownloadWithRetry {
     Write-Host "  ERROR: Download failed after $MaxRetries attempts for $fileName" -ForegroundColor Red
     Emit-Error "Download failed after $MaxRetries attempts"
     if (Test-Path -LiteralPath $Destination) {
-        Write-Host "  The partial file is kept — re-run this script to resume." -ForegroundColor DarkGray
+        Write-Host "  The partial file is kept - re-run this script to resume." -ForegroundColor DarkGray
     }
     return $false
 }
@@ -714,7 +714,7 @@ function Invoke-ResumableDownload {
     $curlErrFile = "$env:TEMP\junie-curl-err.txt"
     Remove-Item -LiteralPath $curlErrFile -Force -ErrorAction SilentlyContinue
 
-    # Build curl arguments (silent — we track progress by polling the file)
+    # Build curl arguments (silent - we track progress by polling the file)
     $arguments = @(
         "--fail",
         "--silent",
@@ -797,7 +797,7 @@ function Invoke-ResumableDownload {
             return $true
         }
 
-        # Curl reported an error — check if file is actually complete anyway
+        # Curl reported an error - check if file is actually complete anyway
         if ($remoteSize -gt 0) {
             $actualFinal = [long]0
             if (Test-Path -LiteralPath $Destination) {
@@ -860,7 +860,7 @@ function Progress-Render {
         [string]$Label
     )
 
-    # Machine output mode — skip visual progress, events carry it
+    # Machine output mode - skip visual progress, events carry it
     if ($Script:MachineOutput) { return }
 
     # Non-interactive: log at 10% intervals
@@ -882,7 +882,7 @@ function Progress-Render {
     $ratio = if ($TotalBytes -gt 0) { [double]$HaveBytes / $TotalBytes } else { 1 }
     if ($ratio -gt 1) { $ratio = 1 }
     $filled = [int]($ratio * $barWidth + 0.5)
-    $bar = "█" * $filled + "░" * ($barWidth - $filled)
+    $bar = ([string][char]0x2588) * $filled + ([string][char]0x2591) * ($barWidth - $filled)
 
     # Stats
     $pct = if ($TotalBytes -gt 0) { "{0,3}%" -f ([int]($ratio * 100)) } else { "   " }
