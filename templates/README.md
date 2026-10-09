@@ -69,8 +69,34 @@ and reports through the protocol events instead. The drawing is confined to the
 `# --- junie-ui:begin/end ---` block and steps down to plain lines whenever
 stdout is not a terminal, `CI=true`, or `JUNIE_NO_ANIM=1`.
 
-There is no PowerShell equivalent — the local model is macOS-only, so
-`install*.ps1` takes no such flag.
+### Windows
+
+Every `install*.ps1` offers the same opt-in, wired to `local/install.ps1`
+(`$LOCAL_MODEL_URL` in `install.ps1.template`). Because the documented Windows
+install is piped — `irm ... | iex` — and a piped script body cannot receive
+arguments, the switch is primarily an environment variable:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$env:JUNIE_LOCAL_MODEL='1'; iex (irm 'https://junie.jetbrains.com/install.ps1')"
+```
+
+When the installer is run as a file (or as a script block), `--local-model`
+works too and is equivalent:
+
+```powershell
+.\install.ps1 --local-model
+```
+
+`Install-LocalModel` downloads `local/install.ps1` to a temp file and runs it as
+a child process, so that script's own argument parsing and exit code behave
+exactly as for a direct invocation; the temp file is always removed. Failures
+are reported like on Unix: Junie itself is installed, with a retry hint, exit 1.
+
+The Windows local model is NVIDIA-only — `local/install.ps1` requires a GPU with
+~24 GB of VRAM and runs its own preflight checks.
+
+One-shot installs (`JUNIE_ONESHOT=1`, set by the shim) pass no arguments, so the
+local model step never runs on that path.
 
 ## One-shot channel switching
 

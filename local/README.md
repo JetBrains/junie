@@ -26,8 +26,23 @@ Supported options:
 - `--json` — Emit machine-readable events on stdout
 - `--keep-config` — Preserve an existing `server-config.json`
 
-On Windows, `install.ps1` detects `windows-amd64` or `windows-aarch64`, including
-under emulation.
+### `install.ps1`
+
+The Windows counterpart, with the same options (`--model`, `--channel`,
+`--check-only`, `--models`, `--json`). It detects `windows-amd64` or
+`windows-aarch64`, including under emulation.
+
+The Junie CLI installer can chain into it right after installing Junie, the same
+way `install.sh` does with `--local-model`. Since the documented Windows install
+is piped (`irm ... | iex`) and cannot receive arguments, use the environment
+variable:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$env:JUNIE_LOCAL_MODEL='1'; iex (irm 'https://junie.jetbrains.com/install.ps1')"
+```
+
+Run as a file, `.\install.ps1 --local-model` on the Junie installer does the
+same.
 
 ### Update Channel Files
 
