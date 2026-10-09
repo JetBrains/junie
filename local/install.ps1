@@ -33,6 +33,11 @@
   entry in the channel feed) and compares it with the installed one.  Nothing
   is downloaded or installed.
 
+.PARAMETER Update
+  Update this device: install the engine the channel feed points at and
+  re-run the model install for every model already installed here, so model
+  updates are picked up too.  No model is added or removed.
+
 .PARAMETER Json
   Emit machine-readable JSON events on stdout; human output goes to stderr.
 
@@ -44,6 +49,8 @@
   .\install.ps1 --CheckOnly
 
   .\install.ps1 --check-engine-update
+
+  .\install.ps1 --update
 #>
 
 # ============================================================
@@ -55,6 +62,7 @@ $script:ArgChannel = "main"
 $script:ArgCheckOnly = $false
 $script:ArgListModels = $false
 $script:ArgCheckEngineUpdate = $false
+$script:ArgUpdate = $false
 $script:ArgJson = $false
 $script:ArgHelp = $false
 
@@ -98,6 +106,7 @@ while ($p -lt $rawArgs.Length) {
         { $_ -in '--check-only', '-CheckOnly', '-check-only' } { $script:ArgCheckOnly = $true }
         { $_ -in '--models', '-ListModels', '-models' } { $script:ArgListModels = $true }
         { $_ -in '--check-engine-update', '-CheckEngineUpdate', '-check-engine-update' } { $script:ArgCheckEngineUpdate = $true }
+        { $_ -in '--update', '-Update', '-update' } { $script:ArgUpdate = $true }
         { $_ -in '--json' } { $script:ArgJson = $true }
         { $_ -in '--help', '-h', '-help' } { $script:ArgHelp = $true }
         default {
@@ -246,6 +255,7 @@ function usage {
     Write-Host "  --check-only       Report system information, then exit"
     Write-Host "  --models           List all available models for this architecture, then exit"
     Write-Host "  --check-engine-update  Check whether a newer inference engine is available, then exit"
+    Write-Host "  --update           Update the engine and re-install every model already installed here"
     Write-Host "  --json             Emit machine-readable events on stdout, human output on stderr"
     Write-Host "  --help, -h         Show this help"
 }
@@ -256,6 +266,7 @@ $Channel = $script:ArgChannel
 $CheckOnly = $script:ArgCheckOnly
 $ListModels = $script:ArgListModels
 $CheckEngineUpdate = $script:ArgCheckEngineUpdate
+$Update = $script:ArgUpdate
 $Script:MachineOutput = $script:ArgJson
 
 # Handle help / errors
@@ -447,6 +458,16 @@ function Resolve-InstallMetadata {
     Fetch-ModelsConfig
     Fetch-EngineConfig
     Resolve-EnginePaths
+}
+
+# The models already installed on this device, as the feed ids accepted by
+# --model. Every successful install saves <id>.json next to the weights, so
+# those files are the record of what this device has.
+function Get-InstalledModelIds {
+    if (-not (Test-Path -LiteralPath $Script:ModelsDir -PathType Container)) { return @() }
+    return @(Get-ChildItem -LiteralPath $Script:ModelsDir -Filter "*.json" -File -ErrorAction SilentlyContinue |
+        ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_.Name) } |
+        Sort-Object)
 }
 
 # ============================================================
@@ -1425,12 +1446,30 @@ if ($Script:TestMode -and -not $Script:AllOk) {
     $Script:AllOk = $true
 }
 
+# --update works on what this device already has: the model set comes from the
+# saved model configs instead of --model, and nothing new is added.
+$Script:UpdateModelIds = @()
+if ($Update) {
+    $Script:UpdateModelIds = @(Get-InstalledModelIds)
+    if ($Script:UpdateModelIds.Count -gt 0) {
+        # serverctl and the summary need one concrete model; use the first.
+        $Model = $Script:UpdateModelIds[0]
+    }
+}
+
 # Resolve the install metadata (model and engine configs) now that the checks
 # are done. This is the first thing in the script that touches the network or
 # writes to disk, and --check-only exits right below without needing any of it,
 # so a check never pays for it - it reports an empty engine version instead.
 if (-not $CheckOnly -and $Script:AllOk) {
-    Resolve-InstallMetadata
+    if ($Update) {
+        Fetch-EngineConfig
+        Resolve-EnginePaths
+        if ($Script:UpdateModelIds.Count -gt 0) { Fetch-ModelsConfig }
+    }
+    else {
+        Resolve-InstallMetadata
+    }
 }
 
 # A re-install keeps the port saved in server-config.json, so report that one.
@@ -1438,6 +1477,19 @@ Sync-EnginePortFromConfig
 
 # Config event
 Emit-Event "`"event`":`"config`",`"port`":$Script:EnginePort,`"ram_gb`":$Script:EngineRamGb,`"engine_version`":`"$(Json-Escape $Script:EngineVersion)`",`"model`":`"$(Json-Escape $Model)`",`"checks_passed`":$($Script:AllOk.ToString().ToLowerInvariant())"
+
+# Update plan event: what --update is about to work on.
+if ($Update) {
+    $modelsArray = "["
+    $firstModel = $true
+    foreach ($installedModelId in $Script:UpdateModelIds) {
+        if (-not $firstModel) { $modelsArray += "," }
+        $modelsArray += "`"$(Json-Escape $installedModelId)`""
+        $firstModel = $false
+    }
+    $modelsArray += "]"
+    Emit-Event "`"event`":`"update`",`"installed_engine_version`":`"$(Json-Escape (Get-InstalledEngineVersion))`",`"engine_version`":`"$(Json-Escape $Script:EngineVersion)`",`"models`":$modelsArray"
+}
 
 # Check-only mode
 if ($CheckOnly) {
@@ -1483,8 +1535,29 @@ Write-Host "  -----------------" -ForegroundColor DarkGray
 Write-Host ""
 Emit-StepStart "models" "Installing models"
 
-for ($i = 0; $i -lt $Script:ArchiveCount; $i++) {
-    Install-ModelIfNeeded -ArchiveIndex $i
+# Record the Junie model id of every model handled here, so the configuration
+# step below can verify the profile it is supposed to (re)generate.
+$Script:JunieModelIdById = @{}
+
+if ($Update) {
+    if ($Script:UpdateModelIds.Count -eq 0) {
+        Write-Host "  No models are installed on this device. Nothing to update." -ForegroundColor Yellow
+    }
+    foreach ($installedModelId in $Script:UpdateModelIds) {
+        Write-Host "  $installedModelId" -ForegroundColor DarkGray
+        $Model = $installedModelId
+        Fetch-ModelsConfig
+        $Script:JunieModelIdById[$installedModelId] = $Script:JunieModelId
+        for ($i = 0; $i -lt $Script:ArchiveCount; $i++) {
+            Install-ModelIfNeeded -ArchiveIndex $i
+        }
+    }
+}
+else {
+    $Script:JunieModelIdById[$Model] = $Script:JunieModelId
+    for ($i = 0; $i -lt $Script:ArchiveCount; $i++) {
+        Install-ModelIfNeeded -ArchiveIndex $i
+    }
 }
 
 # Cleanup downloaded archives
@@ -1504,13 +1577,17 @@ Emit-StepStart "configure" "Configuring Junie"
 # Other hand-edited server-config.json fields are reset on every install.
 $ctlPath = Join-Path $Script:EngineDir "serverctl.ps1"
 if (Test-Path -LiteralPath $ctlPath -PathType Leaf) {
-    # Show serverctl's stdout as regular installer output; its stderr goes straight to the console.
-    & $ctlPath update-configs --junie-home $Script:JunieHome --model $Model |
-        ForEach-Object { Write-Host "  $_" }
-    $profilePath = Join-Path $Script:JunieHome "models\$Script:JunieModelId.json"
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profilePath -PathType Leaf)) {
-        Write-Host "  WARNING: Junie config generation failed." -ForegroundColor Yellow
-        Emit-Warning "serverctl update-configs failed"
+    # One pass per model handled above: --update refreshes the profile of every
+    # installed model, a plain install has the single requested one.
+    foreach ($configuredModelId in @($Script:JunieModelIdById.Keys)) {
+        # Show serverctl's stdout as regular installer output; its stderr goes straight to the console.
+        & $ctlPath update-configs --junie-home $Script:JunieHome --model $configuredModelId |
+            ForEach-Object { Write-Host "  $_" }
+        $profilePath = Join-Path $Script:JunieHome "models\$($Script:JunieModelIdById[$configuredModelId]).json"
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $profilePath -PathType Leaf)) {
+            Write-Host "  WARNING: Junie config generation failed for $configuredModelId." -ForegroundColor Yellow
+            Emit-Warning "serverctl update-configs failed for $configuredModelId"
+        }
     }
     Sync-EnginePortFromConfig
 } else {
@@ -1526,7 +1603,10 @@ Write-Host "  ----------------------------------------------" -ForegroundColor D
 Write-Host ""
 Emit-StepStart "start" "Starting and warming up the inference engine"
 if (Start-Engine) {
-    Warm-Engine
+    # Nothing to warm up when --update found no model on this device.
+    if (-not ($Update -and $Script:UpdateModelIds.Count -eq 0)) {
+        Warm-Engine
+    }
 }
 Emit-StepDone "start"
 
@@ -1536,14 +1616,25 @@ $mainModelId = Get-ArchiveField -ArchiveIndex $mainArchiveIndex -Field "modelId"
 $mainLabel = Get-ArchiveField -ArchiveIndex $mainArchiveIndex -Field "label"
 
 Write-Host ""
-Write-Host "  Installation complete" -ForegroundColor Green
-Write-Host "  ---------------------" -ForegroundColor DarkGray
+if ($Update) {
+    Write-Host "  Update complete" -ForegroundColor Green
+    Write-Host "  ---------------" -ForegroundColor DarkGray
+}
+else {
+    Write-Host "  Installation complete" -ForegroundColor Green
+    Write-Host "  ---------------------" -ForegroundColor DarkGray
+}
 Write-Host ""
 
 Print-Value "Models:" "$Script:ModelsDir" $true $false ""
 Print-Value "Engine:" "v$Script:EngineVersion on port $Script:EnginePort" $true $false ""
 Print-Value "Junie model config:" "$Script:JunieHome\models\${Script:JunieModelId}.json" $true $false ""
-Print-Value "Installed model:" "$Script:JunieModelId" $true $false ""
+if ($Update) {
+    Print-Value "Updated models:" "$(@($Script:JunieModelIdById.Values) -join ', ')" $true $false ""
+}
+else {
+    Print-Value "Installed model:" "$Script:JunieModelId" $true $false ""
+}
 
 Write-Host ""
 Write-Host "  Run /model in Junie and pick $Script:JunieModelId to start using it."
