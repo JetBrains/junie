@@ -59,6 +59,7 @@ PROTOCOL_VERSION=1
 MACHINE_OUTPUT=false
 CHECK_ONLY=false
 LIST_MODELS=false
+CHECK_ENGINE_UPDATE=false
 MODEL="Qwen3.6-27B-MLX-4bit"
 CHANNEL="main"
 
@@ -78,6 +79,7 @@ usage() {
   echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
+  echo "  --check-engine-update  Check whether a newer inference engine is available, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
   echo "  --keep-config      Deprecated, accepted and ignored"
   echo "  --help, -h         Show this help"
@@ -89,6 +91,7 @@ while [ $# -gt 0 ]; do
     --check-only) CHECK_ONLY=true ;;
     --models) LIST_MODELS=true ;;
     --keep-config) echo "WARNING: --keep-config is deprecated and does nothing; it will be removed in a future release" ;;
+    --check-engine-update) CHECK_ENGINE_UPDATE=true ;;
     --model)
       shift
       if [ $# -eq 0 ]; then
@@ -1263,6 +1266,71 @@ if [ "$LIST_MODELS" = true ]; then
     echo "Available models for $PLATFORM ($CHANNEL channel):"
   fi
   list_available_models
+  exit 0
+fi
+
+# ============================================================
+# Engine update check mode
+# ============================================================
+
+# The engine version recorded by the last successful install: the current
+# symlink points at versions/<version>. Only reported as installed when the
+# version directory it points at is actually still there.
+get_installed_engine_version() {
+  local target version
+  [ -L "$CURRENT_LINK" ] || return 0
+  target=$(readlink "$CURRENT_LINK" 2>/dev/null) || return 0
+  version=$(basename "$target")
+  [ -n "$version" ] || return 0
+  [ -d "$VERSIONS_DIR/$version" ] || return 0
+  printf '%s' "$version"
+}
+
+# Read-only counterpart of the install path: resolves the engine the installer
+# would pick (the last matching entry in the channel feed) and reports whether
+# it differs from the one on this device. Versions are never ordered: the feed
+# decides what is current, so any mismatch counts as an update.
+# Nothing is downloaded, unpacked or written to disk.
+if [ "$CHECK_ENGINE_UPDATE" = true ]; then
+  fetch_engine_config
+
+  installed_version=$(get_installed_engine_version)
+  latest_version="$ENGINE_VERSION"
+
+  if [ -z "$installed_version" ]; then
+    status="not_installed"
+    update_available=true
+  elif [ "$installed_version" != "$latest_version" ]; then
+    status="update_available"
+    update_available=true
+  else
+    status="up_to_date"
+    update_available=false
+  fi
+
+  emit_event "\"event\":\"engine_update\",\"platform\":\"$(json_escape "$PLATFORM")\",\"channel\":\"$(json_escape "$CHANNEL")\",\"installed_version\":\"$(json_escape "$installed_version")\",\"latest_version\":\"$(json_escape "$latest_version")\",\"update_available\":$update_available,\"status\":\"$status\""
+
+  if [ "$MACHINE_OUTPUT" != true ]; then
+    echo "Inference engine updates for $PLATFORM ($CHANNEL channel):"
+    case "$status" in
+      not_installed)
+        echo "  Installed: none"
+        echo "  Latest:    v$latest_version"
+        echo "  The engine is not installed. Run this script without --check-engine-update to install it."
+        ;;
+      update_available)
+        echo "  Installed: v$installed_version"
+        echo "  Latest:    v$latest_version"
+        echo "  An update is available. Run this script without --check-engine-update to install it."
+        ;;
+      *)
+        echo "  Installed: v$installed_version"
+        echo "  Latest:    v$latest_version"
+        echo "  The engine is up to date."
+        ;;
+    esac
+  fi
+
   exit 0
 fi
 

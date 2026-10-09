@@ -25,12 +25,41 @@ Supported options:
 - `--check-only` — Report system information and exit without installing
 - `--json` — Emit machine-readable events on stdout
 - `--keep-config` — **Deprecated**, accepted and ignored; it only prints a deprecation warning
+- `--check-engine-update` — Report whether a different inference engine is
+  published for this device, then exit without downloading or installing
+  anything
+
+`--check-engine-update` resolves the engine exactly like the install path does —
+the last matching entry for this platform in the channel feed — and compares it
+with the installed version the `current` symlink points at. Version numbers are
+not ordered: the feed decides what is current, so any mismatch is reported as an
+update.
+
+```bash
+./install.sh --check-engine-update
+./install.sh --check-engine-update --channel eap --json
+```
+
+With `--json` it emits a single `engine_update` event:
+
+```json
+{"event":"engine_update","platform":"macos-aarch64","channel":"main","installed_version":"0.3.3","latest_version":"0.3.4","update_available":true,"status":"update_available"}
+```
+
+`status` is `up_to_date`, `update_available`, or `not_installed` when no engine
+is installed yet.
 
 ### `install.ps1`
 
 The Windows counterpart, with the same options (`--model`, `--channel`,
-`--check-only`, `--models`, `--json`). It detects `windows-amd64` or
-`windows-aarch64`, including under emulation.
+`--check-only`, `--models`, `--json`, `--check-engine-update`). It detects
+`windows-amd64` or `windows-aarch64`, including under emulation. The installed
+engine version comes from the `current` file instead of a symlink.
+
+```powershell
+.\install.ps1 --check-engine-update
+.\install.ps1 --check-engine-update --channel eap --json
+```
 
 The Junie CLI installer can chain into it right after installing Junie, the same
 way `install.sh` does with `--local-model`. Since the documented Windows install
