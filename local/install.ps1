@@ -27,6 +27,12 @@
 .PARAMETER ListModels
   List all available models for this platform, then exit.
 
+.PARAMETER CheckEngineUpdate
+  Check whether a different inference engine is published for this device,
+  then exit.  Resolves the engine the installer would pick (the last matching
+  entry in the channel feed) and compares it with the installed one.  Nothing
+  is downloaded or installed.
+
 .PARAMETER Json
   Emit machine-readable JSON events on stdout; human output goes to stderr.
 
@@ -36,6 +42,8 @@
   .\install.ps1 --Model Qwen3.6-27B-Q4_K_M --Channel eap
 
   .\install.ps1 --CheckOnly
+
+  .\install.ps1 --check-engine-update
 #>
 
 # ============================================================
@@ -46,6 +54,7 @@ $script:ArgModel = "Qwen3.6-27B-Q4_K_M"
 $script:ArgChannel = "main"
 $script:ArgCheckOnly = $false
 $script:ArgListModels = $false
+$script:ArgCheckEngineUpdate = $false
 $script:ArgJson = $false
 $script:ArgHelp = $false
 
@@ -88,6 +97,7 @@ while ($p -lt $rawArgs.Length) {
         }
         { $_ -in '--check-only', '-CheckOnly', '-check-only' } { $script:ArgCheckOnly = $true }
         { $_ -in '--models', '-ListModels', '-models' } { $script:ArgListModels = $true }
+        { $_ -in '--check-engine-update', '-CheckEngineUpdate', '-check-engine-update' } { $script:ArgCheckEngineUpdate = $true }
         { $_ -in '--json' } { $script:ArgJson = $true }
         { $_ -in '--help', '-h', '-help' } { $script:ArgHelp = $true }
         default {
@@ -230,6 +240,7 @@ function usage {
     Write-Host "  --channel <name>   Update channel: main (default) or eap"
     Write-Host "  --check-only       Report system information, then exit"
     Write-Host "  --models           List all available models for this architecture, then exit"
+    Write-Host "  --check-engine-update  Check whether a newer inference engine is available, then exit"
     Write-Host "  --json             Emit machine-readable events on stdout, human output on stderr"
     Write-Host "  --help, -h         Show this help"
 }
@@ -239,6 +250,7 @@ $Model = $script:ArgModel
 $Channel = $script:ArgChannel
 $CheckOnly = $script:ArgCheckOnly
 $ListModels = $script:ArgListModels
+$CheckEngineUpdate = $script:ArgCheckEngineUpdate
 $Script:MachineOutput = $script:ArgJson
 
 # Handle help / errors
@@ -466,6 +478,80 @@ if ($ListModels -and $Script:PlatformSupported) {
             Write-Host "$name ($id)"
         }
     }
+    exit 0
+}
+
+# ============================================================
+# Engine update check mode
+# ============================================================
+
+# The engine version recorded by the last successful install. Only reported as
+# installed when the version directory it points at is actually still there.
+function Get-InstalledEngineVersion {
+    if (-not (Test-Path -LiteralPath $Script:CurrentFile -PathType Leaf)) { return "" }
+    $version = ""
+    try {
+        $version = (Get-Content -LiteralPath $Script:CurrentFile -Raw -ErrorAction Stop).Trim()
+    }
+    catch { return "" }
+    if (-not $version) { return "" }
+    if (-not (Test-Path -LiteralPath (Join-Path $Script:VersionsDir $version) -PathType Container)) { return "" }
+    return $version
+}
+
+# Read-only counterpart of the install path: resolves the engine the installer
+# would pick (the last matching entry in the channel feed) and reports whether
+# it differs from the one on this device. Versions are never ordered: the feed
+# decides what is current, so any mismatch counts as an update.
+# Nothing is downloaded, unpacked or written to disk.
+if ($CheckEngineUpdate) {
+    if (-not $Script:PlatformSupported) {
+        Write-Host "ERROR: Unsupported platform: $Script:Platform" -ForegroundColor Red
+        Emit-Error "Unsupported platform: $Script:Platform"
+        exit 1
+    }
+
+    Fetch-EngineConfig
+
+    $installedVersion = Get-InstalledEngineVersion
+    $latestVersion = $Script:EngineVersion
+
+    if (-not $installedVersion) {
+        $status = "not_installed"
+        $updateAvailable = $true
+    }
+    elseif ($installedVersion -ne $latestVersion) {
+        $status = "update_available"
+        $updateAvailable = $true
+    }
+    else {
+        $status = "up_to_date"
+        $updateAvailable = $false
+    }
+
+    Emit-Event "`"event`":`"engine_update`",`"platform`":`"$(Json-Escape $Script:Platform)`",`"channel`":`"$(Json-Escape $Script:Channel)`",`"installed_version`":`"$(Json-Escape $installedVersion)`",`"latest_version`":`"$(Json-Escape $latestVersion)`",`"update_available`":$($updateAvailable.ToString().ToLowerInvariant()),`"status`":`"$status`""
+
+    if (-not $Script:MachineOutput) {
+        Write-Host "Inference engine updates for $Script:Platform ($Script:Channel channel):"
+        switch ($status) {
+            "not_installed" {
+                Write-Host "  Installed: none"
+                Write-Host "  Latest:    v$latestVersion"
+                Write-Host "  The engine is not installed. Run this script without --check-engine-update to install it."
+            }
+            "update_available" {
+                Write-Host "  Installed: v$installedVersion"
+                Write-Host "  Latest:    v$latestVersion"
+                Write-Host "  An update is available. Run this script without --check-engine-update to install it."
+            }
+            default {
+                Write-Host "  Installed: v$installedVersion"
+                Write-Host "  Latest:    v$latestVersion"
+                Write-Host "  The engine is up to date."
+            }
+        }
+    }
+
     exit 0
 }
 

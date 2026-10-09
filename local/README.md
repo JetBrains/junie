@@ -32,6 +32,28 @@ The Windows counterpart, with the same options (`--model`, `--channel`,
 `--check-only`, `--models`, `--json`). It detects `windows-amd64` or
 `windows-aarch64`, including under emulation.
 
+It also supports `--check-engine-update`, which reports whether a different
+inference engine is published for this device and exits without downloading or
+installing anything. It resolves the engine exactly like the install path does —
+the last matching entry for this platform in the channel feed — and compares it
+with the installed version recorded in the `current` file. Version numbers are
+not ordered: the feed decides what is current, so any mismatch is reported as an
+update.
+
+```powershell
+.\install.ps1 --check-engine-update
+.\install.ps1 --check-engine-update --channel eap --json
+```
+
+With `--json` it emits a single `engine_update` event:
+
+```json
+{"event":"engine_update","platform":"windows-amd64","channel":"main","installed_version":"0.3.3","latest_version":"0.3.4","update_available":true,"status":"update_available"}
+```
+
+`status` is `up_to_date`, `update_available`, or `not_installed` when no engine
+is installed yet.
+
 The Junie CLI installer can chain into it right after installing Junie, the same
 way `install.sh` does with `--local-model`. Since the documented Windows install
 is piped (`irm ... | iex`) and cannot receive arguments, use the environment
