@@ -6,6 +6,12 @@
 # To install a specific version:
 #   $env:JUNIE_VERSION="656.1"; irm https://junie.jetbrains.com/install.ps1 | iex
 #
+# To also set up the local model after installing Junie:
+#   $env:JUNIE_LOCAL_MODEL="1"; irm https://junie.jetbrains.com/install.ps1 | iex
+#
+# When the script is saved to a file, the same is requested with a flag:
+#   .\install.ps1 --local-model
+#
 
 $ErrorActionPreference = 'Stop'
 
@@ -15,6 +21,7 @@ $INSTALL_TAG = "<install_tag>"
 $GITHUB_RELEASES = "https://github.com/JetBrains/junie/releases"
 $JUNIE_BIN = Join-Path $HOME ".local\bin"
 $JUNIE_DATA = Join-Path $HOME ".local\share\junie"
+$LOCAL_MODEL_URL = "https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/install.ps1"
 
 # One-shot mode (set by the shim for `junie --<channel>`): install/refresh this
 # channel's latest build but do NOT touch the existing shim, the `current`
@@ -24,6 +31,53 @@ $ONESHOT = $env:JUNIE_ONESHOT
 
 function Log($msg) { Write-Host "$msg" }
 function Log-Error($msg) { Write-Host "ERROR: $msg" -ForegroundColor Red }
+
+function Show-Usage {
+  Write-Host "Usage: install.ps1 [--local-model]"
+  Write-Host ""
+  Write-Host "Options:"
+  Write-Host "  --local-model   After installing Junie, run the local model setup"
+  Write-Host "  --help, -h      Show this help"
+  Write-Host ""
+  Write-Host "A piped invocation (irm ... | iex) cannot pass arguments; request the"
+  Write-Host "local model with the JUNIE_LOCAL_MODEL environment variable instead:"
+  Write-Host '  $env:JUNIE_LOCAL_MODEL="1"; irm https://junie.jetbrains.com/install.ps1 | iex'
+}
+
+# `--local-model` requests the local model setup once Junie itself is in place.
+# Arguments only reach us when this script is executed as a file (or as a script
+# block); the usual `irm ... | iex` invocation has no way to pass them, so
+# JUNIE_LOCAL_MODEL=1 is the equivalent switch for piped installs.
+$LOCAL_MODEL = [bool]$env:JUNIE_LOCAL_MODEL
+
+# Skip PowerShell wrapper args (everything up to and including the script path
+# of a `powershell -File install.ps1 ...` invocation).
+$rawArgs = @($MyInvocation.UnboundArguments)
+$scriptName = if ($MyInvocation.MyCommand.Path) { [System.IO.Path]::GetFileName($MyInvocation.MyCommand.Path) } else { "" }
+if ($scriptName) {
+  for ($k = 0; $k -lt $rawArgs.Length; $k++) {
+    if ($rawArgs[$k] -eq '-File' -and ($k + 1) -lt $rawArgs.Length -and [System.IO.Path]::GetFileName("$($rawArgs[$k + 1])") -eq $scriptName) {
+      if (($k + 2) -lt $rawArgs.Length) {
+        $rawArgs = @($rawArgs[($k + 2)..($rawArgs.Length - 1)])
+      } else {
+        $rawArgs = @()
+      }
+      break
+    }
+  }
+}
+
+foreach ($rawArg in @($rawArgs | Where-Object { "$_" -ne '' })) {
+  switch ("$rawArg") {
+    { $_ -in '--local-model', '-LocalModel', '-local-model' } { $LOCAL_MODEL = $true }
+    { $_ -in '--help', '-h', '-help' } { Show-Usage; exit 0 }
+    default {
+      Log-Error "Unknown option: $rawArg"
+      Show-Usage
+      exit 1
+    }
+  }
+}
 
 function Get-Sha256($file) {
   (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLower()
@@ -103,6 +157,48 @@ function Fetch-VersionSha256($wantVersion) {
     }
   }
   return ""
+}
+
+# Run local/install.ps1, which downloads the inference engine and model weights,
+# writes the Junie model config, and starts the engine. It has its own preflight
+# checks and reports its own progress, so we only announce the handover and
+# surface a retry hint on failure. It is run as a child process from a temp file
+# (rather than dot-sourced) so its own argument parsing and exit codes behave
+# exactly as they do for a direct invocation.
+function Install-LocalModel {
+  Write-Host ""
+  Log "Junie is installed. Setting up the local model..."
+
+  $localScript = Join-Path $env:TEMP "junie-local-install-$PID.ps1"
+  $psExe = if ($PSVersionTable.PSEdition -eq 'Core') { Join-Path $PSHOME 'pwsh.exe' } else { Join-Path $PSHOME 'powershell.exe' }
+  $ok = $true
+
+  try {
+    $oldProgress = $ProgressPreference
+    $ProgressPreference = 'SilentlyContinue'
+    Invoke-WebRequest -Uri $LOCAL_MODEL_URL -OutFile $localScript -UseBasicParsing
+    $ProgressPreference = $oldProgress
+
+    & $psExe -NoProfile -ExecutionPolicy Bypass -File $localScript
+    if ($LASTEXITCODE -ne 0) { $ok = $false }
+  } catch {
+    Log-Error $_.Exception.Message
+    $ok = $false
+  } finally {
+    Remove-TempFile $localScript
+  }
+
+  if (-not $ok) {
+    # The local model is an optional extra on top of a finished Junie install,
+    # and it is the part most likely to be refused -- on Windows it needs an
+    # NVIDIA GPU with 24 GB of VRAM. Whatever went wrong here, Junie itself is
+    # installed, so say so plainly instead of leaving the run looking failed.
+    Write-Host ""
+    Log-Error "The local model setup did not complete."
+    Log "Junie itself is installed and ready to use -- run: junie"
+    Log "To try the local model again: irm $LOCAL_MODEL_URL | iex"
+    exit 1
+  }
 }
 
 # Determine version: use JUNIE_VERSION env var if set, otherwise fetch latest
@@ -582,4 +678,8 @@ endlocal & set "EJ_RUNNER_PWD=%EJ_RUNNER_PWD%" & set "JUNIE_DATA=%JUNIE_DATA%" &
   Write-Host ""
   Write-Host "Please restart your shell to apply the changes to the PATH variable."
   Write-Host "After that, you can run: junie --help"
+}
+
+if ($LOCAL_MODEL) {
+  Install-LocalModel
 }

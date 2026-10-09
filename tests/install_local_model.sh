@@ -2,6 +2,8 @@
 #
 # Regression test: the `--local-model` flag must be accepted, unknown flags must
 # be rejected, and the local model setup must run only when the flag is given.
+# Covers the shell installers end to end and the PowerShell installers
+# statically (see tests/install_local_model.ps1 for their behaviour).
 #
 # Usage:
 #   bash tests/install_local_model.sh
@@ -18,8 +20,11 @@ INSTALLERS=(
   "install-experimental.sh"
 )
 
-# The local model is macOS-only, so the PowerShell installers must not offer it.
-INSTALLERS_WITHOUT_LOCAL_MODEL=(
+# The PowerShell installers offer the same opt-in, wired to the PowerShell
+# local model installer. Their runtime behaviour is covered by
+# tests/install_local_model.ps1; here we only check the static wiring so the
+# whole matrix stays verifiable on any platform.
+INSTALLERS_PS=(
   "install.ps1"
   "install-eap.ps1"
   "install-nightly.ps1"
@@ -27,6 +32,7 @@ INSTALLERS_WITHOUT_LOCAL_MODEL=(
 )
 
 LOCAL_MODEL_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/install.sh"
+LOCAL_MODEL_URL_PS="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local/install.ps1"
 
 PASS=0
 FAIL=0
@@ -147,26 +153,53 @@ for name in "${INSTALLERS[@]}"; do
   fi
 done
 
-for name in "${INSTALLERS_WITHOUT_LOCAL_MODEL[@]}"; do
+for name in "${INSTALLERS_PS[@]}"; do
   installer="$REPO_ROOT/$name"
   if [[ ! -f "$installer" ]]; then
     fail "$name" "installer not found at $installer"
     continue
   fi
 
-  if traces="$(grep -niE 'local.model|local/install\.sh' "$installer")"; then
-    fail "$name" "must not reference the local model setup: $traces"
+  installer_url="$(sed -n 's/^\$LOCAL_MODEL_URL = "\(.*\)"$/\1/p' "$installer")"
+  if [[ "$installer_url" == "$LOCAL_MODEL_URL_PS" ]]; then
+    pass "$name" "points at the in-repo local installer"
   else
-    pass "$name" "no local model setup"
+    fail "$name" "\$LOCAL_MODEL_URL: expected $LOCAL_MODEL_URL_PS, got ${installer_url:-<unset>}"
+  fi
+
+  if grep -q "^function Install-LocalModel {$" "$installer"; then
+    pass "$name" "Install-LocalModel function present"
+  else
+    fail "$name" "Install-LocalModel function not found"
+  fi
+
+  if grep -q "^if (\$LOCAL_MODEL) {$" "$installer"; then
+    pass "$name" "local model setup runs only when requested"
+  else
+    fail "$name" "local model dispatch not found"
+  fi
+
+  # `irm ... | iex` cannot pass arguments, so the env var must stay available.
+  if grep -q 'JUNIE_LOCAL_MODEL' "$installer"; then
+    pass "$name" "JUNIE_LOCAL_MODEL opt-in for piped installs"
+  else
+    fail "$name" "JUNIE_LOCAL_MODEL env var opt-in not found"
   fi
 done
 
-# The URL the installers fetch must resolve to a script that exists in the repo.
+# The URLs the installers fetch must resolve to scripts that exist in the repo.
 local_script="${LOCAL_MODEL_URL##*/main/}"
 if [[ -x "$REPO_ROOT/$local_script" ]]; then
   pass "$local_script" "present and executable"
 else
   fail "$local_script" "installers fetch it, but it is missing or not executable"
+fi
+
+local_script_ps="${LOCAL_MODEL_URL_PS##*/main/}"
+if [[ -f "$REPO_ROOT/$local_script_ps" ]]; then
+  pass "$local_script_ps" "present"
+else
+  fail "$local_script_ps" "installers fetch it, but it is missing"
 fi
 
 echo "----"
