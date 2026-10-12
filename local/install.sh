@@ -420,16 +420,6 @@ get_checksum() {
   fi
 }
 
-# Generate a random hex token. xxd is not available on all Linux systems,
-# so fall back to od, which is part of POSIX coreutils.
-generate_token() {
-  if command -v xxd > /dev/null 2>&1; then
-    head -c 12 /dev/urandom | xxd -p
-  else
-    head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n'
-  fi
-}
-
 # Check whether the engine daemon is currently running. macOS has pgrep with
 # a clean -f flag; on Linux we use ps + grep and filter out the grep itself.
 # We match on "serverctl" and the base dir rather than a hardcoded binary name,
@@ -1061,37 +1051,29 @@ install_engine() {
   ln -sfn "$ENGINE_DIR" "$CURRENT_LINK"
 }
 
-# Ensure server-config.json exists with the api_key and port fields. The engine
-# handles all config updates after initial creation — we only create it here if
-# it doesn't already exist.
-handle_server_config() {
-  SERVER_CONFIG="$BASE_DIR/server-config.json"
-
-  # If the config already exists, leave it alone — the engine manages it.
-  if [ -f "$SERVER_CONFIG" ]; then
-    printf '  %sReusing existing server-config.json.%s\n' "$GRAY" "$RESET"
-    return 0
+# serverctl update-configs owns server-config.json: it generates the api_key and
+# picks a free port on first install, and keeps both on re-install. The installer
+# only reads the port back so the readiness check and summary use the real one.
+sync_engine_port_from_config() {
+  local server_config port
+  server_config="$BASE_DIR/server-config.json"
+  [ -f "$server_config" ] || return 0
+  port=$(grep -o '"port"[[:space:]]*:[[:space:]]*[0-9]\{1,5\}' "$server_config" | head -1 | sed 's/.*[[:space:]:]//')
+  if [ -n "$port" ] && [ "$port" -ge 1 ] 2>/dev/null && [ "$port" -le 65535 ] 2>/dev/null; then
+    ENGINE_PORT="$port"
   fi
-
-  # First run: generate a token and create the config file.
-  local token
-  token="sk-$(generate_token)"
-  printf '  %sAuth token generated.%s\n' "$GRAY" "$RESET"
-  printf '  %sWriting server-config.json with api_key and port...%s\n' "$GRAY" "$RESET"
-  cat > "$SERVER_CONFIG" <<EOF
-{
-  "api_key": "$token",
-  "port": $ENGINE_PORT
-}
-EOF
-  printf '  %sserver-config.json created with bearer auth and port.%s\n' "$JUNIE_GREEN" "$RESET"
 }
 
 # Function to start the engine daemon using serverctl.sh. The daemon serves the
 # public API and supervises the inference worker itself.
 start_engine() {
-  # Read the auth token from the config file (created in Step 3).
+  # Read the auth token from the config file (written in Step 3).
   local auth_token
+  if [ ! -f "$BASE_DIR/server-config.json" ]; then
+    printf '  %sERROR: server-config.json not found in %s%s\n' "$RED" "$BASE_DIR" "$RESET"
+    emit_error "server-config.json not found in $BASE_DIR"
+    return 1
+  fi
   auth_token=$(get_json_field api_key < "$BASE_DIR/server-config.json")
 
   if [ ! -f "$ENGINE_CTL" ]; then
@@ -1389,6 +1371,9 @@ if [ "$CHECK_ONLY" != true ]; then
   resolve_install_metadata
 fi
 
+# A re-install keeps the port saved in server-config.json, so report that one.
+sync_engine_port_from_config
+
 # The install configuration is not shown; it still travels as an event so a
 # machine consumer sees the port, the RAM allowance and the engine version.
 emit_event "\"event\":\"config\",\"port\":$ENGINE_PORT,\"ram_gb\":$ENGINE_RAM_GB,\"engine_version\":\"$(json_escape "$ENGINE_VERSION")\",\"model\":\"$(json_escape "$MODEL")\",\"checks_passed\":$ALL_OK"
@@ -1453,14 +1438,15 @@ emit_step_done "models"
 # ============================================================
 section "Configuring Junie"
 emit_step_start "configure" "Configuring Junie"
-# Ensure server-config.json exists so the engine can read the auth token.
-handle_server_config
-# Generate the Junie model config from the installed model template via
-# serverctl.sh. Capture its output so we can show clean, consistent progress
-# messages instead of the engine's raw chatter, while still surfacing errors.
+# Rebuild server-config.json from the engine template (keeping a saved api_key,
+# port and max_context_length, generating a key and a free port when missing)
+# and write the Junie model config to $JUNIE_HOME/models/<id>.json.
+# Other hand-edited server-config.json fields are reset on every install.
+# Capture serverctl's output so we can show clean, consistent progress messages
+# instead of the engine's raw chatter, while still surfacing errors.
 if [ -x "$ENGINE_CTL" ]; then
   JUNIE_CONFIG_FILE="$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json"
-  config_output="$("$ENGINE_CTL" --junie-config "$JUNIE_HOME" --model "$MODEL" 2>&1)"
+  config_output="$("$ENGINE_CTL" update-configs --junie-home "$JUNIE_HOME" --model "$MODEL" 2>&1)"
   config_ok=$?
   if [ "$config_ok" -eq 0 ] && [ -f "$JUNIE_CONFIG_FILE" ]; then
     print_value "Junie model config:" "$JUNIE_CONFIG_FILE" true false ""
@@ -1474,8 +1460,9 @@ if [ -x "$ENGINE_CTL" ]; then
     else
       printf '  %sWARNING: Junie config file was not created at %s.%s\n' "$YELLOW" "$JUNIE_CONFIG_FILE" "$RESET"
     fi
-    emit_warning "Junie config generation failed"
+    emit_warning "serverctl update-configs failed"
   fi
+  sync_engine_port_from_config
 else
   printf '  %sWARNING: serverctl.sh not found at %s%s\n' "$YELLOW" "$ENGINE_CTL" "$RESET"
   printf '  %sSkipping Junie config generation.%s\n' "$GRAY" "$RESET"
