@@ -1561,10 +1561,10 @@ print_value "Current version:" "$CURRENT_LINK -> $ENGINE_DIR" true false ""
 print_value "Models:" "$MODELS_DIR" true false ""
 print_value "Logs:" "$BASE_DIR" true false ""
 print_value "Junie model config:" "$JUNIE_HOME/models/${JUNIE_MODEL_ID}.json" true false ""
-print_value "Default model:" "$JUNIE_MODEL_ID" true false ""
+print_value "Installed model:" "$JUNIE_MODEL_ID" true false ""
 echo ""
-printf '  %sThe engine serves http://localhost:%s — the first request has to wait%s\n' "$GRAY" "$ENGINE_PORT" "$RESET"
-printf '  %sfor the model to load.%s\n' "$GRAY" "$RESET"
+printf '  %sRun /model in Junie and pick %s to start using it.%s\n' "$GRAY" "$JUNIE_MODEL_ID" "$RESET"
+printf '  %sThe engine serves http://localhost:%s and the model is loaded.%s\n' "$GRAY" "$ENGINE_PORT" "$RESET"
 printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$ENGINE_CTL" "$RESET"
 MAIN_ARCHIVE_INDEX=$(get_main_archive_index)
 MAIN_MODEL_ID=$(get_archive_field "$MAIN_ARCHIVE_INDEX" modelId)
