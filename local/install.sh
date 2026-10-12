@@ -166,8 +166,9 @@ get_json_field() {
 }
 
 # List all models available for the current platform from the channel's
-# update-info-models JSONL. In human mode prints one "id (displayName)" per
-# line; with --json emits a single "models" event with the full list.
+# update-info-models JSONL. In human mode prints one "displayName (id)" line
+# per model followed by its one-line description; with --json emits a single
+# "models" event with the full list.
 list_available_models() {
   models_jsonl=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
     printf '%sERROR: Could not fetch models list from %s%s\n' "$RED" "$MODELS_UPDATE_URL" "$RESET"
@@ -175,7 +176,7 @@ list_available_models() {
     exit 1
   }
   if [ "$MACHINE_OUTPUT" = true ]; then
-    # Build a JSON array of {"id":"...","displayName":"..."} objects.
+    # Build a JSON array of {"id":...,"displayName":...,"description":...}.
     models_array="["
     first=true
     while IFS= read -r entry; do
@@ -185,12 +186,13 @@ list_available_models() {
       esac
       id=$(printf '%s' "$entry" | get_json_field id)
       name=$(printf '%s' "$entry" | get_json_field displayName)
+      description=$(printf '%s' "$entry" | get_json_field description)
       if [ "$first" = true ]; then
         first=false
       else
         models_array="$models_array,"
       fi
-      models_array="$models_array{\"id\":\"$(json_escape "$id")\",\"displayName\":\"$(json_escape "$name")\"}"
+      models_array="$models_array{\"id\":\"$(json_escape "$id")\",\"displayName\":\"$(json_escape "$name")\",\"description\":\"$(json_escape "$description")\"}"
     done <<EOF
 $(printf '%s\n' "$models_jsonl")
 EOF
@@ -204,7 +206,11 @@ EOF
       esac
       id=$(printf '%s' "$entry" | get_json_field id)
       name=$(printf '%s' "$entry" | get_json_field displayName)
+      description=$(printf '%s' "$entry" | get_json_field description)
       printf '  %s%s%s (%s)\n' "$GRAY" "$name" "$RESET" "$id"
+      if [ -n "$description" ]; then
+        printf '    %s%s%s\n' "$GRAY_DIM" "$description" "$RESET"
+      fi
     done <<EOF
 $(printf '%s\n' "$models_jsonl")
 EOF

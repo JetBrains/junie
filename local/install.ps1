@@ -484,8 +484,9 @@ if ($ListModels -and $Script:PlatformSupported) {
         foreach ($line in $platformLines) {
             $id = $line | Get-JsonField -Field "id"
             $name = $line | Get-JsonField -Field "displayName"
+            $description = $line | Get-JsonField -Field "description"
             if (-not $first) { $array += "," }
-            $array += "{`"id`":`"$(Json-Escape $id)`",`"displayName`":`"$(Json-Escape $name)`"}"
+            $array += "{`"id`":`"$(Json-Escape $id)`",`"displayName`":`"$(Json-Escape $name)`",`"description`":`"$(Json-Escape $description)`"}"
             $first = $false
         }
         $array += "]"
@@ -496,7 +497,9 @@ if ($ListModels -and $Script:PlatformSupported) {
         foreach ($line in $platformLines) {
             $id = $line | Get-JsonField -Field "id"
             $name = $line | Get-JsonField -Field "displayName"
+            $description = $line | Get-JsonField -Field "description"
             Write-Host "$name ($id)"
+            if ($description) { Write-Host "  $description" }
         }
     }
     exit 0
