@@ -44,6 +44,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$env:JUNIE_LOCAL_MODEL='
 Run as a file, `.\install.ps1 --local-model` on the Junie installer does the
 same.
 
+### Test mode
+
+`JUNIE_LOCAL_MODEL_TEST_MODE=1` makes the installer run on a device that is not
+supported. The system checks are still performed and reported as usual — the
+`check` events keep their real `ok` / `warn` / `fail` status — but a failing
+requirement is downgraded to a `warning` event instead of aborting the run, and
+`checks_passed` in the `config` event is `true`. `--check-only` exits `0` as
+well. The engine and the model are of course not expected to work on such a
+device; this is only meant for exercising the installer itself.
+
+```bash
+JUNIE_LOCAL_MODEL_TEST_MODE=1 ./install.sh
+```
+
+```powershell
+$env:JUNIE_LOCAL_MODEL_TEST_MODE='1'; .\install.ps1
+```
+
 ### Update Channel Files
 
 Update files describe available engine and model versions per channel. There are two channels:
