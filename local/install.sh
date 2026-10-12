@@ -214,6 +214,24 @@ get_archive_field() {
   printf '%s' "$models_json" | grep -o "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | sed "s/\"${field}\"[[:space:]]*:[[:space:]]*\"//; s/\"$//" | sed -n "$((archive_index + 1))p"
 }
 
+# Resolves the archive index for the model's "main" weights. Models that ship
+# extra archives (e.g. a vision mmproj file, see main_model/vision_model in
+# the model JSON) identify the main one explicitly; older models without that
+# field fall back to archive 0, which has always been the main archive.
+get_main_archive_index() {
+  local main_model_id i
+  main_model_id=$(printf '%s' "$models_json" | get_json_field main_model)
+  if [ -n "$main_model_id" ]; then
+    for i in $(seq 0 $((ARCHIVE_COUNT - 1))); do
+      if [ "$(get_archive_field "$i" modelId)" = "$main_model_id" ]; then
+        printf '%s' "$i"
+        return 0
+      fi
+    done
+  fi
+  printf '0'
+}
+
 fetch_models_config() {
   # Fetch the JSONL metadata.
   models_jsonl=$(curl -fsSL "$MODELS_UPDATE_URL" 2>/dev/null) || {
@@ -1490,7 +1508,8 @@ echo ""
 printf '  %sThe engine serves http://localhost:%s — the first request has to wait%s\n' "$GRAY" "$ENGINE_PORT" "$RESET"
 printf '  %sfor the model to load.%s\n' "$GRAY" "$RESET"
 printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$ENGINE_CTL" "$RESET"
-MAIN_MODEL_ID=$(get_archive_field 0 modelId)
-MAIN_LABEL=$(get_archive_field 0 label)
+MAIN_ARCHIVE_INDEX=$(get_main_archive_index)
+MAIN_MODEL_ID=$(get_archive_field "$MAIN_ARCHIVE_INDEX" modelId)
+MAIN_LABEL=$(get_archive_field "$MAIN_ARCHIVE_INDEX" label)
 emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MAIN_MODEL_ID")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
 wait_and_exit 0
