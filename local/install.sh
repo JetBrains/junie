@@ -1138,6 +1138,23 @@ start_engine() {
   return 1
 }
 
+# Send one short chat request so the first Junie request does not pay for the
+# first generation.
+warm_engine() {
+  local warmup_output warmup_ok
+  [ -x "$ENGINE_CTL" ] || return 0
+  printf '  %sWarming up the engine...%s\n' "$GRAY" "$RESET"
+  warmup_output="$("$ENGINE_CTL" warmup --model "$MODEL" 2>&1)"
+  warmup_ok=$?
+  if [ "$warmup_ok" -ne 0 ]; then
+    if [ -n "$warmup_output" ]; then
+      printf '%s\n' "$warmup_output"
+    fi
+    printf '  %sWARNING: engine warm-up failed. The first request may be slower.%s\n' "$YELLOW" "$RESET"
+    emit_warning "serverctl warmup failed"
+  fi
+}
+
 # Function to download and verify a model archive
 download_and_verify() {
   download_url="$1"
@@ -1484,11 +1501,13 @@ fi
 emit_step_done "configure"
 
 # ============================================================
-# Step 4: Start the inference engine
+# Step 4: Start and warm up the inference engine
 # ============================================================
-section "Starting the inference engine"
-emit_step_start "start" "Starting the inference engine"
-start_engine || true
+section "Starting and warming up the inference engine"
+emit_step_start "start" "Starting and warming up the inference engine"
+if start_engine; then
+  warm_engine
+fi
 emit_step_done "start"
 
 if [ "$KEEP_CONFIG" = true ]; then
