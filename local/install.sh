@@ -68,7 +68,7 @@ usage() {
   echo "Usage: install.sh [options]"
   echo ""
   echo "Options:"
-  echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default) or Qwen3.8-27B-MLX-4bit"
+  echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default)"
   echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
@@ -1668,11 +1668,6 @@ if start_engine; then
   fi
 fi
 emit_step_done "start"
-
-if [ "$KEEP_CONFIG" = true ]; then
-  echo ""
-  printf '  %sNote: --keep-config is set, the previous server-config.json was preserved.%s\n' "$GRAY_DIM" "$RESET"
-fi
 
 if [ "$UPDATE" = true ]; then
   section "Update complete"
