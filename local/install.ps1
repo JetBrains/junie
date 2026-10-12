@@ -1527,7 +1527,7 @@ Write-Host ""
 Write-Host "  Installing $Script:EngineLabel" -ForegroundColor Green
 Write-Host "  ----------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
-Emit-StepStart "engine" "Installing $Script:EngineLabel"
+Emit-StepStart "engine" "Installing the inference engine"
 Install-Engine
 Emit-StepDone "engine"
 
