@@ -1127,12 +1127,10 @@ function Sync-EnginePortFromConfig {
 # ============================================================
 
 # The engine runs as junie-local.exe; its llama-server.exe child exits with it.
-# Only processes installed under $Script:BaseDir (any engine version) count.
+# Every junie-local process on the machine is ours, so match the name only.
 function Get-EngineProcesses {
-    $root = [System.IO.Path]::GetFullPath($Script:BaseDir).TrimEnd('\') + '\'
     try {
-        return @(Get-Process -Name "junie-local" -ErrorAction SilentlyContinue |
-            Where-Object { $_.Path -and $_.Path.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase) })
+        return @(Get-Process -Name "junie-local" -ErrorAction SilentlyContinue)
     }
     catch { return @() }
 }
