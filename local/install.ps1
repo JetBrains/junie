@@ -116,6 +116,11 @@ $Script:ModelsDir = Join-Path $Script:BaseDir "models"
 $Script:VersionsDir = Join-Path $Script:BaseDir "versions"
 $Script:DownloadDir = Join-Path $Script:BaseDir "incomplete_downloads"
 
+# Test mode (JUNIE_LOCAL_MODEL_TEST_MODE=1): the system requirements are still
+# reported, but a failed one no longer blocks the install, so the installer can
+# be exercised end to end on a device that is not supported.
+$Script:TestMode = ($env:JUNIE_LOCAL_MODEL_TEST_MODE -eq "1")
+
 # Engine port and RAM allowance (matches install.sh defaults)
 $Script:EnginePort = 19239
 $Script:EngineRamGb = 24
@@ -1303,6 +1308,14 @@ Emit-Check "driver" (Check-Status $Script:DriverOk $false) "$Script:DriverDispla
 
 Print-Value "VC++ Redist:" "$Script:VcRedistDisplay" $Script:VcRedistOk $false "$Script:VcRedistRequirement"
 Emit-Check "vc_redist" (Check-Status $Script:VcRedistOk $false) "$Script:VcRedistDisplay" "$Script:VcRedistRequirement"
+
+# In test mode an unmet requirement is only reported, never fatal.
+if ($Script:TestMode -and -not $Script:AllOk) {
+    Write-Host ""
+    Write-Host "  JUNIE_LOCAL_MODEL_TEST_MODE=1: ignoring unmet system requirements, this device is not supported." -ForegroundColor Yellow
+    Emit-Warning "JUNIE_LOCAL_MODEL_TEST_MODE=1: ignoring unmet system requirements, this device is not supported"
+    $Script:AllOk = $true
+}
 
 # Resolve the install metadata (model and engine configs) now that the checks
 # are done. This is the first thing in the script that touches the network or
