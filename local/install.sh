@@ -455,16 +455,14 @@ get_checksum() {
   fi
 }
 
-# Check whether the engine daemon is currently running. macOS has pgrep with
-# a clean -f flag; on Linux we use ps + grep and filter out the grep itself.
-# We match on "serverctl" and the base dir rather than a hardcoded binary name,
-# so the check works regardless of the platform-specific engine binary.
+# The engine runs as junie-local; its inference worker child exits with it.
+# Every junie-local process on the machine is ours, so match the name only.
+get_engine_pids() {
+  pgrep -x junie-local 2>/dev/null
+}
+
 is_engine_running() {
-  if [ "$OS_TYPE" = "macos" ]; then
-    pgrep -f "$ENGINE_CTL" > /dev/null 2>&1 || pgrep -f "junie.*vlm" > /dev/null 2>&1
-  else
-    ps aux | grep -E "serverctl|junie.*vlm" | grep -v grep | grep -q .
-  fi
+  [ -n "$(get_engine_pids)" ]
 }
 
 # Helper: wait for user to press any key, then exit. Only a standalone run on a
@@ -1127,6 +1125,22 @@ start_engine() {
       sleep 1
       waited=$((waited + 1))
     done
+    # serverctl could not stop it in time: kill the engine, the worker exits with it.
+    remaining=$(get_engine_pids)
+    if [ -n "$remaining" ]; then
+      printf '  %sThe engine did not stop via serverctl, killing it...%s\n' "$YELLOW" "$RESET"
+      # shellcheck disable=SC2086
+      kill -9 $remaining 2>/dev/null || true
+      waited=0
+      while [ "$waited" -lt 5 ] && is_engine_running; do
+        sleep 1
+        waited=$((waited + 1))
+      done
+      if is_engine_running; then
+        printf '  %sWARNING: could not stop the running engine.%s\n' "$YELLOW" "$RESET"
+        emit_warning "could not stop the running engine"
+      fi
+    fi
   fi
 
   # Start via serverctl.sh (the subshell keeps the daemon out of this script's
