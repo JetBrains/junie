@@ -64,6 +64,14 @@ UPDATE=false
 MODEL="Qwen3.6-27B-MLX-4bit"
 CHANNEL="main"
 
+# Test mode (JUNIE_LOCAL_MODEL_TEST_MODE=1): the system requirements are still
+# reported, but a failed one no longer blocks the install, so the installer can
+# be exercised end to end on a device that is not supported.
+TEST_MODE=false
+if [ "${JUNIE_LOCAL_MODEL_TEST_MODE:-}" = "1" ]; then
+  TEST_MODE=true
+fi
+
 usage() {
   echo "Usage: install.sh [options]"
   echo ""
@@ -1483,6 +1491,14 @@ elif [ "$MEM_GB" -lt 60 ]; then
 fi
 print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
 emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
+
+# In test mode an unmet requirement is only reported, never fatal.
+if [ "$TEST_MODE" = true ] && [ "$ALL_OK" = false ]; then
+  echo ""
+  printf '  %sJUNIE_LOCAL_MODEL_TEST_MODE=1: ignoring unmet system requirements, this device is not supported.%s\n' "$YELLOW" "$RESET"
+  emit_warning "JUNIE_LOCAL_MODEL_TEST_MODE=1: ignoring unmet system requirements, this device is not supported"
+  ALL_OK=true
+fi
 
 # --update works on what this device already has: the model set comes from the
 # saved model configs instead of --model, and nothing new is added.

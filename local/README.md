@@ -48,10 +48,33 @@ accepts the PowerShell spellings (`-Model`, `-CheckOnly`, …) for the same flag
 `install.sh` can also be piped from a URL: `curl -fsSL https://... | sh`.
 
 The exit code is `0` on success and non-zero when a requirement is not met, a
-download or checksum fails, or the arguments are invalid. `JUNIE_HOME`
-(Junie's config directory) and `JUNIE_LOCAL_UPDATE_FILES_BASE_URL` (where the
-channel feeds are read from, useful for testing with a `file://` URL) are
-honoured by both scripts.
+download or checksum fails, or the arguments are invalid.
+
+Both scripts honour the same environment variables:
+
+| Variable | Effect |
+|---|---|
+| `JUNIE_HOME` | Junie's config directory, where the model config is written |
+| `JUNIE_LOCAL_UPDATE_FILES_BASE_URL` | Where the channel feeds are read from; useful for testing with a `file://` URL |
+| `JUNIE_LOCAL_MODEL_TEST_MODE` | When set to `1`, unmet system requirements no longer block the install |
+
+### Test mode
+
+`JUNIE_LOCAL_MODEL_TEST_MODE=1` makes the installer run on a device that is not
+supported. The system checks are still performed and reported as usual — the
+`check` events keep their real `ok` / `warn` / `fail` status — but a failing
+requirement is downgraded to a `warning` event instead of aborting the run, and
+`checks_passed` in the `config` event is `true`. `--check-only` exits `0` as
+well. The engine and the model are of course not expected to work on such a
+device; this is only meant for exercising the installer itself.
+
+```bash
+JUNIE_LOCAL_MODEL_TEST_MODE=1 ./install.sh
+```
+
+```powershell
+$env:JUNIE_LOCAL_MODEL_TEST_MODE='1'; .\install.ps1
+```
 
 ### `--models`
 
