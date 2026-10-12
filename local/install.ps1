@@ -510,9 +510,10 @@ if ($ListModels -and $Script:PlatformSupported) {
         foreach ($line in $platformLines) {
             $id = $line | Get-JsonField -Field "id"
             $name = $line | Get-JsonField -Field "displayName"
+            $description = $line | Get-JsonField -Field "description"
             $details = Get-ModelDetails -ModelFileId $id
             if (-not $first) { $array += "," }
-            $array += "{`"id`":`"$(Json-Escape $id)`",`"displayName`":`"$(Json-Escape $name)`",`"junieModelId`":`"$(Json-Escape $details.JunieModelId)`",`"size`":$($details.Size)}"
+            $array += "{`"id`":`"$(Json-Escape $id)`",`"displayName`":`"$(Json-Escape $name)`",`"description`":`"$(Json-Escape $description)`",`"junieModelId`":`"$(Json-Escape $details.JunieModelId)`",`"size`":$($details.Size)}"
             $first = $false
         }
         $array += "]"
@@ -523,9 +524,11 @@ if ($ListModels -and $Script:PlatformSupported) {
         foreach ($line in $platformLines) {
             $id = $line | Get-JsonField -Field "id"
             $name = $line | Get-JsonField -Field "displayName"
+            $description = $line | Get-JsonField -Field "description"
             $details = Get-ModelDetails -ModelFileId $id
             $sizeGb = ($details.Size / 1GB).ToString("F1", [Globalization.CultureInfo]::InvariantCulture)
             Write-Host "$name ($id, $sizeGb GB)"
+            if ($description) { Write-Host "  $description" }
         }
     }
     exit 0
