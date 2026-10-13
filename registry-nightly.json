@@ -576,7 +576,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.240.0",
+      "version": "0.240.1",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -586,7 +586,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@0.240.0",
+          "package": "droid@0.240.1",
           "args": [
             "exec",
             "--output-format",
@@ -650,7 +650,7 @@
     {
       "id": "github-copilot-cli",
       "name": "Copilot",
-      "version": "1.0.96",
+      "version": "1.0.97",
       "description": "GitHub's AI pair programmer",
       "repository": "https://github.com/github/copilot-cli",
       "website": "https://github.com/features/copilot/cli/",
@@ -661,7 +661,7 @@
       "license_url": "https://github.com/github/copilot-cli/blob/main/LICENSE.md",
       "distribution": {
         "npx": {
-          "package": "@github/copilot@1.0.96",
+          "package": "@github/copilot@1.0.97",
           "args": [
             "--acp"
           ]
@@ -672,7 +672,7 @@
     {
       "id": "glm-acp-agent",
       "name": "GLM Agent",
-      "version": "1.14.1",
+      "version": "1.15.0",
       "description": "ACP agent powered by Zhipu AI's GLM Coding Plan models (glm-5.1, glm-5-turbo, glm-4.7, glm-4.5-air). Supports streaming, tool calls, mid-session model switching, image input via Z.AI Coding Plan Vision MCP, and session load/fork/resume with on-disk persistence.",
       "repository": "https://github.com/stefandevo/glm-acp-agent",
       "authors": [
@@ -683,7 +683,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/glm-acp-agent.svg",
       "distribution": {
         "npx": {
-          "package": "glm-acp-agent@1.14.1"
+          "package": "glm-acp-agent@1.15.0"
         }
       }
     },
@@ -833,7 +833,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3778.1",
+      "version": "3779.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -845,42 +845,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3778.1/junie-nightly-3778.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3778.1/junie-nightly-3778.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3778.1/junie-nightly-3778.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3778.1/junie-nightly-3778.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3778.1/junie-nightly-3778.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3778.1/junie-nightly-3778.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
