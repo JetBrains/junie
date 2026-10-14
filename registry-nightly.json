@@ -554,7 +554,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.5.17",
+      "version": "0.5.18",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimcode.dev/docs/acp.html",
       "authors": [
@@ -564,7 +564,7 @@
       "license_url": "https://dimagent.cn/terms",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.5.17",
+          "package": "dimcode@0.5.18",
           "args": [
             "acp"
           ]
@@ -854,7 +854,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3791.1",
+      "version": "3793.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -866,42 +866,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3791.1/junie-nightly-3791.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3793.1/junie-nightly-3793.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3791.1/junie-nightly-3791.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3793.1/junie-nightly-3793.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3791.1/junie-nightly-3791.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3793.1/junie-nightly-3793.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3791.1/junie-nightly-3791.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3793.1/junie-nightly-3793.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3791.1/junie-nightly-3791.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3793.1/junie-nightly-3793.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3791.1/junie-nightly-3791.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3793.1/junie-nightly-3793.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -978,7 +978,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.9.2",
+      "version": "1.11.0",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -990,8 +990,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.9.2/kimchi_darwin_arm64.tar.gz",
-            "sha256": "d2ebc8122ac3669509988effe152084f0d0291988dd4c9348bec0893db634033",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.11.0/kimchi_darwin_arm64.tar.gz",
+            "sha256": "cff24dcc681656997de6d06225f0ee240a6743adc8438dd73727987064466454",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -999,8 +999,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.9.2/kimchi_darwin_amd64.tar.gz",
-            "sha256": "34bf7a3602d9a7ad711c7a825c86828a287e1eefb2810a6b0d07b0edf59b8127",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.11.0/kimchi_darwin_amd64.tar.gz",
+            "sha256": "df7885b1a6c40439b6af0ec57bb5f88c379fb824632bcac95ff87cb9e81fd51b",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1008,8 +1008,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.9.2/kimchi_linux_arm64.tar.gz",
-            "sha256": "bb438783e28f5ef447edca116901035b2cb0cc471d0cf17bf83b75ab24250874",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.11.0/kimchi_linux_arm64.tar.gz",
+            "sha256": "9935c5c752132b394100d502e65141e29118245fd2880d57282031e71369d483",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1017,8 +1017,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.9.2/kimchi_linux_amd64.tar.gz",
-            "sha256": "9371b00a21c7449897ed144d5d2cde38bd4d95a78d44e48a3711edada1df02fb",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.11.0/kimchi_linux_amd64.tar.gz",
+            "sha256": "3c81cf898a5f25ad2ef94974c907458039c2d9aa0b4c67c11516d2f382639e43",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1026,8 +1026,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.9.2/kimchi_windows_amd64.zip",
-            "sha256": "0bee6fee5b0f7a2903a79ae96c50f0a2563248778e5a2be43f1843b0dadf61c6",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.11.0/kimchi_windows_amd64.zip",
+            "sha256": "4697910ddb50bb672ef1662f975dd1ee65aef11a0bd34ffb3784ad4d3af9648a",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
