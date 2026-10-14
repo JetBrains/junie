@@ -157,6 +157,27 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/autohand.svg"
     },
     {
+      "id": "bob",
+      "name": "Bob",
+      "version": "2.0.7",
+      "description": "IBM Bob is your AI-Powered Development Partner",
+      "website": "https://bob.ibm.com",
+      "authors": [
+        "IBM"
+      ],
+      "license": "proprietary",
+      "license_url": "https://www.ibm.com/support/customer/csol/terms/?id=L-EBQG-R9G8MA",
+      "distribution": {
+        "npx": {
+          "package": "@ibm/bob@2.0.7",
+          "args": [
+            "acp"
+          ]
+        }
+      },
+      "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/bob.svg"
+    },
+    {
       "id": "claude-acp",
       "name": "Claude Agent",
       "version": "0.90.0",
@@ -576,7 +597,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "0.240.1",
+      "version": "0.241.1",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -586,7 +607,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@0.240.1",
+          "package": "droid@0.241.1",
           "args": [
             "exec",
             "--output-format",
@@ -628,7 +649,7 @@
     {
       "id": "gemini",
       "name": "Gemini CLI",
-      "version": "0.63.0",
+      "version": "0.64.0",
       "description": "Google's official CLI for Gemini",
       "repository": "https://github.com/google-gemini/gemini-cli",
       "website": "https://geminicli.com",
@@ -639,7 +660,7 @@
       "license_url": "https://github.com/google-gemini/gemini-cli/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@google/gemini-cli@0.63.0",
+          "package": "@google/gemini-cli@0.64.0",
           "args": [
             "--acp"
           ]
@@ -748,7 +769,7 @@
     {
       "id": "grok-build",
       "name": "Grok Build",
-      "version": "1.0.55",
+      "version": "1.0.58",
       "description": "xAI's coding agent and CLI",
       "website": "https://x.ai/cli",
       "authors": [
@@ -758,7 +779,7 @@
       "license_url": "https://x.ai/legal/terms-of-service",
       "distribution": {
         "npx": {
-          "package": "@xai-official/grok@1.0.55",
+          "package": "@xai-official/grok@1.0.58",
           "args": [
             "agent",
             "stdio"
@@ -833,7 +854,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3779.1",
+      "version": "3780.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -845,42 +866,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3780.1/junie-nightly-3780.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3780.1/junie-nightly-3780.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3780.1/junie-nightly-3780.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3780.1/junie-nightly-3780.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3780.1/junie-nightly-3780.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3779.1/junie-nightly-3779.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3780.1/junie-nightly-3780.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1163,7 +1184,7 @@
     {
       "id": "nova",
       "name": "Nova",
-      "version": "1.1.52",
+      "version": "1.1.53",
       "description": "Nova by Compass AI - a fully-fledged software engineer at your command",
       "repository": "https://github.com/Compass-Agentic-Platform/nova",
       "website": "https://www.compassap.ai/portfolio/nova.html",
@@ -1175,7 +1196,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/nova.svg",
       "distribution": {
         "npx": {
-          "package": "@compass-ai/nova@1.1.52",
+          "package": "@compass-ai/nova@1.1.53",
           "args": [
             "acp"
           ]
