@@ -307,7 +307,11 @@ if ($ONESHOT) {
 
   # Install shim batch file (embedded inline so it works when piped via irm ... | iex)
   $SHIM_PATH = Join-Path $JUNIE_BIN "junie.bat"
-  $SHIM_CONTENT = @'
+  $BUNDLED_SHIM = Join-Path $TARGET_DIR "shim\junie.bat"
+  if (Test-Path $BUNDLED_SHIM) {
+    Copy-Item -Path $BUNDLED_SHIM -Destination $SHIM_PATH -Force
+  } else {
+    $SHIM_CONTENT = @'
 @echo off
 setlocal enabledelayedexpansion
 
@@ -657,13 +661,14 @@ for %%A in (%*) do (
 :: place during auto-update (see ShimUpdater on the binary side).
 endlocal & set "EJ_RUNNER_PWD=%EJ_RUNNER_PWD%" & set "JUNIE_DATA=%JUNIE_DATA%" & set "JUNIE_SHIM_PATH=%~f0" & "%JUNIE_EXE%" %FILTERED_ARGS%
 '@
-  # The shim is a cmd.exe batch file: it MUST use Windows CRLF line endings.
-  # This template is maintained with LF, so normalize before writing -- otherwise
-  # `goto`/`call` label seeking breaks on LF-only files (e.g. the forward jump to
-  # :after_channel_oneshot), causing "The system cannot find the batch label
-  # specified" on launch.
-  $SHIM_CONTENT = $SHIM_CONTENT -replace "`r?`n", "`r`n"
-  [System.IO.File]::WriteAllText($SHIM_PATH, $SHIM_CONTENT)
+    # The shim is a cmd.exe batch file: it MUST use Windows CRLF line endings.
+    # This template is maintained with LF, so normalize before writing -- otherwise
+    # `goto`/`call` label seeking breaks on LF-only files (e.g. the forward jump to
+    # :after_channel_oneshot), causing "The system cannot find the batch label
+    # specified" on launch.
+    $SHIM_CONTENT = $SHIM_CONTENT -replace "`r?`n", "`r`n"
+    [System.IO.File]::WriteAllText($SHIM_PATH, $SHIM_CONTENT)
+  }
 
   Log "Installed successfully!"
 
