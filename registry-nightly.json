@@ -159,7 +159,7 @@
     {
       "id": "bob",
       "name": "Bob",
-      "version": "2.0.7",
+      "version": "2.0.8",
       "description": "IBM Bob is your AI-Powered Development Partner",
       "website": "https://bob.ibm.com",
       "authors": [
@@ -169,7 +169,7 @@
       "license_url": "https://www.ibm.com/support/customer/csol/terms/?id=L-EBQG-R9G8MA",
       "distribution": {
         "npx": {
-          "package": "@ibm/bob@2.0.7",
+          "package": "@ibm/bob@2.0.8",
           "args": [
             "acp"
           ]
@@ -180,7 +180,7 @@
     {
       "id": "claude-acp",
       "name": "Claude Agent",
-      "version": "0.90.0",
+      "version": "0.91.0",
       "description": "ACP wrapper for Anthropic's Claude",
       "repository": "https://github.com/agentclientprotocol/claude-agent-acp",
       "authors": [
@@ -192,7 +192,7 @@
       "license_url": "https://github.com/agentclientprotocol/claude-agent-acp/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@agentclientprotocol/claude-agent-acp@0.90.0"
+          "package": "@agentclientprotocol/claude-agent-acp@0.91.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/claude-acp.svg"
@@ -791,7 +791,7 @@
     {
       "id": "harn",
       "name": "Harn",
-      "version": "0.10.165",
+      "version": "0.10.166",
       "description": "Harn runs .harn agent pipelines as a native ACP coding agent over stdio.",
       "repository": "https://github.com/burin-labs/harn",
       "website": "https://harnlang.com",
@@ -803,49 +803,49 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.165/harn-aarch64-apple-darwin.tar.gz",
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.166/harn-aarch64-apple-darwin.tar.gz",
             "cmd": "./harn",
             "args": [
               "serve",
               "acp"
             ],
-            "sha256": "29d9a1eb6024e462f22db26652684b8b10e5ac9c1a9c1fb83916e71f2025de08"
+            "sha256": "89f916158f2c0c57467f6a3c85e18819b9879ae3685e6f066f67748ada29c547"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.165/harn-x86_64-apple-darwin.tar.gz",
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.166/harn-x86_64-apple-darwin.tar.gz",
             "cmd": "./harn",
             "args": [
               "serve",
               "acp"
             ],
-            "sha256": "0f3ca86f1f3f78ba50c23a93c03c4974c2d52ae81e9e01ff52cdc5f967de9e53"
+            "sha256": "84299f191bb8c4c720820ab43c2dbbca6644c304db2508ba73f2b84f3d3df3c1"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.165/harn-aarch64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.166/harn-aarch64-unknown-linux-gnu.tar.gz",
             "cmd": "./harn",
             "args": [
               "serve",
               "acp"
             ],
-            "sha256": "e312f48a8bf7aa02defafc6e820a752eb0e6d170b2f3b9b81b3832aa8850ce14"
+            "sha256": "ae4b1747125fd045f02ac9ccc123dc6394d8952a722d817a54bebfaf43abc862"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.165/harn-x86_64-unknown-linux-gnu.tar.gz",
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.166/harn-x86_64-unknown-linux-gnu.tar.gz",
             "cmd": "./harn",
             "args": [
               "serve",
               "acp"
             ],
-            "sha256": "68f368f0163c07587ce3360781f72bbc44d744db2c16a57b4fd708b1c872d639"
+            "sha256": "7fead9d9e11ca018da6d465dc73cf3e059cd2a76b6559787953ea6c38dc0540c"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.165/harn-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/burin-labs/harn/releases/download/v0.10.166/harn-x86_64-pc-windows-msvc.zip",
             "cmd": "harn.exe",
             "args": [
               "serve",
               "acp"
             ],
-            "sha256": "da62c98d007dabf6d6f426d05d19866a8425b3903bfbf18c6dd5ca6788c50541"
+            "sha256": "c8cf063b86782cbbfa2875c6e8b4183a6789c6de1f55a3ad4b3e24098247d3f1"
           }
         }
       },
@@ -854,7 +854,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3810.1",
+      "version": "3813.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -866,42 +866,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3810.1/junie-nightly-3810.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3813.1/junie-nightly-3813.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3810.1/junie-nightly-3810.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3813.1/junie-nightly-3813.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3810.1/junie-nightly-3810.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3813.1/junie-nightly-3813.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3810.1/junie-nightly-3810.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3813.1/junie-nightly-3813.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3810.1/junie-nightly-3810.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3813.1/junie-nightly-3813.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3810.1/junie-nightly-3810.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3813.1/junie-nightly-3813.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -914,7 +914,7 @@
     {
       "id": "kilo",
       "name": "Kilo",
-      "version": "7.8.8",
+      "version": "7.8.12",
       "description": "The open source coding agent",
       "repository": "https://github.com/Kilo-Org/kilocode",
       "website": "https://kilo.ai/",
@@ -927,48 +927,48 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.8/kilo-darwin-arm64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.12/kilo-darwin-arm64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "67703d15d38be9e0b4b025491aa08017e7019e15ba47491b2c563e39136700fc"
+            "sha256": "2ad4b16ac1a1d0d9b7122f70defb74b2ce362555427bb2621a7869855511b15e"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.8/kilo-darwin-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.12/kilo-darwin-x64.zip",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "32c2391e4dd8d009df83f9c8c85467d8cf3afc6fa398c2cf6fbc3e7cdcefd3e1"
+            "sha256": "954c46b803ba109118a91205f4415ae5eee185dc3cc48b38cc37b281c0cddb87"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.8/kilo-linux-arm64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.12/kilo-linux-arm64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "abb057ef7bdd65987274a15731272350a61149d0bd343931c809c097a4265273"
+            "sha256": "0380f9ac3c24cb95d2c7dad7976a9b0a97f3ce2a418e0b253ed43fd8fb955d35"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.8/kilo-linux-x64.tar.gz",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.12/kilo-linux-x64.tar.gz",
             "cmd": "./kilo",
             "args": [
               "acp"
             ],
-            "sha256": "1072997aa8d54f001cacf76527465353b7a7abd76b7e08828309bd3576c6429b"
+            "sha256": "c6e208c3384df663e8401b6ee8537305a14b32a5fad78579cc1f28f64022e853"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.8/kilo-windows-x64.zip",
+            "archive": "https://github.com/Kilo-Org/kilocode/releases/download/v7.8.12/kilo-windows-x64.zip",
             "cmd": "./kilo.exe",
             "args": [
               "acp"
             ],
-            "sha256": "ed943f108c9017b7f38a64d6e0f987218994364cc3ad721e870c33ffec04144a"
+            "sha256": "49a1a1c339efbe721bbf30fcc5029aeae5c68893157727f696b599580c472b2b"
           }
         },
         "npx": {
-          "package": "@kilocode/cli@7.8.8",
+          "package": "@kilocode/cli@7.8.12",
           "args": [
             "acp"
           ]
@@ -978,7 +978,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.13.0",
+      "version": "1.15.1",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -990,8 +990,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.13.0/kimchi_darwin_arm64.tar.gz",
-            "sha256": "33985683787aa542f9d23ff82c6bbbf178762c2cee6a41fdf27e6df57e3c9fcb",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.15.1/kimchi_darwin_arm64.tar.gz",
+            "sha256": "ba95752f51a4b05eaf9b4c6fca4845533b82cb2e969024f9b3057756e2c792b7",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -999,8 +999,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.13.0/kimchi_darwin_amd64.tar.gz",
-            "sha256": "5739d86ebb380f6b48f46d96638b3ace3d9d56395af27c0b0d546b4628d774f0",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.15.1/kimchi_darwin_amd64.tar.gz",
+            "sha256": "36bec90a574b09d5dfe070e50b17a5279159abe9edb1288dadfde3f1522647f7",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1008,8 +1008,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.13.0/kimchi_linux_arm64.tar.gz",
-            "sha256": "69cac0653a54ff9b0844bcbee4e1179087dbf6036f81ab98bdd042e5f1f12eec",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.15.1/kimchi_linux_arm64.tar.gz",
+            "sha256": "a29ba9eb96d65174c46473fdc5c7ba04bdd2ea26e674fb346bc256acee9e3239",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1017,8 +1017,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.13.0/kimchi_linux_amd64.tar.gz",
-            "sha256": "cbbe9aa3289fe8285e531519d70f10488b48b2a30c231fe39ff788217823d207",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.15.1/kimchi_linux_amd64.tar.gz",
+            "sha256": "401f046f1cae3d616af1683fe1b5330158ae77bc79f2f38862960ec2704ee202",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1026,8 +1026,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.13.0/kimchi_windows_amd64.zip",
-            "sha256": "1a79cec13b0b88eaeb4d0a68857aeaf33f92ff97d6893321c7036767d7facc1e",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.15.1/kimchi_windows_amd64.zip",
+            "sha256": "728274af4ea331aaef3129728f22185b25166d1aa78e6c097141d024481b2c8a",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
