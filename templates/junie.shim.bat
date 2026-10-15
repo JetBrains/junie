@@ -300,6 +300,10 @@ if errorlevel 1 (
 set "CLAIMED_UPDATE=%UPDATES_DIR%\pending-update.json.processing"
 
 :: Parse the claimed manifest using PowerShell (reliable JSON parsing)
+set "UPD_VERSION="
+set "UPD_ZIP="
+set "UPD_SHA256="
+set "ACTUAL_SHA="
 for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "$env:PSModulePath=''; (Get-Content '!CLAIMED_UPDATE!' | ConvertFrom-Json).version"`) do set "UPD_VERSION=%%V"
 for /f "usebackq delims=" %%Z in (`powershell -NoProfile -Command "$env:PSModulePath=''; (Get-Content '!CLAIMED_UPDATE!' | ConvertFrom-Json).zipPath"`) do set "UPD_ZIP=%%Z"
 for /f "usebackq delims=" %%S in (`powershell -NoProfile -Command "$env:PSModulePath=''; (Get-Content '!CLAIMED_UPDATE!' | ConvertFrom-Json).sha256"`) do set "UPD_SHA256=%%S"
