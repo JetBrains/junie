@@ -80,8 +80,30 @@ $env:JUNIE_LOCAL_MODEL_TEST_MODE='1'; .\install.ps1
 ### `--models`
 
 Lists the models published for this platform in the selected channel and exits.
-Human output is one `displayName (id)` line per model with its description
+Human output is one `displayName (id, size)` line per model with its description
 underneath; with `--json` a single `models` event carries the same data.
+
+Each model entry has:
+
+| Field | Description |
+|---|---|
+| `id` | Feed id of the model, the value `--model` takes |
+| `displayName` | Human-readable name |
+| `description` | One-line description of the model |
+| `junieModelId` | The model id Junie itself uses (the `models/<id>.json` profile written to `JUNIE_HOME`), the value shown by `/model` |
+| `size` | Total download size in bytes: the sum of the `size` fields of every archive in the model JSON |
+
+`junieModelId` and `size` are resolved from the model JSON
+(`models/<id>.json` in the feed); when it cannot be fetched they fall back to
+`""` and `0`.
+
+```bash
+JUNIE_LOCAL_UPDATE_FILES_BASE_URL="https://raw.githubusercontent.com/jetbrains-junie/junie/main/local" ./install.sh --models --json
+```
+
+```json
+{"event":"models","platform":"macos-aarch64","channel":"main","models":[{"id":"Qwen3.6-27B-MLX-4bit","displayName":"Qwen 3.6","description":"A 27B vision-language model built for agentic coding, STEM reasoning, and image understanding","junieModelId":"local-qwen3.6-27b-4bit","size":17164458460},{"id":"Qwen3.8-3.6-27B-blend-MLX-4bit","displayName":"Qwen 3.8/3.6 Blend (experimental)","description":"A local AI coding model that completes more coding tasks than Qwen3.6 while using far fewer output tokens than Qwen3.8.","junieModelId":"local-qwen3.8-3.6-27b-blend-4bit","size":17164436304}]}
+```
 
 ### `--check-engine-update`
 
@@ -133,7 +155,7 @@ the mode that was requested (`models`, `engine_update`), or with `error`.
 | Event | When | Fields |
 |---|---|---|
 | `hello` | First line of every run | `protocol` (number) |
-| `models` | `--models`, then the script exits | `platform`, `channel`, `models`: array of `{id, displayName, description}` |
+| `models` | `--models`, then the script exits | `platform`, `channel`, `models`: array of `{id, displayName, description, junieModelId, size}` |
 | `engine_update` | `--check-engine-update`, then the script exits | `platform`, `channel`, `installed_version` (empty when none), `latest_version`, `update_available` (bool), `status`: `up_to_date` \| `update_available` \| `not_installed` |
 | `check` | Once per system requirement | `name`, `status`: `ok` \| `warn` \| `fail`, `value`, `requirement` |
 | `config` | After the checks, before installing | `port`, `ram_gb`, `engine_version`, `model`, `checks_passed` (bool) |
@@ -167,7 +189,7 @@ Example of a full install:
 
 ```json
 {"event":"hello","protocol":1}
-{"event":"models","platform":"macos-aarch64","channel":"main","models":[{"id":"Qwen3.6-27B-MLX-4bit","displayName":"Qwen 3.6","description":"A 27B vision-language model built for agentic coding, STEM reasoning, and image understanding"}]}
+{"event":"models","platform":"macos-aarch64","channel":"main","models":[{"id":"Qwen3.6-27B-MLX-4bit","displayName":"Qwen 3.6","description":"A 27B vision-language model built for agentic coding, STEM reasoning, and image understanding","junieModelId":"local-qwen3.6-27b-4bit","size":17164458460}]}
 ```
 
 ```json
