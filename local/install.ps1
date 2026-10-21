@@ -441,6 +441,27 @@ function Resolve-InstallMetadata {
 # List models mode
 # ============================================================
 
+# Fetch the model JSON for a model file id and return its total download size
+# (sum of the archive "size" fields, in bytes) together with the top-level
+# Junie model id. Both stay empty/0 when the model JSON cannot be fetched.
+function Get-ModelDetails {
+    param([Parameter(Mandatory)][string]$ModelFileId)
+    $json = try {
+        Get-UpdateFileText "$Script:UpdateFilesBaseUrl/models/$ModelFileId.json"
+    }
+    catch {
+        return [PSCustomObject]@{ Size = [int64]0; JunieModelId = "" }
+    }
+    $size = [int64]0
+    foreach ($m in [regex]::Matches($json, '"size"\s*:\s*(\d+)')) {
+        $size += [int64]$m.Groups[1].Value
+    }
+    return [PSCustomObject]@{
+        Size = $size
+        JunieModelId = ($json | Get-JsonField -Field "id")
+    }
+}
+
 if ($ListModels -and $Script:PlatformSupported) {
     $modelsUpdateUrl = "$Script:UpdateFilesBaseUrl/update-info-models-$Script:Channel.jsonl"
     $jsonl = Get-UpdateFileText $modelsUpdateUrl
@@ -456,8 +477,9 @@ if ($ListModels -and $Script:PlatformSupported) {
         foreach ($line in $platformLines) {
             $id = $line | Get-JsonField -Field "id"
             $name = $line | Get-JsonField -Field "displayName"
+            $details = Get-ModelDetails -ModelFileId $id
             if (-not $first) { $array += "," }
-            $array += "{`"id`":`"$(Json-Escape $id)`",`"displayName`":`"$(Json-Escape $name)`"}"
+            $array += "{`"id`":`"$(Json-Escape $id)`",`"displayName`":`"$(Json-Escape $name)`",`"junieModelId`":`"$(Json-Escape $details.JunieModelId)`",`"size`":$($details.Size)}"
             $first = $false
         }
         $array += "]"
@@ -468,7 +490,9 @@ if ($ListModels -and $Script:PlatformSupported) {
         foreach ($line in $platformLines) {
             $id = $line | Get-JsonField -Field "id"
             $name = $line | Get-JsonField -Field "displayName"
-            Write-Host "$name ($id)"
+            $details = Get-ModelDetails -ModelFileId $id
+            $sizeGb = ($details.Size / 1GB).ToString("F1", [Globalization.CultureInfo]::InvariantCulture)
+            Write-Host "$name ($id, $sizeGb GB)"
         }
     }
     exit 0

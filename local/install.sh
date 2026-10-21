@@ -169,6 +169,29 @@ get_json_field() {
   grep -o "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 | sed "s/\"${field}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\"/\\1/"
 }
 
+# Sum the "size" fields of all archives in the model JSON on stdin. Prints the
+# total in bytes (0 when no sizes are present).
+sum_archive_sizes() {
+  grep -o '"size"[[:space:]]*:[[:space:]]*[0-9]*' | sed 's/.*:[[:space:]]*//' | awk '{ total += $1 } END { printf "%d\n", total }'
+}
+
+# Fetch the model JSON for the given model file id and set two globals:
+# model_total_size (sum of archive sizes in bytes) and model_junie_id (the
+# top-level "id" used by Junie). Both are empty/0 when the fetch fails.
+load_model_details() {
+  model_file_id="$1"
+  model_total_size=0
+  model_junie_id=""
+  model_detail_json=$(curl -fsSL "${UPDATE_FILES_BASE_URL}/models/${model_file_id}.json" 2>/dev/null) || return 0
+  model_total_size=$(printf '%s' "$model_detail_json" | sum_archive_sizes)
+  model_junie_id=$(printf '%s' "$model_detail_json" | get_json_field id)
+}
+
+# Format a size in bytes as a human-readable GB value.
+format_size_gb() {
+  awk -v bytes="$1" 'BEGIN { printf "%.1f GB\n", bytes / 1073741824 }'
+}
+
 # List all models available for the current platform from the channel's
 # update-info-models JSONL. In human mode prints one "id (displayName)" per
 # line; with --json emits a single "models" event with the full list.
@@ -189,12 +212,13 @@ list_available_models() {
       esac
       id=$(printf '%s' "$entry" | get_json_field id)
       name=$(printf '%s' "$entry" | get_json_field displayName)
+      load_model_details "$id"
       if [ "$first" = true ]; then
         first=false
       else
         models_array="$models_array,"
       fi
-      models_array="$models_array{\"id\":\"$(json_escape "$id")\",\"displayName\":\"$(json_escape "$name")\"}"
+      models_array="$models_array{\"id\":\"$(json_escape "$id")\",\"displayName\":\"$(json_escape "$name")\",\"junieModelId\":\"$(json_escape "$model_junie_id")\",\"size\":$model_total_size}"
     done <<EOF
 $(printf '%s\n' "$models_jsonl")
 EOF
@@ -208,7 +232,8 @@ EOF
       esac
       id=$(printf '%s' "$entry" | get_json_field id)
       name=$(printf '%s' "$entry" | get_json_field displayName)
-      printf '  %s%s%s (%s)\n' "$GRAY" "$name" "$RESET" "$id"
+      load_model_details "$id"
+      printf '  %s%s%s (%s, %s)\n' "$GRAY" "$name" "$RESET" "$id" "$(format_size_gb "$model_total_size")"
     done <<EOF
 $(printf '%s\n' "$models_jsonl")
 EOF
