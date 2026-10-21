@@ -24,7 +24,7 @@ Supported options:
 - `--channel <name>` — Update channel: `main` (default) or `eap`
 - `--check-only` — Report system information and exit without installing
 - `--json` — Emit machine-readable events on stdout
-- `--keep-config` — Preserve an existing `server-config.json`
+- `--keep-config` — **Deprecated**, accepted and ignored; it only prints a deprecation warning
 
 ### `install.ps1`
 

@@ -79,6 +79,7 @@ usage() {
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
+  echo "  --keep-config      Deprecated, accepted and ignored"
   echo "  --help, -h         Show this help"
 }
 
@@ -87,6 +88,7 @@ while [ $# -gt 0 ]; do
     --json) MACHINE_OUTPUT=true ;;
     --check-only) CHECK_ONLY=true ;;
     --models) LIST_MODELS=true ;;
+    --keep-config) echo "WARNING: --keep-config is deprecated and does nothing; it will be removed in a future release" ;;
     --model)
       shift
       if [ $# -eq 0 ]; then
@@ -1487,11 +1489,6 @@ section "Starting the inference engine"
 emit_step_start "start" "Starting the inference engine"
 start_engine || true
 emit_step_done "start"
-
-if [ "$KEEP_CONFIG" = true ]; then
-  echo ""
-  printf '  %sNote: --keep-config is set, the previous server-config.json was preserved.%s\n' "$GRAY_DIM" "$RESET"
-fi
 
 section "Installation complete"
 type_line "Local model installed." "$JUNIE_GREEN$BOLD"
