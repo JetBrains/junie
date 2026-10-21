@@ -482,8 +482,10 @@ get_checksum() {
 
 # The engine runs as junie-local; its inference worker child exits with it.
 # Every junie-local process on the machine is ours, so match the name only.
+# junie-mlx-vlm is the previous engine name: an install over an older version
+# still has to stop it before replacing the files.
 get_engine_pids() {
-  pgrep -x junie-local 2>/dev/null
+  { pgrep -x junie-local; pgrep -x junie-mlx-vlm; } 2>/dev/null || true
 }
 
 is_engine_running() {
