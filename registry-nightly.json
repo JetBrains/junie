@@ -854,7 +854,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3892.1",
+      "version": "3893.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -866,42 +866,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3892.1/junie-nightly-3892.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3893.1/junie-nightly-3893.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3892.1/junie-nightly-3892.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3893.1/junie-nightly-3893.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3892.1/junie-nightly-3892.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3893.1/junie-nightly-3893.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3892.1/junie-nightly-3892.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3893.1/junie-nightly-3893.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3892.1/junie-nightly-3892.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3893.1/junie-nightly-3893.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3892.1/junie-nightly-3892.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3893.1/junie-nightly-3893.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -978,7 +978,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.17.2",
+      "version": "1.18.1",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -990,8 +990,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.17.2/kimchi_darwin_arm64.tar.gz",
-            "sha256": "7995f7ab1f00c8541d89a4e87c0bc4d25cbc91bcaca1b0b9a7dec715bbd27ad3",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.18.1/kimchi_darwin_arm64.tar.gz",
+            "sha256": "4405df9630f6355be2018f181ba2cbeb28a3549267627971922079df854afccf",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -999,8 +999,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.17.2/kimchi_darwin_amd64.tar.gz",
-            "sha256": "10e5145c620e31093f2707ca9917d747f1afea07a0eaa056c916390214e9c568",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.18.1/kimchi_darwin_amd64.tar.gz",
+            "sha256": "22502382a6b55378492e614c236fb8971c09a0beb365bd839a56c48e3921b40c",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1008,8 +1008,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.17.2/kimchi_linux_arm64.tar.gz",
-            "sha256": "6431991d376de2691bda44cfdfb05f6c6677ab1bda91b7f4c71fc4e56ff11dc7",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.18.1/kimchi_linux_arm64.tar.gz",
+            "sha256": "6726925266f3c33e673f5b481c8873bc89c52f922c1fefcd996c7056e3294758",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1017,8 +1017,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.17.2/kimchi_linux_amd64.tar.gz",
-            "sha256": "cc98403c348d52cbabafc5d443d6260addabda7357e7159bb37ca758432a5569",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.18.1/kimchi_linux_amd64.tar.gz",
+            "sha256": "4a8d5b0098e7397ed76ed1b0dd2199c83606f0762bbdb1dc0b243440eaedcb95",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1026,8 +1026,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.17.2/kimchi_windows_amd64.zip",
-            "sha256": "995710dfffde7459a0c5b7d902c3817474201069e9c16c9b7ec57aa4e7a3f731",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.18.1/kimchi_windows_amd64.zip",
+            "sha256": "31b1526cea1636147206b6c042fb5d97ce62efee4b3266ffcab13a9ba1584574",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
@@ -1466,7 +1466,7 @@
     {
       "id": "sigit",
       "name": "siGit Code",
-      "version": "1.7.3",
+      "version": "1.7.4",
       "description": "Local-first coding agent. Runs entirely on your machine with optional on-device LLM inference via Onde.",
       "repository": "https://github.com/getsigit/sigit",
       "website": "https://github.com/getsigit/sigit",
@@ -1478,38 +1478,38 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.3/sigit-macos-arm64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.4/sigit-macos-arm64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "2f29c8c7ee1f48b3a9cae83af3d67c20736c3451f0210fbe3ff0204147a1863b"
+            "sha256": "6727e6eb77a9d97ba349dae2c97e349990fdac380f6f008a383eef914f0a5403"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.3/sigit-macos-amd64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.4/sigit-macos-amd64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "e86211c5e8175860318a16f27fc203aa38a24103e6a1493dcbd71541967d3102"
+            "sha256": "c32bcade6eb0d7d6645a5b86ce4a71e9bc7fd933993accf4e62c7431c4a8e791"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.3/sigit-linux-arm64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.4/sigit-linux-arm64",
             "cmd": "./sigit-linux-arm64",
-            "sha256": "11a831be93bc50b8d2773daeafbed4b5f47a2150679b7d161c22ea6be654a0c7"
+            "sha256": "395da501bfe0c6c3b59e6ab25e94b35d7608856c96c9d34e7ced93b29ca7c1b4"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.3/sigit-linux-amd64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.4/sigit-linux-amd64",
             "cmd": "./sigit-linux-amd64",
-            "sha256": "e714a85fc262cc5f628eaf8c30756783cdd945c2b5c8f70897dedd760ce77421"
+            "sha256": "eace6933f8fcf6276e2ffee3c25ec6319dfd5374918899cc130d6d926f758197"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.3/sigit-win-arm64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.4/sigit-win-arm64.exe",
             "cmd": "./sigit-win-arm64.exe",
-            "sha256": "b6b4d87643f3fabab123f76945cd3d3aebbf6ecad3022972cfc1aca049ffee27"
+            "sha256": "2983771a5c1dfea6f93e4bc4483ae5a06a8ffe2cb1ff13fd0b86862d6b4212ad"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.3/sigit-win-amd64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.4/sigit-win-amd64.exe",
             "cmd": "./sigit-win-amd64.exe",
-            "sha256": "a490bcf73de885a5177b95e38d17387f06312a727bc3242dab953e96bae3aa81"
+            "sha256": "6bf8eaac55565ce8cd255a5a08f37af927a2cc84db304731c1f2a5bab69d8fa1"
           }
         },
         "npx": {
-          "package": "@smbcloud/sigit@1.7.3"
+          "package": "@smbcloud/sigit@1.7.4"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/sigit.svg"
