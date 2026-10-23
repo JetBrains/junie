@@ -1427,7 +1427,7 @@ print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "$OS_REQUIREMENT"
 emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
 # Accelerator check
-# macOS: require Apple M5 or newer (MLX)
+# macOS: require Apple M4 or newer (MLX)
 # Linux: require NVIDIA GPU with 24 GB VRAM and CUDA 12+ (CUDA)
 CPU_OK=true
 ACCEL_DISPLAY="$CPU_MODEL"
@@ -1439,15 +1439,15 @@ CUDA_DISPLAY=""
 CUDA_REQUIREMENT=""
 
 if [ "$OS_TYPE" = "macos" ]; then
-  # The generation is read out of the brand string ("Apple M5 Pro" -> 5) and
-  # compared numerically, so every chip released after the M5 clears the check
+  # The generation is read out of the brand string ("Apple M4 Pro" -> 4) and
+  # compared numerically, so every chip released after the M4 clears the check
   # without this having to be extended for each new generation.
   CPU_GENERATION=$(printf '%s' "$CPU_MODEL" | sed -n 's/.*Apple M\([0-9][0-9]*\).*/\1/p')
-  if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 5 ]; then
+  if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 4 ]; then
     CPU_OK=false
     ALL_OK=false
   fi
-  ACCEL_REQUIREMENT="Apple M5 or newer"
+  ACCEL_REQUIREMENT="Apple M4 or newer"
 else
   # NVIDIA GPU check via nvidia-smi (not required in require_commands, so it
   # may be absent — handle that gracefully here with a clear message)
