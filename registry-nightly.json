@@ -711,7 +711,7 @@
     {
       "id": "goose",
       "name": "goose",
-      "version": "1.55.0",
+      "version": "1.56.0",
       "description": "A local, extensible, open source AI agent that automates engineering tasks",
       "repository": "https://github.com/block/goose",
       "website": "https://block.github.io/goose/",
@@ -723,44 +723,44 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.55.0/goose-aarch64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.56.0/goose-aarch64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "007322bcd885f29b4ff5a0d4c4aaa15bfc5dc8b1ac9b57f3a8a8818e5c88d407"
+            "sha256": "62d806417b19be167474297eaaec7783ff9917f4fa772e781e977f2bdc155163"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.55.0/goose-x86_64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.56.0/goose-x86_64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "a6fbe20c2b23cc92d1d5561b4977348bcb47593de30c61d388baecde1cb4fcf1"
+            "sha256": "0dabf1bc691a1855bc06d2bb5445d27d9c7c08f7ea5af49d32e460a85b98a2ad"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.55.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.56.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "e6cded0c5d7d8227f052928eed22a4d64043c3d6551275faa96a9be7d26a9068"
+            "sha256": "30b60a49a534ca7af062ec94b752367494ad3a2824744a6d1e8ec3e1040d9922"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.55.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.56.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "d9afefe7b8f4e372ebefd8b465ab6eea1f297304d058e8e9379ed627e0329708"
+            "sha256": "e29544421a6e698aab0fe4becda96096218ff36abe85b83785519d41c555c714"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.55.0/goose-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/block/goose/releases/download/v1.56.0/goose-x86_64-pc-windows-msvc.zip",
             "cmd": "./goose-package\\goose.exe",
             "args": [
               "acp"
             ],
-            "sha256": "1df27bbe5178123f29246f069865a7451e1d7a70d143cdae6e2f930078ce6a71"
+            "sha256": "76fbb942579f5851b6593ab0f97b7bd7317d700132443dfa37aa1cddb8af04da"
           }
         }
       },
@@ -854,7 +854,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3909.1",
+      "version": "3910.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -866,42 +866,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3909.1/junie-nightly-3909.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3910.1/junie-nightly-3910.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3909.1/junie-nightly-3909.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3910.1/junie-nightly-3910.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3909.1/junie-nightly-3909.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3910.1/junie-nightly-3910.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3909.1/junie-nightly-3909.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3910.1/junie-nightly-3910.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3909.1/junie-nightly-3909.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3910.1/junie-nightly-3910.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3909.1/junie-nightly-3909.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3910.1/junie-nightly-3910.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -978,7 +978,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.19.2",
+      "version": "1.20.0",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -990,8 +990,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_darwin_arm64.tar.gz",
-            "sha256": "abd97ea7de3d856fa232ac8e2750e9a7fb59a0c1a30b3e1dccf6940557d380c3",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.20.0/kimchi_darwin_arm64.tar.gz",
+            "sha256": "2760187279c9d89b1e17ab1d02683ff78c3b4fd2b505813e17a7d00fd0fcaeaf",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -999,8 +999,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_darwin_amd64.tar.gz",
-            "sha256": "01942c37d3fa87cc8c6f60386cbb1a48b541b0f46eb803c0af68a80e51d999a8",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.20.0/kimchi_darwin_amd64.tar.gz",
+            "sha256": "b6f983d225c4d2bb0b393cb3b479008bba5e2e51c56e46ba3dc087f127a3f1b5",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1008,8 +1008,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_linux_arm64.tar.gz",
-            "sha256": "f5b11c96e1a6db881d519ab55ac1d685d973996240ca4349550105becedf132a",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.20.0/kimchi_linux_arm64.tar.gz",
+            "sha256": "5710d78c2580c8651d4f0d3851cec51d970aa655507b090d742ff2c7825963fb",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1017,8 +1017,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_linux_amd64.tar.gz",
-            "sha256": "f97265cd6dc979e20d236d39ef95356105b5fccfb00d7f6745cf03569ed8493a",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.20.0/kimchi_linux_amd64.tar.gz",
+            "sha256": "49fd7a3a13a2d4337f216bd0bbb478dc3bf40c32426150243ce965c864602c3b",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1026,8 +1026,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_windows_amd64.zip",
-            "sha256": "40e67ca1cc11f1b0a4a374833fdbdccfece9f2e0263a16d93cf35e6bafd8a9f4",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.20.0/kimchi_windows_amd64.zip",
+            "sha256": "13d85d8212e1ebd270c952c094f91ca656507b2ebc8a3b711f9b831b12a09d52",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
