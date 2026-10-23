@@ -4,7 +4,7 @@ Installation scripts and update metadata for the Junie local model (on-device in
 
 ## Current Platform Support
 
-- **macOS** (`install.sh`): Apple M5 or newer, macOS 26+ (MLX backend)
+- **macOS** (`install.sh`): Apple M4 or newer, macOS 26+ (MLX backend)
 - **Windows** (`install.ps1`): NVIDIA GPU with 24 GB VRAM, driver 581+, Visual
   C++ Redistributable; `windows-amd64` and `windows-aarch64`
 
@@ -219,7 +219,7 @@ Update files describe available engine and model versions per channel. There are
 One JSON object per line, one line per platform:
 
 ```json
-{"version":"0.2.2","platform":"macos-aarch64","hardware":"Apple M5","downloadUrl":"...","sha256":"...","size":52428800}
+{"version":"0.2.2","platform":"macos-aarch64","hardware":"Apple M4","downloadUrl":"...","sha256":"...","size":52428800}
 ```
 
 Fields:
@@ -228,7 +228,7 @@ Fields:
 |---|---|
 | `version` | Engine semantic version |
 | `platform` | Target platform (e.g. `macos-aarch64`) |
-| `hardware` | Required hardware (e.g. `"Apple M5"`) |
+| `hardware` | Required hardware (e.g. `"Apple M4"`) |
 | `downloadUrl` | URL to the engine archive |
 | `sha256` | SHA-256 checksum of the archive |
 | `size` | Archive size in bytes |
