@@ -159,7 +159,7 @@
     {
       "id": "bob",
       "name": "Bob",
-      "version": "2.0.8",
+      "version": "2.0.9",
       "description": "IBM Bob is your AI-Powered Development Partner",
       "website": "https://bob.ibm.com",
       "authors": [
@@ -169,7 +169,7 @@
       "license_url": "https://www.ibm.com/support/customer/csol/terms/?id=L-EBQG-R9G8MA",
       "distribution": {
         "npx": {
-          "package": "@ibm/bob@2.0.8",
+          "package": "@ibm/bob@2.0.9",
           "args": [
             "acp"
           ]
@@ -854,7 +854,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3899.1",
+      "version": "3900.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -866,42 +866,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3899.1/junie-nightly-3899.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3900.1/junie-nightly-3900.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3899.1/junie-nightly-3899.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3900.1/junie-nightly-3900.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3899.1/junie-nightly-3899.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3900.1/junie-nightly-3900.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3899.1/junie-nightly-3899.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3900.1/junie-nightly-3900.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3899.1/junie-nightly-3899.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3900.1/junie-nightly-3900.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3899.1/junie-nightly-3899.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3900.1/junie-nightly-3900.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -978,7 +978,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.19.1",
+      "version": "1.19.2",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -990,8 +990,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.1/kimchi_darwin_arm64.tar.gz",
-            "sha256": "28e8ae2ce731a2968759da4040d16d8a40bf6b36ced26e34fdc17933bab0efdb",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_darwin_arm64.tar.gz",
+            "sha256": "abd97ea7de3d856fa232ac8e2750e9a7fb59a0c1a30b3e1dccf6940557d380c3",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -999,8 +999,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.1/kimchi_darwin_amd64.tar.gz",
-            "sha256": "b69d833658172be19ac42ce38f18046acc09f83c7dcdd56ef643fd18b46348a0",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_darwin_amd64.tar.gz",
+            "sha256": "01942c37d3fa87cc8c6f60386cbb1a48b541b0f46eb803c0af68a80e51d999a8",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1008,8 +1008,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.1/kimchi_linux_arm64.tar.gz",
-            "sha256": "5aef947fe6a880ab7137070d9d6a02b619bad0a162f8193175ae768e693a219b",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_linux_arm64.tar.gz",
+            "sha256": "f5b11c96e1a6db881d519ab55ac1d685d973996240ca4349550105becedf132a",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1017,8 +1017,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.1/kimchi_linux_amd64.tar.gz",
-            "sha256": "a2452d7e1b3a12f2b86662550e44d56e8febf5e82b622b486dabe328c25b024c",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_linux_amd64.tar.gz",
+            "sha256": "f97265cd6dc979e20d236d39ef95356105b5fccfb00d7f6745cf03569ed8493a",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1026,8 +1026,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.1/kimchi_windows_amd64.zip",
-            "sha256": "8ae7ce04099d516a02fe6945af9b900564f8c9b3aacd4613b94ffeb1b0e49555",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.19.2/kimchi_windows_amd64.zip",
+            "sha256": "40e67ca1cc11f1b0a4a374833fdbdccfece9f2e0263a16d93cf35e6bafd8a9f4",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
@@ -1272,7 +1272,7 @@
     {
       "id": "opencode-v2",
       "name": "OpenCode V2",
-      "version": "2.1.3",
+      "version": "2.1.4",
       "description": "The open source coding agent, version 2",
       "repository": "https://github.com/anomalyco/opencode",
       "website": "https://opencode.ai",
@@ -1285,52 +1285,52 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://opencode.ai/files/bin/2.1.3/opencode-darwin-arm64.zip",
+            "archive": "https://opencode.ai/files/bin/2.1.4/opencode-darwin-arm64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ],
-            "sha256": "a6b0ec57814f751a4ea2b23d19bc9cd98283203b032d975ce9c429aa99d360ab"
+            "sha256": "f9edc1dded080e39aa61db94270a51af66772ac572be7d6b15fa6f87251a3dff"
           },
           "darwin-x86_64": {
-            "archive": "https://opencode.ai/files/bin/2.1.3/opencode-darwin-x64.zip",
+            "archive": "https://opencode.ai/files/bin/2.1.4/opencode-darwin-x64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
             ],
-            "sha256": "34c91aa1695c5793ed49f40157912796401d11dde545a6e114d8215cf07457be"
+            "sha256": "7f35265b6900ce75b01e03cab2497622026b402c021ecf6e6e68755874245a6b"
           },
           "linux-aarch64": {
-            "archive": "https://opencode.ai/files/bin/2.1.3/opencode-linux-arm64.tar.gz",
+            "archive": "https://opencode.ai/files/bin/2.1.4/opencode-linux-arm64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ],
-            "sha256": "44b568374e7da234f008b1eb0d8f6001d93a4b34b8219f3aaef058d4499c7439"
+            "sha256": "759c9d6e7b246b81bcc93dfc6cc3bb2a38287c75b6202e305eacacb5dd882315"
           },
           "linux-x86_64": {
-            "archive": "https://opencode.ai/files/bin/2.1.3/opencode-linux-x64.tar.gz",
+            "archive": "https://opencode.ai/files/bin/2.1.4/opencode-linux-x64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
             ],
-            "sha256": "f1561a5fa724b781d97e9bf86eb6aceb82b56ef91fa19c03a2cd7b24c36028ab"
+            "sha256": "2edaf8cf96e81dec5ee996a3196b03345cf59e5a1673d83a4599bb4afc5c5f6d"
           },
           "windows-aarch64": {
-            "archive": "https://opencode.ai/files/bin/2.1.3/opencode-windows-arm64.zip",
+            "archive": "https://opencode.ai/files/bin/2.1.4/opencode-windows-arm64.zip",
             "cmd": "./opencode.exe",
             "args": [
               "acp"
             ],
-            "sha256": "336b98e064e8aae6e2fda70de8f84e0c22a2f1a63563261f22ad4eff8035ebed"
+            "sha256": "2bf735889e52a817512d57dfe23a03d3861de0da2f2ef398ef9e91d8a4e81a20"
           },
           "windows-x86_64": {
-            "archive": "https://opencode.ai/files/bin/2.1.3/opencode-windows-x64.zip",
+            "archive": "https://opencode.ai/files/bin/2.1.4/opencode-windows-x64.zip",
             "cmd": "./opencode.exe",
             "args": [
               "acp"
             ],
-            "sha256": "f764199c917dd54483bd629507e6879afe11ddc33d2749ec19bea8bd64ae0b01"
+            "sha256": "6d3ee895c0f6e089bb1f1ee3addfa3d700cc4488a7da97f182cb700d3985a799"
           }
         }
       }
