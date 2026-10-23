@@ -1427,11 +1427,13 @@ print_value "OS:" "$OS_DISPLAY" "$OS_OK" false "$OS_REQUIREMENT"
 emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
 # Accelerator check
-# macOS: require Apple M4 or newer (MLX)
+# macOS: require Apple M4 or newer (MLX); warn on the M4 itself
 # Linux: require NVIDIA GPU with 24 GB VRAM and CUDA 12+ (CUDA)
 CPU_OK=true
+CPU_WARN=false
 ACCEL_DISPLAY="$CPU_MODEL"
 ACCEL_REQUIREMENT=""
+ACCEL_NOTE=""
 GPU_NAME=""
 GPU_VRAM_GB=0
 CUDA_OK=true
@@ -1446,6 +1448,11 @@ if [ "$OS_TYPE" = "macos" ]; then
   if [ -z "$CPU_GENERATION" ] || [ "$CPU_GENERATION" -lt 4 ]; then
     CPU_OK=false
     ALL_OK=false
+  elif [ "$CPU_GENERATION" -eq 4 ]; then
+    # The M4 is supported, but its prefill is about 4x slower than the M5's:
+    # reading a large context takes noticeably longer on this device.
+    CPU_WARN=true
+    ACCEL_NOTE="supported, but reading context is slow: prefill is about 4x slower than on Apple M5"
   fi
   ACCEL_REQUIREMENT="Apple M4 or newer"
 else
@@ -1502,8 +1509,15 @@ fi
 
 print_value "CPU:" "$CPU_MODEL" true false ""
 emit_check "cpu" "ok" "$CPU_MODEL" ""
-print_value "GPU:" "$ACCEL_DISPLAY" "$CPU_OK" false "$ACCEL_REQUIREMENT"
-emit_check "gpu" "$(check_status "$CPU_OK" false)" "$ACCEL_DISPLAY" "$ACCEL_REQUIREMENT"
+if [ "$CPU_WARN" = true ]; then
+  print_value "GPU:" "$ACCEL_DISPLAY" "$CPU_OK" true "$ACCEL_NOTE"
+else
+  print_value "GPU:" "$ACCEL_DISPLAY" "$CPU_OK" false "$ACCEL_REQUIREMENT"
+fi
+emit_check "gpu" "$(check_status "$CPU_OK" "$CPU_WARN")" "$ACCEL_DISPLAY" "$ACCEL_REQUIREMENT"
+if [ "$CPU_WARN" = true ]; then
+  emit_warning "$ACCEL_DISPLAY: $ACCEL_NOTE"
+fi
 if [ "$OS_TYPE" = "linux" ]; then
   print_value "CUDA:" "$CUDA_DISPLAY" "$CUDA_OK" false "$CUDA_REQUIREMENT"
   emit_check "cuda" "$(check_status "$CUDA_OK" false)" "$CUDA_DISPLAY" "$CUDA_REQUIREMENT"

@@ -4,7 +4,10 @@ Installation scripts and update metadata for the Junie local model (on-device in
 
 ## Current Platform Support
 
-- **macOS** (`install.sh`): Apple M4 or newer, macOS 26+ (MLX backend)
+- **macOS** (`install.sh`): Apple M4 or newer, macOS 26+ (MLX backend). The M4
+  is supported but slow at reading context — its prefill is about 4x slower
+  than on an M5 — so the installer reports the `gpu` check as `warn` there and
+  emits a `warning` event.
 - **Windows** (`install.ps1`): NVIDIA GPU with 24 GB VRAM, driver 581+, Visual
   C++ Redistributable; `windows-amd64` and `windows-aarch64`
 
