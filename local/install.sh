@@ -361,6 +361,10 @@ resolve_engine_paths() {
   # Archive name is the last path segment of the download URL.
   ENGINE_ARCHIVE=$(printf '%s' "$ENGINE_URL" | sed 's|.*/||')
   ENGINE_DIR="$VERSIONS_DIR/$ENGINE_VERSION"
+  # Drive the install from the version directory itself, not through current:
+  # the symlink is only moved at the very end (see activate_engine), so until
+  # then it still points at the previous engine.
+  ENGINE_CTL="$ENGINE_DIR/serverctl.sh"
 }
 
 # Everything the install needs from the network and the only pre-install write
@@ -1062,8 +1066,26 @@ engine_installed() {
   [ -f "$ENGINE_DIR/serverctl.sh" ] && [ -f "$(engine_completion_marker)" ]
 }
 
-# Function to download and unpack the inference engine, then point current at it
+# A real directory at current would make ln fail — refuse rather than delete it.
+# Checked before the download so an unusable layout fails fast.
+ensure_current_link_usable() {
+  if [ -d "$CURRENT_LINK" ] && [ ! -L "$CURRENT_LINK" ]; then
+    printf '  %sERROR: %s is a directory, not a symlink.%s\n' "$RED" "$CURRENT_LINK" "$RESET"
+    printf '  %sMove it out of the way and re-run.%s\n' "$GRAY" "$RESET"
+    emit_error "$CURRENT_LINK is a directory, not a symlink"
+    wait_and_exit 1
+  fi
+}
+
+# Function to download and unpack the inference engine. The current symlink is
+# deliberately NOT touched here: it is the record of what this device actually
+# runs, and moving it before the models are in place would make an interrupted
+# update look like a finished one (the engine reported as up to date while the
+# models were never refreshed). activate_engine does it once everything else
+# succeeded, right before the engine is restarted.
 install_engine() {
+  ensure_current_link_usable
+
   if engine_installed; then
     printf '  %sEngine v%s is already unpacked. Skipping download.%s\n' "$GRAY" "$ENGINE_VERSION" "$RESET"
   else
@@ -1099,13 +1121,16 @@ install_engine() {
     printf '  %sUnpack complete.%s\n' "$JUNIE_GREEN" "$RESET"
   fi
 
-  # A real directory at current would make ln fail — refuse rather than delete it
-  if [ -d "$CURRENT_LINK" ] && [ ! -L "$CURRENT_LINK" ]; then
-    printf '  %sERROR: %s is a directory, not a symlink.%s\n' "$RED" "$CURRENT_LINK" "$RESET"
-    printf '  %sMove it out of the way and re-run.%s\n' "$GRAY" "$RESET"
-    emit_error "$CURRENT_LINK is a directory, not a symlink"
-    wait_and_exit 1
-  fi
+  printf '  %sUnpacked engine v%s is ready at %s.%s\n' "$GRAY" "$ENGINE_VERSION" "$ENGINE_DIR" "$RESET"
+}
+
+# Promote the freshly unpacked engine: point current at it. This is the single
+# commit point of an install/update and must only run once the engine is
+# unpacked, the models are installed and the configs are written, so that an
+# interrupt at any earlier point leaves current on the previous version and the
+# next run redoes the whole update instead of skipping it.
+activate_engine() {
+  ensure_current_link_usable
 
   printf '  %sPointing %s at %s...%s\n' "$GRAY" "$CURRENT_LINK" "$ENGINE_DIR" "$RESET"
   ln -sfn "$ENGINE_DIR" "$CURRENT_LINK"
@@ -1720,6 +1745,9 @@ emit_step_done "configure"
 # ============================================================
 section "Starting and warming up the inference engine"
 emit_step_start "start" "Starting and warming up the inference engine"
+# Everything above succeeded, so the new engine becomes the current one now —
+# immediately before it is (re)started.
+activate_engine
 if start_engine; then
   # Nothing to warm up when --update found no model on this device.
   if [ "$UPDATE" != true ] || [ -n "$UPDATE_MODEL_IDS" ]; then

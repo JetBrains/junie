@@ -1113,11 +1113,20 @@ function Install-Engine {
         Write-Host "  Unpack complete."
     }
 
-    # Write the version name to the "current" file (no symlink needed)
+    Write-Host "  Unpacked engine v$Script:EngineVersion is ready at $Script:EngineDir."
+    Write-Host ""
+}
+
+# Promote the freshly unpacked engine: write its version name to the "current"
+# file. This is the single commit point of an install/update and must only run
+# once the engine is unpacked, the models are installed and the configs are
+# written, so that an interrupt at any earlier point leaves "current" on the
+# previous version and the next run redoes the whole update instead of skipping
+# it.
+function Enable-Engine {
     Write-Host "  Recording v$Script:EngineVersion as the current engine..."
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($Script:CurrentFile, $Script:EngineVersion, $utf8NoBom)
-    Write-Host ""
 }
 
 # ============================================================
@@ -1574,6 +1583,9 @@ Write-Host "  Starting and warming up the inference engine" -ForegroundColor Gre
 Write-Host "  ----------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 Emit-StepStart "start" "Starting and warming up the inference engine"
+# Everything above succeeded, so the new engine becomes the current one now -
+# immediately before it is (re)started.
+Enable-Engine
 if (Start-Engine) {
     # Nothing to warm up when --update found no model on this device.
     if (-not ($Update -and $Script:UpdateModelIds.Count -eq 0)) {
