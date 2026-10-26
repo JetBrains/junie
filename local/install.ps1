@@ -6,7 +6,7 @@
   Downloads and installs the inference engine and model weights for Junie's
   local model capability on Windows.  Mirrors the behaviour of install.sh
   (macOS / Linux) but uses Windows-native tooling: PowerShell for flow
-  control, curl.exe for resumable downloads, and 7-Zip / Expand-Archive for
+  control, curl.exe for resumable downloads, and Expand-Archive for
   extraction.
 
   System checks are modelled after the JBInferenceRunner setup.ps1:
@@ -1098,45 +1098,14 @@ function Install-Engine {
         Remove-Item -LiteralPath $Script:EngineDir -Recurse -Force -ErrorAction SilentlyContinue
         New-Item -ItemType Directory -Path $Script:EngineDir -Force | Out-Null
 
-        # Try 7z first (handles .zip and .tar.gz), then fall back to Expand-Archive
-        $sevenZip = Get-Command 7z.exe -ErrorAction SilentlyContinue
-        if ($sevenZip) {
-            & 7z.exe x -o$Script:EngineDir -y $archivePath | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "  ERROR: 7z extraction failed." -ForegroundColor Red
-                exit 1
-            }
-            # If the archive has a top-level folder, flatten it
-            $topLevel = Get-ChildItem -LiteralPath $Script:EngineDir -Directory | Select-Object -First 1
-            if ($topLevel -and (Get-ChildItem -LiteralPath $Script:EngineDir).Count -eq 1) {
-                Move-Item -LiteralPath (Join-Path $Script:EngineDir $topLevel.Name)/* `
-                    -Destination $Script:EngineDir -Force
-                Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
-            }
-        }
-        else {
-            if ($Script:EngineArchive -like '*.zip') {
-                Expand-Archive -LiteralPath $archivePath -DestinationPath $Script:EngineDir -Force
-            }
-            else {
-                # Expand-Archive handles .gz: extract to .tar, then extract contents
-                $tmpTar = [System.IO.Path]::GetTempFileName() + ".tar"
-                Expand-Archive -LiteralPath $archivePath -DestinationPath (Split-Path $tmpTar -Parent) -Force
-                # Rename the extracted .gz result to .tar if needed
-                $extracted = Get-ChildItem -LiteralPath (Split-Path $tmpTar -Parent) | Select-Object -First 1
-                if ($extracted) {
-                    $tmpTar = $extracted.FullName
-                }
-                Expand-Archive -LiteralPath $tmpTar -DestinationPath $Script:EngineDir -Force -ErrorAction SilentlyContinue
-                Remove-Item -LiteralPath $tmpTar -Force -ErrorAction SilentlyContinue
-            }
-            # Flatten if needed
-            $topLevel = Get-ChildItem -LiteralPath $Script:EngineDir -Directory | Select-Object -First 1
-            if ($topLevel -and (Get-ChildItem -LiteralPath $Script:EngineDir).Count -eq 1) {
-                Move-Item -LiteralPath (Join-Path $Script:EngineDir $topLevel.Name)/* `
-                    -Destination $Script:EngineDir -Force
-                Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
-            }
+        Expand-Archive -LiteralPath $archivePath -DestinationPath $Script:EngineDir -Force
+
+        # If the archive has a top-level folder, flatten it
+        $topLevel = Get-ChildItem -LiteralPath $Script:EngineDir -Directory | Select-Object -First 1
+        if ($topLevel -and (Get-ChildItem -LiteralPath $Script:EngineDir).Count -eq 1) {
+            Move-Item -LiteralPath (Join-Path $Script:EngineDir $topLevel.Name)/* `
+                -Destination $Script:EngineDir -Force
+            Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
         }
 
         New-Item -ItemType File -Path (Engine-CompletionMarker) -Force | Out-Null
