@@ -362,7 +362,7 @@ resolve_engine_paths() {
   ENGINE_ARCHIVE=$(printf '%s' "$ENGINE_URL" | sed 's|.*/||')
   ENGINE_DIR="$VERSIONS_DIR/$ENGINE_VERSION"
   # Drive the install from the version directory itself, not through current:
-  # the symlink is only moved at the very end (see activate_engine), so until
+  # the symlink is only moved at the very end (see enable_engine), so until
   # then it still points at the previous engine.
   ENGINE_CTL="$ENGINE_DIR/serverctl.sh"
 }
@@ -1081,7 +1081,7 @@ ensure_current_link_usable() {
 # deliberately NOT touched here: it is the record of what this device actually
 # runs, and moving it before the models are in place would make an interrupted
 # update look like a finished one (the engine reported as up to date while the
-# models were never refreshed). activate_engine does it once everything else
+# models were never refreshed). enable_engine does it once everything else
 # succeeded, right before the engine is restarted.
 install_engine() {
   ensure_current_link_usable
@@ -1129,7 +1129,7 @@ install_engine() {
 # unpacked, the models are installed and the configs are written, so that an
 # interrupt at any earlier point leaves current on the previous version and the
 # next run redoes the whole update instead of skipping it.
-activate_engine() {
+enable_engine() {
   ensure_current_link_usable
 
   printf '  %sPointing %s at %s...%s\n' "$GRAY" "$CURRENT_LINK" "$ENGINE_DIR" "$RESET"
@@ -1747,7 +1747,7 @@ section "Starting and warming up the inference engine"
 emit_step_start "start" "Starting and warming up the inference engine"
 # Everything above succeeded, so the new engine becomes the current one now —
 # immediately before it is (re)started.
-activate_engine
+enable_engine
 if start_engine; then
   # Nothing to warm up when --update found no model on this device.
   if [ "$UPDATE" != true ] || [ -n "$UPDATE_MODEL_IDS" ]; then
