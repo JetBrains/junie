@@ -74,6 +74,7 @@ You can use Junie with one of the following methods:
 - **JetBrains Account** — OAuth login using your JetBrains account 
 - **Junie API Key** — get your key from [Junie Tokens](https://junie.jetbrains.com/cli) page
 - **Bring Your Own Key (BYOK)** — use your own model provider: Anthropic, OpenAI, Google, xAI, OpenRouter, or Copilot
+- **Custom models and endpoints** — connect a self-hosted or proxy endpoint, such as [LiteLLM](https://junie.jetbrains.com/docs/custom-llm-litellm.html), Ollama, or LM Studio
 
 See the [authentication](https://junie.jetbrains.com/docs/junie-cli.html#step-3-authenticate) page for details.
 
