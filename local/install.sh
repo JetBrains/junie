@@ -1263,7 +1263,10 @@ start_engine() {
   # stream: a consumer reading our stdout would otherwise never see
   # end-of-stream because the daemon holds the pipe open forever.
   printf '  %sStarting the engine...%s\n' "$GRAY" "$RESET"
-  ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- )
+  if ! ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- ); then
+    emit_error "serverctl start failed; see logs in $BASE_DIR"
+    return 1
+  fi
 
   # Wait for the engine to become ready by polling /status until phase is "ready".
   waited=0
@@ -1290,12 +1293,10 @@ start_engine() {
 # Send one short chat request so the first Junie request does not pay for the
 # first generation.
 warm_engine() {
-  local warmup_output warmup_ok
+  local warmup_output
   [ -x "$ENGINE_CTL" ] || return 0
   printf '  %sWarming up the engine...%s\n' "$GRAY" "$RESET"
-  warmup_output="$("$ENGINE_CTL" warmup --model "$MODEL" 2>&1)"
-  warmup_ok=$?
-  if [ "$warmup_ok" -ne 0 ]; then
+  if ! warmup_output="$("$ENGINE_CTL" warmup --model "$MODEL" 2>&1)"; then
     if [ -n "$warmup_output" ]; then
       printf '%s\n' "$warmup_output"
     fi
@@ -1802,8 +1803,8 @@ if [ -x "$ENGINE_CTL" ]; then
     configured_model_id=${handled%%|*}
     configured_junie_id=${handled#*|}
     JUNIE_CONFIG_FILE="$JUNIE_HOME/models/${configured_junie_id}.json"
-    config_output="$("$ENGINE_CTL" update-configs --junie-home "$JUNIE_HOME" --model "$configured_model_id" 2>&1)"
-    config_ok=$?
+    config_ok=0
+    config_output="$("$ENGINE_CTL" update-configs --junie-home "$JUNIE_HOME" --model "$configured_model_id" 2>&1)" || config_ok=$?
     if [ "$config_ok" -eq 0 ] && [ -f "$JUNIE_CONFIG_FILE" ]; then
       print_value "Junie model config:" "$JUNIE_CONFIG_FILE" true false ""
       if [ "$UPDATE" != true ]; then
@@ -1841,6 +1842,9 @@ if start_engine; then
   if [ "$UPDATE" != true ] || [ -n "$UPDATE_MODEL_IDS" ]; then
     warm_engine
   fi
+elif [ "$OS_TYPE" = "macos" ]; then
+  emit_error "The engine could not be started; see logs in $BASE_DIR"
+  wait_and_exit 1
 fi
 emit_step_done "start"
 

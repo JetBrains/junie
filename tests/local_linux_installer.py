@@ -294,5 +294,118 @@ printf '%s\\n' "$ENGINE_PORT"
 ''')
                 self.assertEqual(result.stdout.strip(), "54321")
 
+    def run_full_install_fixture(self, *, start_failure=False, warmup_failure=False,
+                                 config_failure=False, missing_profile=False):
+        feed = self.root / "feed"
+        (feed / "models").mkdir(parents=True)
+        # A tiny shell controller replaces the native binary, keeping this test portable.
+        bundle = self.root / "bundle"
+        bundle.mkdir()
+        controller = bundle / "serverctl.sh"
+        controller.write_text('''#!/bin/sh
+base="$HOME/.local/share/junie-local"
+case "$1" in
+  update-configs)
+    mkdir -p "$JUNIE_HOME/models"
+    if [ "$FIXTURE_MISSING_PROFILE" != 1 ]; then
+      echo '{}' > "$JUNIE_HOME/models/local-fixture.json"
+    fi
+    echo '{"api_key":"fixture-token","port":19239}' > "$base/server-config.json"
+    if [ "$FIXTURE_CONFIG_FAILURE" = 1 ]; then
+      echo 'fixture config failure' >&2
+      exit 7
+    fi
+    ;;
+  start)
+    [ "$FIXTURE_START_FAILURE" != 1 ] || exit 1
+    touch "$HOME/running"
+    ;;
+  stop) rm -f "$HOME/running" ;;
+  warmup)
+    touch "$HOME/warmed"
+    if [ "$FIXTURE_WARMUP_FAILURE" = 1 ]; then
+      echo 'fixture warmup failure' >&2
+      exit 7
+    fi
+    ;;
+  *) exit 1 ;;
+esac
+''', encoding="utf-8", newline="\n")
+        controller.chmod(0o755)
+        package = feed / "engine.tar.gz"
+        with tarfile.open(package, "w:gz") as archive:
+            archive.add(bundle, arcname="junie-local-fixture")
+        (feed / "update-info-engine-main.jsonl").write_text(json.dumps({
+            "platform": "linux-amd64", "version": "fixture", "downloadUrl": package.as_uri(),
+            "sha256": hashlib.sha256(package.read_bytes()).hexdigest(),
+        }, separators=(",", ":")) + "\n", encoding="utf-8")
+        model_id = "Qwen3.6-27B-Q4_K_M"
+        (feed / "update-info-models-main.jsonl").write_text(json.dumps({
+            "platform": "linux-amd64", "id": model_id,
+        }, separators=(",", ":")) + "\n", encoding="utf-8")
+        weights = feed / "fixture.gguf"
+        weights.write_bytes(b"GGUF fixture weights")
+        (feed / "models" / f"{model_id}.json").write_text(json.dumps({
+            "id": "local-fixture", "main_model": "fixture", "archives": [{
+                "modelId": "fixture", "label": "Fixture", "name": weights.name,
+                "downloadUrl": weights.as_uri(), "size": weights.stat().st_size,
+                "sha256": hashlib.sha256(weights.read_bytes()).hexdigest(),
+            }],
+        }), encoding="utf-8")
+        real_curl = self.run_shell("command -v curl").stdout.strip()
+        self.stub("curl", '''case "$*" in
+  */health*) [ -f "$HOME/running" ] ;;
+  */status*) echo '{"phase":"ready"}' ;;
+  *) exec "$FIXTURE_CURL" "$@" ;;
+esac''')
+        result = self.run_shell(f'sh "{INSTALLER.as_posix()}" --json',
+                                JUNIE_LOCAL_UPDATE_FILES_BASE_URL=feed.as_uri(),
+                                FIXTURE_CURL=real_curl,
+                                FIXTURE_START_FAILURE="1" if start_failure else "0",
+                                FIXTURE_WARMUP_FAILURE="1" if warmup_failure else "0",
+                                FIXTURE_CONFIG_FAILURE="1" if config_failure else "0",
+                                FIXTURE_MISSING_PROFILE="1" if missing_profile else "0",
+                                JUNIE_HOME=(self.home / ".junie").as_posix())
+        events = [json.loads(line) for line in result.stdout.splitlines()]
+        if start_failure:
+            self.assertTrue([e for e in events if e["event"] == "error"])
+        else:
+            self.assertFalse([e for e in events if e["event"] == "error"])
+        self.assertEqual((self.home / "warmed").exists(), not start_failure)
+        warnings = [e["message"] for e in events if e["event"] == "warning"]
+        expected_warnings = []
+        if config_failure or missing_profile:
+            expected_warnings.append(f"serverctl update-configs failed for {model_id}")
+        if warmup_failure:
+            expected_warnings.append("serverctl warmup failed")
+        self.assertEqual(warnings, expected_warnings)
+        if config_failure:
+            self.assertIn("fixture config failure", result.stderr)
+        if warmup_failure:
+            self.assertIn("fixture warmup failure", result.stderr)
+        self.assertEqual(events[-1]["event"], "done")
+        self.assertEqual(events[-1]["model_id"], "local-fixture")
+        self.assertTrue(events[-1]["model_path"].endswith("/models/fixture"))
+        steps = [e["id"] for e in events if e["event"] == "step_done"]
+        self.assertEqual(steps, ["engine", "models", "configure", "start"])
+        self.assertEqual((self.home / ".junie/models/local-fixture.json").is_file(),
+                         not missing_profile)
+
+    def test_full_install_protocol_with_local_fixtures(self):
+        self.run_full_install_fixture()
+
+    def test_start_failure_completes_install_like_windows(self):
+        self.run_full_install_fixture(start_failure=True)
+
+    def test_warmup_failure_warns_and_completes_install(self):
+        self.run_full_install_fixture(warmup_failure=True)
+
+    def test_config_failure_warns_and_completes_install(self):
+        self.run_full_install_fixture(config_failure=True)
+
+    def test_missing_profile_warns_and_completes_install(self):
+        self.run_full_install_fixture(missing_profile=True)
+
+
 if __name__ == "__main__":
     unittest.main()
