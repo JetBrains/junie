@@ -11,11 +11,31 @@ Installation scripts and update metadata for the Junie local model (on-device in
 - **Windows** (`install.ps1`): NVIDIA GPU with 24 GB VRAM, driver 581+, Visual
   C++ Redistributable; `windows-amd64` and `windows-aarch64`
 
-Linux is not supported yet: `install.sh` refuses to run there.
+- **Linux** (`install.sh`): x64 (`linux-amd64`) or ARM64 (`linux-aarch64`), kernel
+  5.15+, NVIDIA GPU with nominal 24 GB VRAM (at least 24320 MiB reported).
+  The pinned llama.cpp runtime needs a
+  driver advertising CUDA 12.8+ on x64 or CUDA 13.4+ on ARM64 through `nvidia-smi`.
+  CUDA libraries are bundled; installing the CUDA toolkit is not required.
+
+Windows and Linux installers check the first NVIDIA GPU, without combining VRAM.
+The engine's automatic memory planner currently requires one GPU on both platforms;
+passing installer checks does not establish multi-GPU inference support.
+Both installers report `ram_gb: 24` for Junie's requirements display; it is not an
+engine memory limit. Neither imposes a separate system RAM requirement.
+
+Earlier Linux x64 tests with the pinned llama.cpp b11081 runtime passed on RTX 3090
+with NVIDIA 570.207 and 570.211.01 on kernel 6.8.0-146-generic, as well as newer
+580-series drivers. Windows driver numbers are not Linux minimum versions;
+the Linux check uses the supported CUDA version. Driver compatibility with the
+running kernel must also be verified, and these x64 tests do not validate ARM64.
+
+Linux installer support is prepared locally. The engine feeds still need entries
+generated from real, validated Linux packages; an unmodified published feed cannot
+install a Linux engine yet. Native GPU validation must be completed on both architectures.
 
 ## The installer API
 
-`install.sh` (macOS) and `install.ps1` (Windows) are two implementations of the
+`install.sh` (macOS/Linux) and `install.ps1` (Windows) are two implementations of the
 same installer. They take the same options, perform the same steps and emit the
 same JSON events, so a caller only has to pick the script for the platform — not
 to special-case the platform afterwards.
@@ -27,15 +47,15 @@ accepts the PowerShell spellings (`-Model`, `-CheckOnly`, …) for the same flag
 
 | Option | Description |
 |---|---|
-| `--model <id>` | Model to install, as listed by `--models`. Defaults to `Qwen3.6-27B-MLX-4bit` (macOS) / `Qwen3.6-27B-Q4_K_M` (Windows) |
+| `--model <id>` | Model to install, as listed by `--models`. Defaults to `Qwen3.6-27B-MLX-4bit` (macOS) / `Qwen3.6-27B-Q4_K_M` (Windows/Linux) |
 | `--channel <name>` | Update channel: `main` (default) or `eap` |
 | `--check-only` | Report system information, then exit without installing |
 | `--models` | List the models available for this platform, then exit |
 | `--check-engine-update` | Report whether a different inference engine is published for this device, then exit |
 | `--update` | Update the engine and re-install every model already installed here |
 | `--json` | Emit machine-readable events on stdout; human output goes to stderr |
-| `--keep-config` | **Deprecated**, accepted and ignored; it only prints a deprecation warning |
-| `--help`, `-h` | Show usage, then exit |
+| `--keep-config` | **Deprecated**, accepted and ignored on macOS; rejected on Windows/Linux |
+| `--help`, `-h` | Show usage, then exit (`1` on Windows/Linux, `0` on macOS) |
 
 ```bash
 ./install.sh --model Qwen3.6-27B-MLX-4bit --channel eap
@@ -54,6 +74,14 @@ accepts the PowerShell spellings (`-Model`, `-CheckOnly`, …) for the same flag
 The exit code is `0` on success and non-zero when a requirement is not met, a
 download or checksum fails, or the arguments are invalid.
 
+Windows and Linux currently finish with `done` and exit `0` even when starting
+the engine fails; warmup is only attempted after a successful start. A completion
+marker alone means a model is installed, even if its weights have since been
+removed. GGUF files are copied into the model directory before the marker is
+written; the download copy is removed at the end of the model installation step.
+The `done.model_path` value is `<models directory>/<main modelId>` on both
+platforms. These compatibility behaviors are separate from engine readiness.
+
 Both scripts honour the same environment variables:
 
 | Variable | Effect |
@@ -61,6 +89,11 @@ Both scripts honour the same environment variables:
 | `JUNIE_HOME` | Junie's config directory, where the model config is written |
 | `JUNIE_LOCAL_UPDATE_FILES_BASE_URL` | Where the channel feeds are read from; useful for testing with a `file://` URL |
 | `JUNIE_LOCAL_MODEL_TEST_MODE` | When set to `1`, unmet system requirements no longer block the install |
+| `HF_TOKEN` | Hugging Face download token on Windows/Linux |
+
+Windows and Linux use HEAD for the remote file size and let curl attempt resume
+without requiring an `Accept-Ranges` header. Both use curl's three retries with a
+two-second retry delay, in addition to the installer's outer retry loop.
 
 ### Test mode
 
@@ -169,7 +202,7 @@ the mode that was requested (`models`, `engine_update`), or with `error`.
 | `activity` | Work without byte progress | `action`: `verifying` \| `extracting`, `file`, `label` |
 | `warning` | Recoverable problem; the run continues | `message` |
 | `error` | Fatal problem; the run stops | `message` |
-| `done` | Successful install or update | `model_id`, `port`, `model_path`, `label` |
+| `done` | Install or update completed; see the engine readiness note above | `model_id`, `port`, `model_path`, `label` |
 
 `check` names are `os`, `cpu`, `gpu` and `ram` on both platforms; Windows adds
 `driver` and `vc_redist`. `step_start` / `step_done` use the ids `engine`,
@@ -327,3 +360,30 @@ Fields:
 2. Add a new line to `update-info-models-main.jsonl` (and/or `update-info-models-eap.jsonl`) for each model on the new platform.
 3. Update the model detail JSON files in `models/` to include archives for the new platform if they differ from the existing ones.
 4. Update `install.sh` and `install.ps1` to support the new platform (OS detection, download URLs, etc.), keeping their options and JSON events identical.
+
+## Validate Linux locally before publishing
+
+1. On the target Linux architecture, build the committed `junie-local` branch with
+   `./build.sh --download-base-url file:///absolute/path/to/junie-local/dist`.
+   The build creates a tarball and a matching JSON metadata entry containing its
+   actual checksum and size. Run the native package tests and real GGUF chat smoke
+   test documented in that repository's `tests/README.md`.
+2. Copy this repository's `local/` directory to a temporary feed directory. Append
+   the generated JSON entry to its `update-info-engine-main.jsonl`. Keep the original
+   model JSON files and model feed, which use the same GGUF artifacts as Windows.
+3. To exercise the installer directly, set
+   `JUNIE_LOCAL_UPDATE_FILES_BASE_URL=file:///absolute/path/to/temporary-feed` and
+   run `sh /path/to/temporary-feed/install.sh --json`. This installs into the normal
+   user data directory; use a separate test account when an installation must be preserved.
+4. To exercise Junie's `/local` flow, serve that temporary feed over local HTTP
+   (`python3 -m http.server 8765 --bind 127.0.0.1 --directory /path/to/temporary-feed`)
+   and start the locally built Junie agent with
+   `JUNIE_LOCAL_UPDATE_FILES_BASE_URL=http://127.0.0.1:8765`. Junie downloads
+   `install.sh` from the same override; model downloads retain their verified URLs.
+
+Run `python3 tests/local_linux_installer.py` for portable fixture checks (Git Bash
+is supported on Windows). They cover platform defaults, both model channels, GPU
+and CUDA validation, GGUF installation and recovery, checksum rejection, macOS ZIP
+installation, authenticated engine restart, and the complete install event sequence,
+including controller failures. They do not run Linux binaries or CUDA.
+Only add engine entries to a published feed after validating the actual packages.
