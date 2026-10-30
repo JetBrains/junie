@@ -1172,7 +1172,36 @@ sync_engine_port_from_config() {
   local server_config port
   server_config="$BASE_DIR/server-config.json"
   [ -f "$server_config" ] || return 0
-  port=$(grep -o '"port"[[:space:]]*:[[:space:]]*[0-9]\{1,5\}' "$server_config" | head -1 | sed 's/.*[[:space:]:]//')
+  # The worker also has a port under extra.server. Read only the top-level
+  # value, regardless of key order, whitespace or braces inside JSON strings.
+  port=$(awk '
+    {
+      remaining = $0
+      while (match(remaining, /"([^"\\]|\\.)*"|[{}\[\]:,]|[-+0-9.eE]+|true|false|null/)) {
+        token = substr(remaining, RSTART, RLENGTH)
+        remaining = substr(remaining, RSTART + RLENGTH)
+        if (read_port == 2) {
+          if (token ~ /^[0-9]+$/) print token
+          exit
+        }
+        if (read_port == 1) {
+          if (token != ":") exit
+          read_port = 2
+          continue
+        }
+        if (token == "{" || token == "[") {
+          depth++
+          if (depth == 1) expect_key = 1
+        }
+        else if (token == "}" || token == "]") depth--
+        else if (depth == 1 && token == ",") expect_key = 1
+        else if (depth == 1 && expect_key && token ~ /^"/) {
+          read_port = (token == "\"port\"")
+          expect_key = 0
+        }
+      }
+    }
+  ' "$server_config")
   if [ -n "$port" ] && [ "$port" -ge 1 ] 2>/dev/null && [ "$port" -le 65535 ] 2>/dev/null; then
     ENGINE_PORT="$port"
   fi

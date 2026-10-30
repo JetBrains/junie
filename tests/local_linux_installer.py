@@ -263,5 +263,36 @@ start_engine
         self.assertEqual((self.home / "controls").read_text().splitlines(), ["stop", "start"])
         self.assertIn("Authorization: Bearer fixture-token", (self.home / "requests").read_text())
 
+    def test_gateway_port_is_distinct_from_nested_worker_port(self):
+        config = self.home / ".local/share/junie-local/server-config.json"
+        config.parent.mkdir(parents=True)
+        for system in ("Linux", "Darwin"):
+            for indent in (None, 2):
+                for note in ('Escaped "port": 1234 and braces } {', "port"):
+                    with self.subTest(system=system, indent=indent, note=note):
+                        config.write_text(json.dumps({
+                            "extra": {"server": {"port": 19238}},
+                            "note": note,
+                            "ports": [{"port": 19237}], "port": 54321,
+                        }, indent=indent), encoding="utf-8")
+                        result = self.run_shell(f'''. "{self.functions.as_posix()}"
+sync_engine_port_from_config
+printf '%s\\n' "$ENGINE_PORT"
+''', FIXTURE_OS=system)
+                        self.assertEqual(result.stdout.strip(), "54321")
+
+        for invalid in (None, -1, 0, 65536, 123.4, "54321", True, False, [], {}):
+            with self.subTest(invalid=invalid):
+                document = {"extra": {"server": {"port": 19238}}}
+                if invalid is not None:
+                    document["port"] = invalid
+                config.write_text(json.dumps(document), encoding="utf-8")
+                result = self.run_shell(f'''. "{self.functions.as_posix()}"
+ENGINE_PORT=54321
+sync_engine_port_from_config
+printf '%s\\n' "$ENGINE_PORT"
+''')
+                self.assertEqual(result.stdout.strip(), "54321")
+
 if __name__ == "__main__":
     unittest.main()
