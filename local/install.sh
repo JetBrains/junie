@@ -791,6 +791,16 @@ probe_remote() {
   REMOTE_RANGES=false
 
   probe_headers=$(curl -sIL --max-time 30 "$1" 2>/dev/null | tr -d '\r') || probe_headers=""
+  # Match Windows: use the final HEAD response for size and let curl attempt
+  # resume directly. Do not probe Range support or discard a partial download
+  # just because a server omits Accept-Ranges.
+  if [ "$OS_TYPE" = "linux" ]; then
+    REMOTE_SIZE=$(printf '%s\n' "$probe_headers" | awk '
+      /^[Hh][Tt][Tt][Pp]\// { status = $2; len = ""; next }
+      tolower($1) == "content-length:" { len = $2 }
+      END { if (status ~ /^2/ && len ~ /^[0-9]+$/) print len }')
+    return 0
+  fi
   # Redirects mean several header blocks. Only the last one describes the file,
   # and only if it succeeded: an error page has a Content-Length too.
   # The size is only accepted as a plain number: everything downstream does
@@ -824,6 +834,7 @@ probe_remote() {
 
 CURL_PID=""
 CURL_ERR_FILE=""
+CURL_CONFIG_FILE=""
 
 # Downloads <url> into <file> with a progress bar, continuing an interrupted
 # transfer instead of starting over: curl runs with -C -, the partial file is
@@ -853,7 +864,7 @@ download_with_progress() {
     rm -f "$dl_out"
     dl_have=0
   fi
-  if [ "$dl_have" -gt 0 ] && [ "$REMOTE_RANGES" != true ]; then
+  if [ "$OS_TYPE" = "macos" ] && [ "$dl_have" -gt 0 ] && [ "$REMOTE_RANGES" != true ]; then
     printf '  %sServer will not resume this file — downloading it again.%s\n' "$YELLOW" "$RESET"
     rm -f "$dl_out"
     dl_have=0
@@ -873,7 +884,20 @@ download_with_progress() {
   # middle of the bar. The path is global so the interrupt trap can remove it.
   CURL_ERR_FILE=$(mktemp "${TMPDIR:-/tmp}/junie-curl.XXXXXX")
   dl_err="$CURL_ERR_FILE"
-  curl --fail --silent --show-error --location -C - -o "$dl_out" "$dl_url" 2>"$dl_err" &
+  set -- --fail --silent --show-error --location
+  if [ "$OS_TYPE" = "linux" ]; then
+    set -- "$@" --retry 3 --retry-delay 2
+    case "$dl_url" in
+      *huggingface.co*)
+        if [ -n "${HF_TOKEN:-}" ]; then
+          CURL_CONFIG_FILE=$(mktemp "${TMPDIR:-/tmp}/junie-curl-config.XXXXXX")
+          printf 'oauth2-bearer = "%s"\n' "$HF_TOKEN" > "$CURL_CONFIG_FILE"
+          set -- --config "$CURL_CONFIG_FILE" "$@"
+        fi
+        ;;
+    esac
+  fi
+  curl "$@" --continue-at - --output "$dl_out" "$dl_url" 2>"$dl_err" &
   CURL_PID=$!
 
   dl_prev_bytes=$dl_have
@@ -887,7 +911,9 @@ download_with_progress() {
       dl_prev_bytes=$dl_now_bytes
       dl_prev_time=$dl_now_time
       # One event per second; the bar below is redrawn far more often than that.
-      emit_progress "$dl_name" "$dl_now_bytes" "$dl_total" "$dl_label"
+      if [ "$OS_TYPE" = "macos" ] || [ "$dl_total" -gt 0 ]; then
+        emit_progress "$dl_name" "$dl_now_bytes" "$dl_total" "$dl_label"
+      fi
     fi
     progress_render "$dl_now_bytes" "$dl_total" "$dl_bps" "$dl_label"
     sleep 0.2
@@ -896,6 +922,15 @@ download_with_progress() {
   dl_rc=0
   wait "$CURL_PID" || dl_rc=$?
   CURL_PID=""
+  if [ -n "$CURL_CONFIG_FILE" ]; then
+    rm -f "$CURL_CONFIG_FILE"
+    CURL_CONFIG_FILE=""
+  fi
+  if [ "$OS_TYPE" = "linux" ] && [ "$dl_rc" -ne 0 ] && [ "$dl_total" -gt 0 ] && \
+    [ "$(file_size "$dl_out")" -eq "$dl_total" ]; then
+    printf '  %sCurl reported an error, but the file is complete.%s\n' "$YELLOW" "$RESET"
+    dl_rc=0
+  fi
   # One last frame so the bar lands on the final size — but only on success: a
   # failed download should not leave a bar behind at all.
   if [ "$dl_rc" -eq 0 ]; then
@@ -907,7 +942,7 @@ download_with_progress() {
 
   # Exit 33/36 mean the server refused our resume offset. With no known size we
   # cannot tell a finished file from a broken one, so let the checksum decide.
-  if [ "$dl_rc" -eq 33 ] || [ "$dl_rc" -eq 36 ]; then
+  if [ "$OS_TYPE" = "macos" ] && { [ "$dl_rc" -eq 33 ] || [ "$dl_rc" -eq 36 ]; }; then
     if [ "$dl_total" -eq 0 ]; then
       printf '  %sServer rejected the resume offset; verifying what we have.%s\n' "$YELLOW" "$RESET"
       rm -f "$dl_err"
@@ -1064,6 +1099,9 @@ cleanup() {
   progress_end
   if [ -n "$CURL_ERR_FILE" ]; then
     rm -f "$CURL_ERR_FILE"
+  fi
+  if [ -n "$CURL_CONFIG_FILE" ]; then
+    rm -f "$CURL_CONFIG_FILE"
   fi
 
   echo ""

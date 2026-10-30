@@ -191,6 +191,75 @@ esac''')
         checks = self.check(success=False, FIXTURE_OS="Darwin")
         self.assertEqual(checks["ram"]["status"], "fail")
 
+    def test_linux_probes_only_the_final_head_size_like_windows(self):
+        for final_header, expected in (("", ""), ("Content-Length: 8", "8")):
+            with self.subTest(final_header=final_header):
+                self.stub("curl", '''echo request >> "$HOME/requests"
+printf '%s\\n' 'HTTP/1.1 302 Found' 'Content-Length: 3' '' 'HTTP/1.1 200 OK' "$FIXTURE_FINAL_HEADER" ''
+''')
+                result = self.run_shell(f'''. "{self.functions.as_posix()}"
+probe_remote https://example.invalid/fixture.gguf
+printf 'size=%s\\n' "$REMOTE_SIZE"
+''', FIXTURE_FINAL_HEADER=final_header)
+                self.assertEqual(result.stdout.strip(), f"size={expected}")
+                requests = self.home / "requests"
+                self.assertEqual(requests.read_text().splitlines(), ["request"])
+                requests.unlink()
+
+    def download_fixture(self, *, url="https://example.invalid/fixture.gguf", exit_code=0):
+        self.stub("curl", '''case "$*" in
+  *-sIL*) printf '%s\\n' 'HTTP/1.1 200 OK' 'Content-Length: 8' ''; exit 0 ;;
+esac
+printf '%s\\n' "$@" > "$HOME/curl-args"
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --config)
+      shift
+      cp "$1" "$HOME/curl-auth"
+      printf '%s\\n' "$1" > "$HOME/config-path"
+      ;;
+    --output) shift; output="$1" ;;
+  esac
+  shift
+done
+wc -c < "$output" > "$HOME/resume-size"
+printf rest >> "$output"
+exit "$FIXTURE_CURL_EXIT"
+''')
+        destination = self.root / "download with spaces.gguf"
+        destination.write_bytes(b"part")
+        self.run_shell(f'''. "{self.functions.as_posix()}"
+download_with_progress "{url}" "{destination.as_posix()}" Fixture
+''', HF_TOKEN="fixture-hf-token", FIXTURE_CURL_EXIT=str(exit_code))
+        self.assertEqual(destination.read_bytes(), b"partrest")
+        self.assertEqual(int((self.home / "resume-size").read_text()), 4)
+        return (self.home / "curl-args").read_text().splitlines()
+
+    def test_linux_download_resumes_without_accept_ranges_and_uses_hf_token(self):
+        arguments = self.download_fixture(url="https://huggingface.co/fixture/resolve/main/weights.gguf")
+        self.assertIn("--config", arguments)
+        self.assertNotIn("fixture-hf-token", arguments)
+        self.assertEqual((self.home / "curl-auth").read_text(), 'oauth2-bearer = "fixture-hf-token"\n')
+        self.assertEqual(arguments[arguments.index("--retry") + 1], "3")
+        self.assertEqual(arguments[arguments.index("--retry-delay") + 1], "2")
+        self.run_shell('test ! -e "$(cat "$HOME/config-path")"')
+
+    def test_linux_complete_download_is_accepted_even_if_curl_reports_error(self):
+        arguments = self.download_fixture(exit_code=18)
+        self.assertNotIn("--config", arguments)
+        self.assertFalse((self.home / "curl-auth").exists())
+
+    def test_linux_failed_resume_with_unknown_size_is_not_reported_as_downloaded(self):
+        self.stub("curl", "exit 33")
+        destination = self.root / "partial.gguf"
+        destination.write_bytes(b"part")
+        result = self.run_shell(f'''. "{self.functions.as_posix()}"
+probe_remote() {{ REMOTE_SIZE=""; }}
+download_with_progress https://example.invalid/fixture.gguf "{destination.as_posix()}" Fixture
+''', success=False)
+        self.assertEqual(result.returncode, 33)
+        self.assertEqual(destination.read_bytes(), b"part")
+
     def model_fixture(self, *, zipped=False, corrupt_hash=False):
         name = "fixture.zip" if zipped else "fixture.gguf"
         weights = self.root / name
