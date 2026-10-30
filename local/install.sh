@@ -10,19 +10,17 @@ set -e
 # systems aren't stuck staring at a cryptic `command not found` halfway
 # through the install.
 # Detect the OS early so we can pick the right toolchain for every step.
-if uname -s | grep -qi "darwin"; then
-  OS_TYPE="macos"
-else
-  OS_TYPE="linux"
-  echo "ERROR: linux is not supported yet"
-  exit 1
-fi
+case "$(uname -s)" in
+  Darwin) OS_TYPE="macos" ;;
+  Linux) OS_TYPE="linux" ;;
+  *) echo "ERROR: Supported systems are macOS and Linux"; exit 1 ;;
+esac
 
 require_commands() {
   missing=""
-  common="curl tar unzip head tput"
+  common="curl tar head"
   if [ "$OS_TYPE" = "macos" ]; then
-    required="$common shasum pgrep xxd sysctl sw_vers"
+    required="$common unzip shasum pgrep xxd sysctl sw_vers"
   else
     required="$common sha256sum"
   fi
@@ -40,9 +38,9 @@ require_commands() {
       echo "  xcode-select --install"
     else
       echo "Install them with your distribution's package manager, e.g.:"
-      echo "  apt-get update && apt-get install -y coreutils"
+      echo "  apt-get update && apt-get install -y curl ca-certificates tar coreutils"
       echo "or"
-      echo "  dnf install -y coreutils"
+      echo "  dnf install -y curl ca-certificates tar coreutils"
     fi
     echo "then re-run this installer."
     exit 1
@@ -61,7 +59,11 @@ CHECK_ONLY=false
 LIST_MODELS=false
 CHECK_ENGINE_UPDATE=false
 UPDATE=false
-MODEL="Qwen3.6-27B-MLX-4bit"
+if [ "$OS_TYPE" = "macos" ]; then
+  MODEL="Qwen3.6-27B-MLX-4bit"
+else
+  MODEL="Qwen3.6-27B-Q4_K_M"
+fi
 CHANNEL="main"
 
 # Test mode (JUNIE_LOCAL_MODEL_TEST_MODE=1): the system requirements are still
@@ -76,14 +78,16 @@ usage() {
   echo "Usage: install.sh [options]"
   echo ""
   echo "Options:"
-  echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default)"
+  echo "  --model <name>     Model to install (default: $MODEL)"
   echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
   echo "  --check-engine-update  Check whether a newer inference engine is available, then exit"
   echo "  --update           Update the engine and re-install every model already installed here"
   echo "  --json             Emit machine-readable events on stdout, human output on stderr"
-  echo "  --keep-config      Deprecated, accepted and ignored"
+  if [ "$OS_TYPE" = "macos" ]; then
+    echo "  --keep-config      Deprecated, accepted and ignored"
+  fi
   echo "  --help, -h         Show this help"
 }
 
@@ -92,7 +96,12 @@ while [ $# -gt 0 ]; do
     --json) MACHINE_OUTPUT=true ;;
     --check-only) CHECK_ONLY=true ;;
     --models) LIST_MODELS=true ;;
-    --keep-config) echo "WARNING: --keep-config is deprecated and does nothing; it will be removed in a future release" ;;
+    --keep-config)
+      if [ "$OS_TYPE" = "linux" ]; then
+        echo "ERROR: Unknown option: $1"; usage; exit 1
+      fi
+      echo "WARNING: --keep-config is deprecated and does nothing; it will be removed in a future release"
+      ;;
     --check-engine-update) CHECK_ENGINE_UPDATE=true ;;
     --update) UPDATE=true ;;
     --model)
@@ -109,11 +118,22 @@ while [ $# -gt 0 ]; do
       fi
       CHANNEL="$1"
       ;;
-    --help|-h) usage; exit 0 ;;
+    --help|-h)
+      usage
+      if [ "$OS_TYPE" = "linux" ]; then exit 1; fi
+      exit 0
+      ;;
     *) echo "ERROR: Unknown option: $1"; usage; exit 1 ;;
   esac
   shift
 done
+
+if [ "$OS_TYPE" = "linux" ]; then
+  case "$CHANNEL" in
+    main|eap) ;;
+    *) echo "ERROR: Channel must be 'main' or 'eap', got '$CHANNEL'"; exit 1 ;;
+  esac
+fi
 
 if [ "$MACHINE_OUTPUT" = true ]; then
   # stdout carries only machine events; human-oriented output goes to stderr
@@ -148,7 +168,7 @@ esac
 case "$UNAME_ARCH" in
   arm64|aarch64) ARCH_NAME="aarch64" ;;
   x86_64|amd64)  ARCH_NAME="amd64" ;;
-  *)             ARCH_NAME="$UNAME_ARCH" ;;
+  *) echo "ERROR: Unsupported architecture: $UNAME_ARCH"; exit 1 ;;
 esac
 PLATFORM="${OS_NAME}-${ARCH_NAME}"
 
@@ -178,7 +198,7 @@ get_json_field() {
 # Sum the "size" fields of all archives in the model JSON on stdin. Prints the
 # total in bytes (0 when no sizes are present).
 sum_archive_sizes() {
-  grep -o '"size"[[:space:]]*:[[:space:]]*[0-9]*' | sed 's/.*:[[:space:]]*//' | awk '{ total += $1 } END { printf "%d\n", total }'
+  grep -o '"size"[[:space:]]*:[[:space:]]*[0-9]*' | sed 's/.*:[[:space:]]*//' | awk '{ total += $1 } END { printf "%.0f\n", total }'
 }
 
 # Fetch the model JSON for the given model file id and set two globals:
@@ -396,6 +416,9 @@ get_installed_model_ids() {
 # displayed and reported in the "config" event.
 ENGINE_PORT=19239
 ENGINE_RAM_GB=35
+if [ "$OS_TYPE" = "linux" ]; then
+  ENGINE_RAM_GB=24
+fi
 
 
 # ============================================================
@@ -484,16 +507,22 @@ get_checksum() {
   fi
 }
 
-# The engine runs as junie-local; its inference worker child exits with it.
-# Every junie-local process on the machine is ours, so match the name only.
-# junie-mlx-vlm is the previous engine name: an install over an older version
-# still has to stop it before replacing the files.
+# macOS engines can be located by name, including the previous junie-mlx-vlm
+# binary. Linux uses the authenticated control API below.
 get_engine_pids() {
+  # Linux launches bundled Python, whose process name is not junie-local.
+  # Never match or kill unrelated Python processes by name.
+  [ "$OS_TYPE" = "macos" ] || return 0
   { pgrep -x junie-local; pgrep -x junie-mlx-vlm; } 2>/dev/null || true
 }
 
 is_engine_running() {
-  [ -n "$(get_engine_pids)" ]
+  if [ "$OS_TYPE" = "linux" ]; then
+    curl -fsS --max-time 2 -H "Authorization: Bearer $auth_token" \
+      "http://localhost:$ENGINE_PORT/health" >/dev/null 2>&1
+  else
+    [ -n "$(get_engine_pids)" ]
+  fi
 }
 
 # Helper: wait for user to press any key, then exit. Only a standalone run on a
@@ -762,6 +791,16 @@ probe_remote() {
   REMOTE_RANGES=false
 
   probe_headers=$(curl -sIL --max-time 30 "$1" 2>/dev/null | tr -d '\r') || probe_headers=""
+  # Match Windows: use the final HEAD response for size and let curl attempt
+  # resume directly. Do not probe Range support or discard a partial download
+  # just because a server omits Accept-Ranges.
+  if [ "$OS_TYPE" = "linux" ]; then
+    REMOTE_SIZE=$(printf '%s\n' "$probe_headers" | awk '
+      /^[Hh][Tt][Tt][Pp]\// { status = $2; len = ""; next }
+      tolower($1) == "content-length:" { len = $2 }
+      END { if (status ~ /^2/ && len ~ /^[0-9]+$/) print len }')
+    return 0
+  fi
   # Redirects mean several header blocks. Only the last one describes the file,
   # and only if it succeeded: an error page has a Content-Length too.
   # The size is only accepted as a plain number: everything downstream does
@@ -795,6 +834,7 @@ probe_remote() {
 
 CURL_PID=""
 CURL_ERR_FILE=""
+CURL_CONFIG_FILE=""
 
 # Downloads <url> into <file> with a progress bar, continuing an interrupted
 # transfer instead of starting over: curl runs with -C -, the partial file is
@@ -824,7 +864,7 @@ download_with_progress() {
     rm -f "$dl_out"
     dl_have=0
   fi
-  if [ "$dl_have" -gt 0 ] && [ "$REMOTE_RANGES" != true ]; then
+  if [ "$OS_TYPE" = "macos" ] && [ "$dl_have" -gt 0 ] && [ "$REMOTE_RANGES" != true ]; then
     printf '  %sServer will not resume this file — downloading it again.%s\n' "$YELLOW" "$RESET"
     rm -f "$dl_out"
     dl_have=0
@@ -844,7 +884,20 @@ download_with_progress() {
   # middle of the bar. The path is global so the interrupt trap can remove it.
   CURL_ERR_FILE=$(mktemp "${TMPDIR:-/tmp}/junie-curl.XXXXXX")
   dl_err="$CURL_ERR_FILE"
-  curl --fail --silent --show-error --location -C - -o "$dl_out" "$dl_url" 2>"$dl_err" &
+  set -- --fail --silent --show-error --location
+  if [ "$OS_TYPE" = "linux" ]; then
+    set -- "$@" --retry 3 --retry-delay 2
+    case "$dl_url" in
+      *huggingface.co*)
+        if [ -n "${HF_TOKEN:-}" ]; then
+          CURL_CONFIG_FILE=$(mktemp "${TMPDIR:-/tmp}/junie-curl-config.XXXXXX")
+          printf 'oauth2-bearer = "%s"\n' "$HF_TOKEN" > "$CURL_CONFIG_FILE"
+          set -- --config "$CURL_CONFIG_FILE" "$@"
+        fi
+        ;;
+    esac
+  fi
+  curl "$@" --continue-at - --output "$dl_out" "$dl_url" 2>"$dl_err" &
   CURL_PID=$!
 
   dl_prev_bytes=$dl_have
@@ -858,7 +911,9 @@ download_with_progress() {
       dl_prev_bytes=$dl_now_bytes
       dl_prev_time=$dl_now_time
       # One event per second; the bar below is redrawn far more often than that.
-      emit_progress "$dl_name" "$dl_now_bytes" "$dl_total" "$dl_label"
+      if [ "$OS_TYPE" = "macos" ] || [ "$dl_total" -gt 0 ]; then
+        emit_progress "$dl_name" "$dl_now_bytes" "$dl_total" "$dl_label"
+      fi
     fi
     progress_render "$dl_now_bytes" "$dl_total" "$dl_bps" "$dl_label"
     sleep 0.2
@@ -867,6 +922,15 @@ download_with_progress() {
   dl_rc=0
   wait "$CURL_PID" || dl_rc=$?
   CURL_PID=""
+  if [ -n "$CURL_CONFIG_FILE" ]; then
+    rm -f "$CURL_CONFIG_FILE"
+    CURL_CONFIG_FILE=""
+  fi
+  if [ "$OS_TYPE" = "linux" ] && [ "$dl_rc" -ne 0 ] && [ "$dl_total" -gt 0 ] && \
+    [ "$(file_size "$dl_out")" -eq "$dl_total" ]; then
+    printf '  %sCurl reported an error, but the file is complete.%s\n' "$YELLOW" "$RESET"
+    dl_rc=0
+  fi
   # One last frame so the bar lands on the final size — but only on success: a
   # failed download should not leave a bar behind at all.
   if [ "$dl_rc" -eq 0 ]; then
@@ -878,7 +942,7 @@ download_with_progress() {
 
   # Exit 33/36 mean the server refused our resume offset. With no known size we
   # cannot tell a finished file from a broken one, so let the checksum decide.
-  if [ "$dl_rc" -eq 33 ] || [ "$dl_rc" -eq 36 ]; then
+  if [ "$OS_TYPE" = "macos" ] && { [ "$dl_rc" -eq 33 ] || [ "$dl_rc" -eq 36 ]; }; then
     if [ "$dl_total" -eq 0 ]; then
       printf '  %sServer rejected the resume offset; verifying what we have.%s\n' "$YELLOW" "$RESET"
       rm -f "$dl_err"
@@ -1036,6 +1100,9 @@ cleanup() {
   if [ -n "$CURL_ERR_FILE" ]; then
     rm -f "$CURL_ERR_FILE"
   fi
+  if [ -n "$CURL_CONFIG_FILE" ]; then
+    rm -f "$CURL_CONFIG_FILE"
+  fi
 
   echo ""
   if [ -d "$DOWNLOAD_DIR" ]; then
@@ -1143,7 +1210,36 @@ sync_engine_port_from_config() {
   local server_config port
   server_config="$BASE_DIR/server-config.json"
   [ -f "$server_config" ] || return 0
-  port=$(grep -o '"port"[[:space:]]*:[[:space:]]*[0-9]\{1,5\}' "$server_config" | head -1 | sed 's/.*[[:space:]:]//')
+  # The worker also has a port under extra.server. Read only the top-level
+  # value, regardless of key order, whitespace or braces inside JSON strings.
+  port=$(awk '
+    {
+      remaining = $0
+      while (match(remaining, /"([^"\\]|\\.)*"|[{}\[\]:,]|[-+0-9.eE]+|true|false|null/)) {
+        token = substr(remaining, RSTART, RLENGTH)
+        remaining = substr(remaining, RSTART + RLENGTH)
+        if (read_port == 2) {
+          if (token ~ /^[0-9]+$/) print token
+          exit
+        }
+        if (read_port == 1) {
+          if (token != ":") exit
+          read_port = 2
+          continue
+        }
+        if (token == "{" || token == "[") {
+          depth++
+          if (depth == 1) expect_key = 1
+        }
+        else if (token == "}" || token == "]") depth--
+        else if (depth == 1 && token == ",") expect_key = 1
+        else if (depth == 1 && expect_key && token ~ /^"/) {
+          read_port = (token == "\"port\"")
+          expect_key = 0
+        }
+      }
+    }
+  ' "$server_config")
   if [ -n "$port" ] && [ "$port" -ge 1 ] 2>/dev/null && [ "$port" -le 65535 ] 2>/dev/null; then
     ENGINE_PORT="$port"
   fi
@@ -1177,6 +1273,10 @@ start_engine() {
       sleep 1
       waited=$((waited + 1))
     done
+    if [ "$OS_TYPE" = "linux" ] && is_engine_running; then
+      emit_error "Could not stop the running engine via serverctl; see logs in $BASE_DIR"
+      return 1
+    fi
     # serverctl could not stop it in time: kill the engine, the worker exits with it.
     remaining=$(get_engine_pids)
     if [ -n "$remaining" ]; then
@@ -1201,7 +1301,10 @@ start_engine() {
   # stream: a consumer reading our stdout would otherwise never see
   # end-of-stream because the daemon holds the pipe open forever.
   printf '  %sStarting the engine...%s\n' "$GRAY" "$RESET"
-  ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- )
+  if ! ( "$ENGINE_CTL" start > /dev/null 2>&1 3>&- ); then
+    emit_error "serverctl start failed; see logs in $BASE_DIR"
+    return 1
+  fi
 
   # Wait for the engine to become ready by polling /status until phase is "ready".
   waited=0
@@ -1228,12 +1331,10 @@ start_engine() {
 # Send one short chat request so the first Junie request does not pay for the
 # first generation.
 warm_engine() {
-  local warmup_output warmup_ok
+  local warmup_output
   [ -x "$ENGINE_CTL" ] || return 0
   printf '  %sWarming up the engine...%s\n' "$GRAY" "$RESET"
-  warmup_output="$("$ENGINE_CTL" warmup --model "$MODEL" 2>&1)"
-  warmup_ok=$?
-  if [ "$warmup_ok" -ne 0 ]; then
+  if ! warmup_output="$("$ENGINE_CTL" warmup --model "$MODEL" 2>&1)"; then
     if [ -n "$warmup_output" ]; then
       printf '%s\n' "$warmup_output"
     fi
@@ -1269,17 +1370,23 @@ download_and_verify() {
   printf '  %sSHA256 verified%s %s%s%s\n' "$JUNIE_GREEN" "$RESET" "$GRAY_DIM" "$actual" "$RESET"
 }
 
-# Check if a model has been fully unzipped to the models directory.
-# Each archive unpacks into $MODELS_DIR/<model_id>. A completion marker file is
-# written after extraction — a model directory without it is a leftover from an
-# interrupted extraction.
+# A completion marker is written only after a verified GGUF file is moved into
+# place or a model ZIP is fully extracted. Both formats use the same model id.
 model_completion_marker() {
   echo "$MODELS_DIR/.$1.installed"
 }
 
 model_installed() {
-  model_id="$1"
-  [ -d "$MODELS_DIR/$model_id" ] && [ -f "$(model_completion_marker "$model_id")" ]
+  local model_id="$1" archive="$2"
+  [ -f "$(model_completion_marker "$model_id")" ] || return 1
+  # Match Windows: the completion marker is the installation record.
+  if [ "$OS_TYPE" = "linux" ]; then
+    return 0
+  fi
+  case "$archive" in
+    *.gguf) [ -s "$MODELS_DIR/$archive" ] ;;
+    *) [ -d "$MODELS_DIR/$model_id" ] ;;
+  esac
 }
 
 # Download and install each model only if not already present.
@@ -1287,25 +1394,35 @@ model_installed() {
 install_model_if_needed() {
   archive_index="$1"
 
-  zip_file=$(get_archive_field "$archive_index" name)
+  archive_file=$(get_archive_field "$archive_index" name)
   download_url=$(get_archive_field "$archive_index" downloadUrl)
   sha256_sum=$(get_archive_field "$archive_index" sha256)
   model_id=$(get_archive_field "$archive_index" modelId)
   model_label=$(get_archive_field "$archive_index" label)
 
-  if model_installed "$model_id"; then
+  if model_installed "$model_id" "$archive_file"; then
     printf '  %sModel %s is already installed. Skipping.%s\n\n' "$GRAY" "$model_id" "$RESET"
     return 0
   fi
 
   printf '  %sModel %s is not installed. Proceeding...%s\n\n' "$GRAY" "$model_label" "$RESET"
-  download_and_verify "$download_url" "$zip_file" "$sha256_sum" "$model_label"
-  printf '  %sExtracting %s...%s\n' "$GRAY" "$zip_file" "$RESET"
-  emit_activity "extracting" "$zip_file" "$model_label"
+  download_and_verify "$download_url" "$archive_file" "$sha256_sum" "$model_label"
+  rm -f "$(model_completion_marker "$model_id")"
+  case "$archive_file" in
+    *.gguf)
+      # Match Windows: copy verified GGUF weights, then mark them installed.
+      cp -f "$DOWNLOAD_DIR/$archive_file" "$MODELS_DIR/$archive_file"
+      touch "$(model_completion_marker "$model_id")"
+      printf '  %sModel installed.%s\n\n' "$JUNIE_GREEN" "$RESET"
+      return 0
+      ;;
+  esac
+  printf '  %sExtracting %s...%s\n' "$GRAY" "$archive_file" "$RESET"
+  emit_activity "extracting" "$archive_file" "$model_label"
   # Remove leftovers from a previously interrupted extraction — the path is
   # spelled out instead of using $MODELS_DIR so the rm -rf target is explicit
   rm -rf "$BASE_DIR/models/$model_id"
-  extract_with_progress "$DOWNLOAD_DIR/$zip_file" "$MODELS_DIR" "$MODELS_DIR/$model_id" "$model_label"
+  extract_with_progress "$DOWNLOAD_DIR/$archive_file" "$MODELS_DIR" "$MODELS_DIR/$model_id" "$model_label"
   touch "$(model_completion_marker "$model_id")"
   printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
 }
@@ -1398,8 +1515,9 @@ if [ "$OS_TYPE" = "macos" ]; then
   OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
   CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
   MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+  MEM_GB=$((MEM_BYTES / 1073741824))
 else
-  OS_FULL_VERSION=$(grep '^VERSION_ID=' /etc/os-release 2>/dev/null | tr -d '"=' | cut -d' ' -f1)
+  OS_FULL_VERSION=$(sed -n 's/^VERSION_ID=//p' /etc/os-release 2>/dev/null | tr -d '"')
   if [ -z "$OS_FULL_VERSION" ]; then
     OS_FULL_VERSION=$(uname -r)
   fi
@@ -1409,9 +1527,7 @@ else
   else
     CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
   fi
-  MEM_BYTES=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2 * 1024}' || echo "0")
 fi
-MEM_GB=$((MEM_BYTES / 1073741824))
 
 # ============================================================
 # System info summary: evaluate & display
@@ -1424,7 +1540,7 @@ ALL_OK=true
 
 # OS check
 # macOS: require 26+
-# Linux: require kernel 5.15+ (for CUDA and modern GPU drivers)
+# Linux: kernel 5.15+; driver and native library compatibility also need package validation.
 OS_OK=true
 OS_REQUIREMENT=""
 if [ "$OS_TYPE" = "macos" ]; then
@@ -1453,7 +1569,7 @@ emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
 # Accelerator check
 # macOS: require Apple M4 or newer (MLX); warn on the M4 itself
-# Linux: require NVIDIA GPU with 24 GB VRAM and CUDA 12+ (CUDA)
+# Linux: first NVIDIA GPU; driver support for the architecture's pinned CUDA runtime.
 CPU_OK=true
 CPU_WARN=false
 ACCEL_DISPLAY="$CPU_MODEL"
@@ -1481,6 +1597,14 @@ if [ "$OS_TYPE" = "macos" ]; then
   fi
   ACCEL_REQUIREMENT="Apple M4 or newer"
 else
+  # Match Windows: allow 256 MiB of reporting headroom for a 24 GiB card.
+  MINIMUM_REPORTED_VRAM_MIB=$((24 * 1024 - 256))
+  ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM (at least $MINIMUM_REPORTED_VRAM_MIB MiB reported)"
+  case "$ARCH_NAME" in
+    amd64) CUDA_REQUIRED_MAJOR=12; CUDA_REQUIRED_MINOR=8 ;;
+    aarch64) CUDA_REQUIRED_MAJOR=13; CUDA_REQUIRED_MINOR=4 ;;
+  esac
+  CUDA_REQUIREMENT="Driver supporting CUDA $CUDA_REQUIRED_MAJOR.$CUDA_REQUIRED_MINOR or higher"
   # NVIDIA GPU check via nvidia-smi (not required in require_commands, so it
   # may be absent — handle that gracefully here with a clear message)
   if ! command -v nvidia-smi > /dev/null 2>&1; then
@@ -1488,25 +1612,25 @@ else
     ALL_OK=false
     CUDA_OK=false
     ACCEL_DISPLAY="nvidia-smi not found"
-    ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
     CUDA_DISPLAY="CUDA not detected"
-    CUDA_REQUIREMENT="CUDA 12+"
   else
-    GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
+    # Match Windows: check the first GPU, without combining their VRAM.
+    # DLA rows describe NPUs rather than CUDA GPUs.
+    GPU_INFO=$(nvidia-smi --query-gpu=uuid,name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | sed '/^[[:space:]]*DLA-/d; /^[[:space:]]*$/d' | head -1)
     if [ -z "$GPU_INFO" ]; then
       CPU_OK=false
       ALL_OK=false
-      ACCEL_DISPLAY="No NVIDIA GPU detected"
-      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+      ACCEL_DISPLAY="NVIDIA GPU not detected"
     else
-      GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
-      GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
-      GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
-      DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
-      ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
-      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
-      
-      if [ "$GPU_VRAM_GB" -lt 24 ]; then
+      GPU_UUID=$(echo "$GPU_INFO" | cut -d',' -f1 | tr -d ' ')
+      GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//; s/[ ]*$//')
+      GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f3 | tr -d ' ')
+      DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f4 | tr -d ' ')
+      ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_MB MiB VRAM, driver $DRIVER_VERSION)"
+      case "$GPU_VRAM_MB" in
+        ''|*[!0-9]*) GPU_VRAM_MB=0 ;;
+      esac
+      if [ "${GPU_UUID#GPU-}" = "$GPU_UUID" ] || [ "$GPU_VRAM_MB" -lt "$MINIMUM_REPORTED_VRAM_MIB" ]; then
         CPU_OK=false
         ALL_OK=false
       fi
@@ -1514,20 +1638,20 @@ else
 
     # CUDA version check — nvidia-smi reports the highest supported CUDA version
     # in its output header, e.g. "CUDA Version: 12.2"
-    CUDA_MAJOR=$(nvidia-smi 2>/dev/null | grep 'CUDA Version' | awk '{print $NF}' | cut -d '.' -f 1)
-    if [ -z "$CUDA_MAJOR" ]; then
+    CUDA_VERSION=$(nvidia-smi 2>/dev/null | sed -n 's/.*CUDA Version: *\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' | head -1)
+    if [ -z "$CUDA_VERSION" ]; then
       CUDA_OK=false
       ALL_OK=false
       CUDA_DISPLAY="CUDA version not detected"
-      CUDA_REQUIREMENT="CUDA 12+"
-    elif [ "$CUDA_MAJOR" -lt 12 ]; then
-      CUDA_OK=false
-      ALL_OK=false
-      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-      CUDA_REQUIREMENT="CUDA 12+"
     else
-      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-      CUDA_REQUIREMENT="CUDA 12+"
+      CUDA_MAJOR=${CUDA_VERSION%%.*}
+      CUDA_MINOR=${CUDA_VERSION#*.}
+      CUDA_DISPLAY="CUDA $CUDA_VERSION"
+      if [ "$CUDA_MAJOR" -lt "$CUDA_REQUIRED_MAJOR" ] || \
+        { [ "$CUDA_MAJOR" -eq "$CUDA_REQUIRED_MAJOR" ] && [ "$CUDA_MINOR" -lt "$CUDA_REQUIRED_MINOR" ]; }; then
+        CUDA_OK=false
+        ALL_OK=false
+      fi
     fi
   fi
 fi
@@ -1548,17 +1672,20 @@ if [ "$OS_TYPE" = "linux" ]; then
   emit_check "cuda" "$(check_status "$CUDA_OK" false)" "$CUDA_DISPLAY" "$CUDA_REQUIREMENT"
 fi
 
-# RAM check (hard: >= 40 GB, recommended: >= 60 GB)
-RAM_OK=true
-RAM_WARN=false
-if [ "$MEM_GB" -lt 40 ]; then
-  RAM_OK=false
-  ALL_OK=false
-elif [ "$MEM_GB" -lt 60 ]; then
-  RAM_WARN=true
+# Windows and Linux do not impose a separate system RAM requirement here.
+if [ "$OS_TYPE" = "macos" ]; then
+  # RAM check (hard: >= 40 GB, recommended: >= 60 GB)
+  RAM_OK=true
+  RAM_WARN=false
+  if [ "$MEM_GB" -lt 40 ]; then
+    RAM_OK=false
+    ALL_OK=false
+  elif [ "$MEM_GB" -lt 60 ]; then
+    RAM_WARN=true
+  fi
+  print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
+  emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
 fi
-print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
-emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
 
 # In test mode an unmet requirement is only reported, never fatal.
 if [ "$TEST_MODE" = true ] && [ "$ALL_OK" = false ]; then
@@ -1583,7 +1710,7 @@ fi
 # are done. This is the first thing in the script that touches the network or
 # writes to disk, and --check-only exits right below without needing any of it,
 # so a check never pays for it — it reports an empty engine version instead.
-if [ "$CHECK_ONLY" != true ]; then
+if [ "$CHECK_ONLY" != true ] && [ "$ALL_OK" = true ]; then
   if [ "$UPDATE" = true ]; then
     fetch_engine_config
     resolve_engine_paths
@@ -1714,8 +1841,8 @@ if [ -x "$ENGINE_CTL" ]; then
     configured_model_id=${handled%%|*}
     configured_junie_id=${handled#*|}
     JUNIE_CONFIG_FILE="$JUNIE_HOME/models/${configured_junie_id}.json"
-    config_output="$("$ENGINE_CTL" update-configs --junie-home "$JUNIE_HOME" --model "$configured_model_id" 2>&1)"
-    config_ok=$?
+    config_ok=0
+    config_output="$("$ENGINE_CTL" update-configs --junie-home "$JUNIE_HOME" --model "$configured_model_id" 2>&1)" || config_ok=$?
     if [ "$config_ok" -eq 0 ] && [ -f "$JUNIE_CONFIG_FILE" ]; then
       print_value "Junie model config:" "$JUNIE_CONFIG_FILE" true false ""
       if [ "$UPDATE" != true ]; then
@@ -1753,6 +1880,9 @@ if start_engine; then
   if [ "$UPDATE" != true ] || [ -n "$UPDATE_MODEL_IDS" ]; then
     warm_engine
   fi
+elif [ "$OS_TYPE" = "macos" ]; then
+  emit_error "The engine could not be started; see logs in $BASE_DIR"
+  wait_and_exit 1
 fi
 emit_step_done "start"
 
@@ -1788,5 +1918,6 @@ printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$
 MAIN_ARCHIVE_INDEX=$(get_main_archive_index)
 MAIN_MODEL_ID=$(get_archive_field "$MAIN_ARCHIVE_INDEX" modelId)
 MAIN_LABEL=$(get_archive_field "$MAIN_ARCHIVE_INDEX" label)
-emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MAIN_MODEL_ID")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
+MAIN_MODEL_PATH="$MODELS_DIR/$MAIN_MODEL_ID"
+emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MAIN_MODEL_PATH")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
 wait_and_exit 0
