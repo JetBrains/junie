@@ -368,47 +368,52 @@
     {
       "id": "crow-cli",
       "name": "crow-cli",
-      "version": "0.1.24",
+      "version": "0.1.49",
       "description": "Minimal ACP Native Coding Agent",
       "repository": "https://github.com/crow-cli/crow-cli",
       "website": "https://crow-ai.dev",
       "authors": [
         "Thomas Wood"
       ],
-      "license": "Apache-2.0",
+      "license": "MIT",
       "license_url": "https://github.com/crow-cli/crow-cli/blob/main/LICENSE.md",
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.24/crow-cli-darwin-aarch64.tar.gz",
+            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.49/crow-cli-darwin-aarch64.tar.gz",
+            "sha256": "e57bec141681d0843990ab2d536467a42cf33b4fe10a3374c152b83eb200cccd",
             "cmd": "./crow-cli",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.24/crow-cli-darwin-x86_64.tar.gz",
+            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.49/crow-cli-darwin-x86_64.tar.gz",
+            "sha256": "62941f0f3d35c9e722d92bee3a4a9a5f8c4c92c2bcf408f7a7268eb0f8d52a1f",
             "cmd": "./crow-cli",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.24/crow-cli-linux-aarch64.tar.gz",
+            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.49/crow-cli-linux-aarch64.tar.gz",
+            "sha256": "7e4160ae3ffc0078a73fe78cab49cfe00bf854538991c47dbb25282d6a092685",
             "cmd": "./crow-cli",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.24/crow-cli-linux-x86_64.tar.gz",
+            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.49/crow-cli-linux-x86_64.tar.gz",
+            "sha256": "0001d5019ec35e8a080844daa96d3ba91afd38ec44a89e5102291ebd36a1083c",
             "cmd": "./crow-cli",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.24/crow-cli-windows-x86_64.zip",
+            "archive": "https://github.com/crow-cli/crow-cli/releases/download/v0.1.49/crow-cli-windows-x86_64.zip",
+            "sha256": "bcee58f1af378436d93b3386b62ce9a90dc3ed9614861ad28581c86577c4323a",
             "cmd": "./crow-cli.exe",
             "args": [
               "acp"
@@ -860,7 +865,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3978.1",
+      "version": "3979.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -872,42 +877,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3978.1/junie-nightly-3978.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3979.1/junie-nightly-3979.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3978.1/junie-nightly-3978.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3979.1/junie-nightly-3979.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3978.1/junie-nightly-3978.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3979.1/junie-nightly-3979.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3978.1/junie-nightly-3978.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3979.1/junie-nightly-3979.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3978.1/junie-nightly-3978.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3979.1/junie-nightly-3979.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3978.1/junie-nightly-3978.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3979.1/junie-nightly-3979.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
