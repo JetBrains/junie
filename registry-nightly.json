@@ -904,7 +904,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3982.1",
+      "version": "3983.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -916,42 +916,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3983.1/junie-nightly-3983.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3983.1/junie-nightly-3983.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3983.1/junie-nightly-3983.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3983.1/junie-nightly-3983.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3983.1/junie-nightly-3983.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3983.1/junie-nightly-3983.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1145,6 +1145,60 @@
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/kimi.svg"
+    },
+    {
+      "id": "kiro",
+      "name": "Kiro CLI",
+      "version": "2.37.1",
+      "description": "The Kiro coding agent",
+      "repository": "https://github.com/kirodotdev/Kiro",
+      "website": "https://kiro.dev/docs/cli/acp/",
+      "authors": [
+        "Amazon"
+      ],
+      "license": "proprietary",
+      "license_url": "https://kiro.dev/license/",
+      "distribution": {
+        "binary": {
+          "darwin-aarch64": {
+            "archive": "https://prod.download.cli.kiro.dev/stable/2.37.1/kirocli-universal-darwin.tar.gz",
+            "sha256": "c2b2bb628673cea6f05174528735ac1f82478dd936a27f0826f0cd7029699c8e",
+            "cmd": "./kirocli/bin/kiro-cli",
+            "args": [
+              "acp",
+              "--agent-engine=v3"
+            ]
+          },
+          "darwin-x86_64": {
+            "archive": "https://prod.download.cli.kiro.dev/stable/2.37.1/kirocli-universal-darwin.tar.gz",
+            "sha256": "c2b2bb628673cea6f05174528735ac1f82478dd936a27f0826f0cd7029699c8e",
+            "cmd": "./kirocli/bin/kiro-cli",
+            "args": [
+              "acp",
+              "--agent-engine=v3"
+            ]
+          },
+          "linux-aarch64": {
+            "archive": "https://prod.download.cli.kiro.dev/stable/2.37.1/kirocli-aarch64-linux.tar.gz",
+            "sha256": "10f0318a379b27ba9bbfb2a06b33db2abaedcde2ea0c10f46e3cffbce86368aa",
+            "cmd": "./kirocli/bin/kiro-cli-chat",
+            "args": [
+              "acp",
+              "--agent-engine=v3"
+            ]
+          },
+          "linux-x86_64": {
+            "archive": "https://prod.download.cli.kiro.dev/stable/2.37.1/kirocli-x86_64-linux.tar.gz",
+            "sha256": "cf6c7438934a169781b3d564e81bcdfccac901c5d659f35235ac19e0d01192a3",
+            "cmd": "./kirocli/bin/kiro-cli-chat",
+            "args": [
+              "acp",
+              "--agent-engine=v3"
+            ]
+          }
+        }
+      },
+      "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/kiro.svg"
     },
     {
       "id": "minimax-code",
