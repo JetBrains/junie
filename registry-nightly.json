@@ -146,18 +146,57 @@
     {
       "id": "autohand",
       "name": "Autohand Code",
-      "version": "0.2.1",
-      "description": "Autohand Code - AI coding agent powered by Autohand AI",
-      "repository": "https://github.com/autohandai/autohand-acp",
-      "website": "https://www.autohand.ai/cli/",
+      "version": "0.9.9",
+      "description": "Autohand Code CLI with native ACP support",
+      "repository": "https://github.com/autohandai/code-cli",
+      "website": "https://github.com/autohandai/code-cli/blob/main/docs/guides/ACP.md",
       "authors": [
         "Autohand AI"
       ],
       "license": "Apache-2.0",
-      "license_url": "https://github.com/autohandai/autohand-acp/blob/main/LICENSE",
+      "license_url": "https://github.com/autohandai/code-cli/blob/main/LICENSE",
       "distribution": {
-        "npx": {
-          "package": "@autohandai/autohand-acp@0.2.1"
+        "binary": {
+          "darwin-aarch64": {
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.9/autohand-macos-arm64.tar.gz",
+            "sha256": "e873edb3a98f067365dbdc74fd0ee52a78e9b5cc7341ac6a76d9a71b95d74a4d",
+            "cmd": "./autohand",
+            "args": [
+              "--acp"
+            ]
+          },
+          "darwin-x86_64": {
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.9/autohand-macos-x64.tar.gz",
+            "sha256": "cdd5395a52eb043efcb2d325367c0f364c76f254ebb67148d22227770336d8e7",
+            "cmd": "./autohand",
+            "args": [
+              "--acp"
+            ]
+          },
+          "linux-aarch64": {
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.9/autohand-linux-arm64.tar.gz",
+            "sha256": "3fb41af063007b7f8ff4fd947051631c8c5089a8b931e99b40c07c56a1d4ba19",
+            "cmd": "./autohand",
+            "args": [
+              "--acp"
+            ]
+          },
+          "linux-x86_64": {
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.9/autohand-linux-x64.tar.gz",
+            "sha256": "852ef7decae6405ae2139d04eb82649aab798145644b0136f7eeb958cd791775",
+            "cmd": "./autohand",
+            "args": [
+              "--acp"
+            ]
+          },
+          "windows-x86_64": {
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.9/autohand-windows-x64.zip",
+            "sha256": "d109c17dd1a5669b73a259991766b1b143c1f727eb698b6c730609f330341dfd",
+            "cmd": "./autohand.exe",
+            "args": [
+              "--acp"
+            ]
+          }
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/autohand.svg"
@@ -865,7 +904,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "3981.1",
+      "version": "3982.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -877,42 +916,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3981.1/junie-nightly-3981.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3981.1/junie-nightly-3981.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3981.1/junie-nightly-3981.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3981.1/junie-nightly-3981.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3981.1/junie-nightly-3981.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/3981.1/junie-nightly-3981.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/3982.1/junie-nightly-3982.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
