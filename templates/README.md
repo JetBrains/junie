@@ -10,8 +10,9 @@ do not edit them directly.
    - `install.sh.template` — Bash installer
    - `install.ps1.template` — PowerShell installer
    - `junie.shim.sh` — Bash shim inlined into every `install*.sh`
+     as a fallback (see [Bundled shim](#bundled-shim))
    - `junie.shim.bat` — Windows `.bat` shim inlined into every `install*.ps1`
-     as a fallback (see [Windows shim](#windows-shim))
+     as a fallback (see [Bundled shim](#bundled-shim))
 2. Edit `channels.tsv` if you need to add/remove a channel.
 3. Regenerate the root scripts:
    ```sh
@@ -34,13 +35,19 @@ do not edit them directly.
 | `junie.shim.bat`        | Windows `.bat` shim body (verbatim, no escaping)           |
 | `generate.sh`           | Regenerates `install*.sh` and `install*.ps1` in the repo root |
 
-## Windows shim
+## Bundled shim
 
-Every `install*.ps1` installs the shim shipped in the downloaded package,
-`versions/<ver>/shim/junie.bat`, byte-for-byte (`Install-Shim` in
-`install.ps1.template`). That is the same file the binary's shim updater installs,
-so the shim always matches the installed build. The embedded `junie.shim.bat` is
-written only for packages without a bundled shim.
+Every installer installs the shim shipped in the downloaded package byte-for-byte:
+
+- `install*.sh` copies `versions/<ver>/shim/junie.sh` to `~/.local/bin/junie`
+  (`install_shim` in `install.sh.template`) and marks it executable;
+- `install*.ps1` copies `versions/<ver>/shim/junie.bat` to `~/.local/bin/junie.bat`
+  (`Install-Shim` in `install.ps1.template`).
+
+That is the same file the binary's shim updater installs, so the shim always
+matches the installed build. The embedded `junie.shim.sh` / `junie.shim.bat` is
+written only for packages without a bundled shim. One-shot installs never touch
+the shim.
 
 ## Output layout
 
