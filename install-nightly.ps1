@@ -294,19 +294,18 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
   }
 }
 
-if ($ONESHOT) {
-  # One-shot: report the installed version back to the caller (the shim) and
-  # leave the shim, the `current` pointer, and PATH untouched.
-  if ($env:JUNIE_ONESHOT_VERSION_FILE) {
-    [System.IO.File]::WriteAllText($env:JUNIE_ONESHOT_VERSION_FILE, $VERSION)
+# Install the shim shipped in the package (versions\<v>\shim\junie.bat) byte-for-byte,
+# so it always matches the installed binary -- the same file the binary's own
+# shim updater installs. The embedded copy is only a fallback for packages that
+# predate the bundled shim.
+function Install-Shim($versionDir, $shimPath) {
+  $bundledShim = Join-Path $versionDir "shim\junie.bat"
+  if ([System.IO.File]::Exists($bundledShim)) {
+    [System.IO.File]::Copy($bundledShim, $shimPath, $true)
+    return
   }
-  Log "Ready (version $VERSION)"
-} else {
-  # Write current version pointer file (plain text, not symlink)
-  [System.IO.File]::WriteAllText("$JUNIE_DATA\current", $VERSION)
 
-  # Install shim batch file (embedded inline so it works when piped via irm ... | iex)
-  $SHIM_PATH = Join-Path $JUNIE_BIN "junie.bat"
+  # Embedded inline so it works when piped via irm ... | iex
   $SHIM_CONTENT = @'
 @echo off
 setlocal enabledelayedexpansion
@@ -663,7 +662,21 @@ endlocal & set "EJ_RUNNER_PWD=%EJ_RUNNER_PWD%" & set "JUNIE_DATA=%JUNIE_DATA%" &
   # :after_channel_oneshot), causing "The system cannot find the batch label
   # specified" on launch.
   $SHIM_CONTENT = $SHIM_CONTENT -replace "`r?`n", "`r`n"
-  [System.IO.File]::WriteAllText($SHIM_PATH, $SHIM_CONTENT)
+  [System.IO.File]::WriteAllText($shimPath, $SHIM_CONTENT)
+}
+
+if ($ONESHOT) {
+  # One-shot: report the installed version back to the caller (the shim) and
+  # leave the shim, the `current` pointer, and PATH untouched.
+  if ($env:JUNIE_ONESHOT_VERSION_FILE) {
+    [System.IO.File]::WriteAllText($env:JUNIE_ONESHOT_VERSION_FILE, $VERSION)
+  }
+  Log "Ready (version $VERSION)"
+} else {
+  # Write current version pointer file (plain text, not symlink)
+  [System.IO.File]::WriteAllText("$JUNIE_DATA\current", $VERSION)
+
+  Install-Shim $TARGET_DIR (Join-Path $JUNIE_BIN "junie.bat")
 
   Log "Installed successfully!"
 
