@@ -171,6 +171,10 @@ the mode that was requested (`models`, `engine_update`), or with `error`.
 | `error` | Fatal problem; the run stops | `message` |
 | `done` | Successful install or update | `model_id`, `port`, `model_path`, `label` |
 
+`model_path` points at the main model as it is stored on disk: the weights file
+`models/<archive>` for single-file models (`.gguf`, i.e. Windows and Linux), and
+the unpacked directory `models/<modelId>` for the ZIP models used on macOS.
+
 `check` names are `os`, `cpu`, `gpu` and `ram` on both platforms; Windows adds
 `driver` and `vc_redist`. `step_start` / `step_done` use the ids `engine`,
 `models`, `configure` and `start`, in that order.

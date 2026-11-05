@@ -1788,5 +1788,12 @@ printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$
 MAIN_ARCHIVE_INDEX=$(get_main_archive_index)
 MAIN_MODEL_ID=$(get_archive_field "$MAIN_ARCHIVE_INDEX" modelId)
 MAIN_LABEL=$(get_archive_field "$MAIN_ARCHIVE_INDEX" label)
-emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MAIN_MODEL_ID")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
+MAIN_ARCHIVE=$(get_archive_field "$MAIN_ARCHIVE_INDEX" name)
+# Same rule as model_installed: a .gguf archive is the weights file itself and
+# keeps its own name in models/, everything else is unpacked into models/<id>.
+case "$MAIN_ARCHIVE" in
+  *.gguf) MAIN_MODEL_PATH="$MODELS_DIR/$MAIN_ARCHIVE" ;;
+  *) MAIN_MODEL_PATH="$MODELS_DIR/$MAIN_MODEL_ID" ;;
+esac
+emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MAIN_MODEL_PATH")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
 wait_and_exit 0
