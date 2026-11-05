@@ -515,9 +515,9 @@ wait_and_exit() {
   show_cursor
   if [ "$MACHINE_OUTPUT" != true ] && [ -t 0 ]; then
     echo ""
-    echo "Press any key to exit..."
+    echo "Press Enter to exit..."
     # If read fails, still exit with the intended code (not read's status)
-    read -r -n 1 || true
+    read -r _ || true
   fi
   exit "$1"
 }
