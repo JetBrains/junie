@@ -1469,7 +1469,7 @@ ALL_OK=true
 
 # OS check
 # macOS: require 26+
-# Linux: kernel 5.15+; driver and native library compatibility also need package validation.
+# Linux: kernel 5.15+.
 OS_OK=true
 OS_REQUIREMENT=""
 if [ "$OS_TYPE" = "macos" ]; then
@@ -1498,7 +1498,7 @@ emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
 # Accelerator check
 # macOS: require Apple M4 or newer (MLX); warn on the M4 itself
-# Linux: first NVIDIA GPU; driver support for the architecture's pinned CUDA runtime.
+# Linux: first NVIDIA GPU with the proprietary driver, same checks as Windows.
 CPU_OK=true
 CPU_WARN=false
 ACCEL_DISPLAY="$CPU_MODEL"
@@ -1506,9 +1506,9 @@ ACCEL_REQUIREMENT=""
 ACCEL_NOTE=""
 GPU_NAME=""
 GPU_VRAM_GB=0
-CUDA_OK=true
-CUDA_DISPLAY=""
-CUDA_REQUIREMENT=""
+DRIVER_OK=true
+DRIVER_DISPLAY=""
+DRIVER_REQUIREMENT=""
 
 if [ "$OS_TYPE" = "macos" ]; then
   # The generation is read out of the brand string ("Apple M4 Pro" -> 4) and
@@ -1526,61 +1526,60 @@ if [ "$OS_TYPE" = "macos" ]; then
   fi
   ACCEL_REQUIREMENT="Apple M4 or newer"
 else
-  # Match Windows: allow 256 MiB of reporting headroom for a 24 GiB card.
+  # Match Windows: allow 256 MiB of reporting headroom for a 24 GiB card
+  # (e.g. an RTX 4090 reports 24564 MiB).
   MINIMUM_REPORTED_VRAM_MIB=$((24 * 1024 - 256))
   ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM (at least $MINIMUM_REPORTED_VRAM_MIB MiB reported)"
-  case "$ARCH_NAME" in
-    amd64) CUDA_REQUIRED_MAJOR=12; CUDA_REQUIRED_MINOR=8 ;;
-    aarch64) CUDA_REQUIRED_MAJOR=13; CUDA_REQUIRED_MINOR=4 ;;
-  esac
-  CUDA_REQUIREMENT="Driver supporting CUDA $CUDA_REQUIRED_MAJOR.$CUDA_REQUIRED_MINOR or higher"
-  # NVIDIA GPU check via nvidia-smi (not required in require_commands, so it
-  # may be absent — handle that gracefully here with a clear message)
+  # Windows requires driver 581+; the Linux driver of the same release branch
+  # is numbered 580, so that is the minimum here.
+  MINIMUM_DRIVER_MAJOR=580
+  DRIVER_REQUIREMENT="NVIDIA proprietary driver ${MINIMUM_DRIVER_MAJOR}+"
+  # NVIDIA driver check via nvidia-smi, mirroring the Windows installer.
+  # nvidia-smi only ships with NVIDIA's proprietary driver, so this also rules
+  # out nouveau: with nouveau the tool is absent or cannot talk to the GPU.
   if ! command -v nvidia-smi > /dev/null 2>&1; then
     CPU_OK=false
     ALL_OK=false
-    CUDA_OK=false
+    DRIVER_OK=false
     ACCEL_DISPLAY="nvidia-smi not found"
-    ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
-    CUDA_DISPLAY="CUDA not detected"
-    CUDA_REQUIREMENT="CUDA 12+"
+    DRIVER_DISPLAY="Driver not detected (the open-source nouveau driver is not supported)"
   else
     GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
     if [ -z "$GPU_INFO" ]; then
       CPU_OK=false
       ALL_OK=false
+      DRIVER_OK=false
       ACCEL_DISPLAY="No NVIDIA GPU detected"
-      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+      DRIVER_DISPLAY="Driver not detected"
     else
       GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
       GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
       GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
       DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
       ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
-      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
 
-      if [ "$GPU_VRAM_GB" -lt 24 ]; then
+      if [ "$GPU_VRAM_MB" -lt "$MINIMUM_REPORTED_VRAM_MIB" ]; then
         CPU_OK=false
         ALL_OK=false
       fi
-    fi
 
-    # CUDA version check — nvidia-smi reports the highest supported CUDA version
-    # in its output header, e.g. "CUDA Version: 12.2"
-    CUDA_MAJOR=$(nvidia-smi 2>/dev/null | grep 'CUDA Version' | awk '{print $NF}' | cut -d '.' -f 1)
-    if [ -z "$CUDA_MAJOR" ]; then
-      CUDA_OK=false
-      ALL_OK=false
-      CUDA_DISPLAY="CUDA version not detected"
-      CUDA_REQUIREMENT="CUDA 12+"
-    elif [ "$CUDA_MAJOR" -lt 12 ]; then
-      CUDA_OK=false
-      ALL_OK=false
-      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-      CUDA_REQUIREMENT="CUDA 12+"
-    else
-      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-      CUDA_REQUIREMENT="CUDA 12+"
+      # Driver version check: require at least $MINIMUM_DRIVER_MAJOR, same as
+      # the Windows installer's 581+ check.
+      DRIVER_MAJOR=$(echo "$DRIVER_VERSION" | cut -d'.' -f1)
+      DRIVER_DISPLAY="Driver $DRIVER_VERSION"
+      case "$DRIVER_MAJOR" in
+        ''|*[!0-9]*)
+          DRIVER_OK=false
+          ALL_OK=false
+          DRIVER_DISPLAY="Driver version not recognized: $DRIVER_VERSION"
+          ;;
+        *)
+          if [ "$DRIVER_MAJOR" -lt "$MINIMUM_DRIVER_MAJOR" ]; then
+            DRIVER_OK=false
+            ALL_OK=false
+          fi
+          ;;
+      esac
     fi
   fi
 fi
@@ -1597,8 +1596,8 @@ if [ "$CPU_WARN" = true ]; then
   emit_warning "$ACCEL_DISPLAY: $ACCEL_NOTE"
 fi
 if [ "$OS_TYPE" = "linux" ]; then
-  print_value "CUDA:" "$CUDA_DISPLAY" "$CUDA_OK" false "$CUDA_REQUIREMENT"
-  emit_check "cuda" "$(check_status "$CUDA_OK" false)" "$CUDA_DISPLAY" "$CUDA_REQUIREMENT"
+  print_value "Driver:" "$DRIVER_DISPLAY" "$DRIVER_OK" false "$DRIVER_REQUIREMENT"
+  emit_check "driver" "$(check_status "$DRIVER_OK" false)" "$DRIVER_DISPLAY" "$DRIVER_REQUIREMENT"
 fi
 
 # Windows and Linux do not impose a separate system RAM requirement here.
