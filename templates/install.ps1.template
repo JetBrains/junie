@@ -293,6 +293,30 @@ if ($ONESHOT -and (Test-OneshotTargetReady $TARGET_DIR)) {
   }
 }
 
+# Install the shim shipped in the package (versions\<v>\shim\junie.bat) byte-for-byte,
+# so it always matches the installed binary -- the same file the binary's own
+# shim updater installs. The embedded copy is only a fallback for packages that
+# predate the bundled shim.
+function Install-Shim($versionDir, $shimPath) {
+  $bundledShim = Join-Path $versionDir "shim\junie.bat"
+  if ([System.IO.File]::Exists($bundledShim)) {
+    [System.IO.File]::Copy($bundledShim, $shimPath, $true)
+    return
+  }
+
+  # Embedded inline so it works when piped via irm ... | iex
+  $SHIM_CONTENT = @'
+{{SHIM}}
+'@
+  # The shim is a cmd.exe batch file: it MUST use Windows CRLF line endings.
+  # This template is maintained with LF, so normalize before writing -- otherwise
+  # `goto`/`call` label seeking breaks on LF-only files (e.g. the forward jump to
+  # :after_channel_oneshot), causing "The system cannot find the batch label
+  # specified" on launch.
+  $SHIM_CONTENT = $SHIM_CONTENT -replace "`r?`n", "`r`n"
+  [System.IO.File]::WriteAllText($shimPath, $SHIM_CONTENT)
+}
+
 if ($ONESHOT) {
   # One-shot: report the installed version back to the caller (the shim) and
   # leave the shim, the `current` pointer, and PATH untouched.
@@ -304,18 +328,7 @@ if ($ONESHOT) {
   # Write current version pointer file (plain text, not symlink)
   [System.IO.File]::WriteAllText("$JUNIE_DATA\current", $VERSION)
 
-  # Install shim batch file (embedded inline so it works when piped via irm ... | iex)
-  $SHIM_PATH = Join-Path $JUNIE_BIN "junie.bat"
-  $SHIM_CONTENT = @'
-{{SHIM}}
-'@
-  # The shim is a cmd.exe batch file: it MUST use Windows CRLF line endings.
-  # This template is maintained with LF, so normalize before writing -- otherwise
-  # `goto`/`call` label seeking breaks on LF-only files (e.g. the forward jump to
-  # :after_channel_oneshot), causing "The system cannot find the batch label
-  # specified" on launch.
-  $SHIM_CONTENT = $SHIM_CONTENT -replace "`r?`n", "`r`n"
-  [System.IO.File]::WriteAllText($SHIM_PATH, $SHIM_CONTENT)
+  Install-Shim $TARGET_DIR (Join-Path $JUNIE_BIN "junie.bat")
 
   Log "Installed successfully!"
 

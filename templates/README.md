@@ -11,6 +11,7 @@ do not edit them directly.
    - `install.ps1.template` — PowerShell installer
    - `junie.shim.sh` — Bash shim inlined into every `install*.sh`
    - `junie.shim.bat` — Windows `.bat` shim inlined into every `install*.ps1`
+     as a fallback (see [Windows shim](#windows-shim))
 2. Edit `channels.tsv` if you need to add/remove a channel.
 3. Regenerate the root scripts:
    ```sh
@@ -32,6 +33,14 @@ do not edit them directly.
 | `junie.shim.sh`         | Bash shim body (verbatim, no escaping)                     |
 | `junie.shim.bat`        | Windows `.bat` shim body (verbatim, no escaping)           |
 | `generate.sh`           | Regenerates `install*.sh` and `install*.ps1` in the repo root |
+
+## Windows shim
+
+Every `install*.ps1` installs the shim shipped in the downloaded package,
+`versions/<ver>/shim/junie.bat`, byte-for-byte (`Install-Shim` in
+`install.ps1.template`). That is the same file the binary's shim updater installs,
+so the shim always matches the installed build. The embedded `junie.shim.bat` is
+written only for packages without a bundled shim.
 
 ## Output layout
 

@@ -40,7 +40,7 @@ for name in "${PS1_INSTALLERS[@]}"; do
   # Line that normalizes the shim content to CRLF.
   norm_line="$(grep -n 'SHIM_CONTENT = \$SHIM_CONTENT -replace' "$f" | head -1 | cut -d: -f1)"
   # Line that writes the shim to disk.
-  write_line="$(grep -n 'WriteAllText(\$SHIM_PATH' "$f" | head -1 | cut -d: -f1)"
+  write_line="$(grep -n 'WriteAllText(\$shimPath' "$f" | head -1 | cut -d: -f1)"
 
   if [[ -z "$norm_line" ]]; then
     echo "FAIL [$name]: missing CRLF normalization of \$SHIM_CONTENT before writing the shim" >&2
@@ -48,7 +48,7 @@ for name in "${PS1_INSTALLERS[@]}"; do
     continue
   fi
   if [[ -z "$write_line" ]]; then
-    echo "FAIL [$name]: could not find shim WriteAllText(\$SHIM_PATH ...) call" >&2
+    echo "FAIL [$name]: could not find shim WriteAllText(\$shimPath ...) call" >&2
     FAIL=$((FAIL + 1))
     continue
   fi
