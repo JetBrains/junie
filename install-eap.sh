@@ -239,9 +239,18 @@ if [[ -n "$INSTALL_TAG" && "$INSTALL_TAG" != "<install_tag>" ]]; then
   printf '%s' "$INSTALL_TAG" > "$JUNIE_DATA/misc/install_tag"
 fi
 
-# Install shim (skipped in one-shot mode so the existing shim stays intact)
-if [[ -z "$ONESHOT" ]]; then
-cat > "$JUNIE_BIN/junie" << 'SHIM_EOF'
+# Install the shim shipped in the package (versions/<v>/shim/junie.sh) byte-for-byte,
+# so it always matches the installed binary -- the same file the binary's own
+# shim updater installs. The embedded copy is only a fallback for packages that
+# predate the bundled shim.
+install_shim() {
+  local version_dir="$1" shim_path="$2"
+  local bundled_shim="$version_dir/shim/junie.sh"
+  if [[ -f "$bundled_shim" ]]; then
+    cp -f "$bundled_shim" "$shim_path"
+  else
+    # Embedded inline so it works when piped via curl ... | bash
+    cat > "$shim_path" << 'SHIM_EOF'
 #!/bin/bash
 #
 # JUNIE_MANAGED_SHIM
@@ -946,8 +955,9 @@ main() {
 
 main "$@"
 SHIM_EOF
-chmod +x "$JUNIE_BIN/junie"
-fi
+  fi
+  chmod +x "$shim_path"
+}
 
 # Download and install binary
 # Always re-download and overwrite the target version directory, regardless of
@@ -1025,10 +1035,12 @@ else
   trap - EXIT INT TERM
 fi
 
-# Set current version (the persisted default). Skipped in one-shot mode so a
-# `junie --<channel>` run does not change which channel plain `junie` launches.
+# Set current version (the persisted default) and install the shim. Skipped in
+# one-shot mode so a `junie --<channel>` run does not change which channel plain
+# `junie` launches and the existing shim stays intact.
 if [[ -z "$ONESHOT" ]]; then
   ln -sfn "$TARGET_DIR" "$JUNIE_DATA/current"
+  install_shim "$TARGET_DIR" "$JUNIE_BIN/junie"
 fi
 
 log "Installed successfully!"

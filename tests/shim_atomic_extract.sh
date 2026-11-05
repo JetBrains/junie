@@ -37,7 +37,7 @@ done
 
 # === Extract shim source ===
 SHIM_SRC="$(mktemp)"
-awk '/^cat > "\$JUNIE_BIN\/junie" << '\''SHIM_EOF'\''$/{flag=1; next} /^SHIM_EOF$/{flag=0} flag' \
+awk '/<< '\''SHIM_EOF'\''$/{flag=1; next} /^SHIM_EOF$/{flag=0} flag' \
   "$INSTALL_SH" > "$SHIM_SRC"
 # Remove the trailing `main "$@"` so sourcing the shim does not execute it.
 sed -i.bak '/^main "\$@"$/d' "$SHIM_SRC" 2>/dev/null || sed -i '' '/^main "\$@"$/d' "$SHIM_SRC"
