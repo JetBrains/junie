@@ -10,12 +10,20 @@ Installation scripts and update metadata for the Junie local model (on-device in
   emits a `warning` event.
 - **Windows** (`install.ps1`): NVIDIA GPU with 24 GB VRAM, driver 581+, Visual
   C++ Redistributable; `windows-amd64` and `windows-aarch64`
+- **Linux** (`install.sh`): `linux-amd64` or `linux-aarch64`, kernel 5.15+,
+  NVIDIA GPU with 24 GB VRAM (at least 24320 MiB reported by `nvidia-smi`) and
+  the NVIDIA proprietary driver 580+. 
 
-Linux is not supported yet: `install.sh` refuses to run there.
+On Windows and Linux only the first NVIDIA GPU is checked; VRAM of several GPUs
+is not combined. Linux uses the same GGUF models as Windows. The Linux driver
+minimum is 580 because that is the Linux number of the release branch that
+Windows ships as 581. `nvidia-smi` ships only with the proprietary driver, so the
+open-source nouveau driver fails the check. Neither Windows nor Linux imposes a
+system RAM requirement; both report `ram_gb: 24` in the `config` event.
 
 ## The installer API
 
-`install.sh` (macOS) and `install.ps1` (Windows) are two implementations of the
+`install.sh` (macOS/Linux) and `install.ps1` (Windows) are two implementations of the
 same installer. They take the same options, perform the same steps and emit the
 same JSON events, so a caller only has to pick the script for the platform — not
 to special-case the platform afterwards.
@@ -27,7 +35,7 @@ accepts the PowerShell spellings (`-Model`, `-CheckOnly`, …) for the same flag
 
 | Option | Description |
 |---|---|
-| `--model <id>` | Model to install, as listed by `--models`. Defaults to `Qwen3.6-27B-MLX-4bit` (macOS) / `Qwen3.6-27B-Q4_K_M` (Windows) |
+| `--model <id>` | Model to install, as listed by `--models`. Defaults to `Qwen3.6-27B-MLX-4bit` (macOS) / `Qwen3.6-27B-Q4_K_M` (Windows/Linux) |
 | `--channel <name>` | Update channel: `main` (default) or `eap` |
 | `--check-only` | Report system information, then exit without installing |
 | `--models` | List the models available for this platform, then exit |
@@ -116,7 +124,7 @@ version. Version numbers are not ordered: the feed decides what is current, so
 any mismatch is reported as an update. Nothing is downloaded or written.
 
 The installed version comes from `versions/<version>`, recorded by the `current`
-symlink on macOS and by the `current` file on Windows; that is the only
+symlink on macOS/Linux and by the `current` file on Windows; that is the only
 implementation difference.
 
 ### `--update`
@@ -171,8 +179,20 @@ the mode that was requested (`models`, `engine_update`), or with `error`.
 | `error` | Fatal problem; the run stops | `message` |
 | `done` | Successful install or update | `model_id`, `port`, `model_path`, `label` |
 
-`check` names are `os`, `cpu`, `gpu` and `ram` on both platforms; Windows adds
-`driver` and `vc_redist`. `step_start` / `step_done` use the ids `engine`,
+`model_path` points at the main model as it is stored on disk: the weights file
+`models/<archive>` for single-file models (`.gguf`, i.e. Windows and Linux), and
+the unpacked directory `models/<modelId>` for the ZIP models used on macOS.
+
+A model counts as installed when its completion marker `models/.<modelId>.installed`
+exists and its weights are still present (a non-empty `.gguf` file, or the
+`models/<modelId>` directory). The marker is removed before a model is
+re-downloaded and written again only after the GGUF file has been copied into
+place or the ZIP has been fully extracted, so an interrupted install is retried.
+
+`check` names are `os`, `cpu` and `gpu` on every platform; macOS adds `ram`,
+Linux adds `driver`, and Windows adds `driver` and `vc_redist`. When a
+requirement fails (outside test mode), the installer stops right after the
+checks without touching the network or the disk. `step_start` / `step_done` use the ids `engine`,
 `models`, `configure` and `start`, in that order.
 
 Example of a full install:
@@ -225,6 +245,10 @@ One JSON object per line, one line per platform:
 {"version":"0.2.2","platform":"macos-aarch64","hardware":"Apple M4","downloadUrl":"...","sha256":"...","size":52428800}
 ```
 
+Platforms are `macos-aarch64`, `windows-amd64`, `windows-aarch64`,
+`linux-amd64` and `linux-aarch64`. The engine archive is a `.tar.gz` on macOS
+and Linux and a `.zip` on Windows.
+
 Fields:
 
 | Field | Description |
@@ -260,8 +284,12 @@ Fields:
 
 Individual JSON files in the `models/` folder provide full configuration and download information for each model:
 
-- `models/Qwen3.6-27B-MLX-4bit.json`
-- `models/Qwen3.8-3.6-27B-blend-MLX-4bit.json`
+- `models/Qwen3.6-27B-MLX-4bit.json`, `models/Qwen3.8-3.6-27B-blend-MLX-4bit.json` (macOS, ZIP archives)
+- `models/Qwen3.6-27B-Q4_K_M.json`, `models/Qwen3.8-3.6-27B-blend-Q4_K_M.json` (Windows and Linux, `.gguf` files)
+
+An archive whose `name` ends in `.gguf` is the weights file itself and is copied
+into `models/` under that name; any other archive is a ZIP that unpacks into
+`models/<modelId>`.
 
 ```json
 {

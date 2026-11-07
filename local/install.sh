@@ -10,19 +10,23 @@ set -e
 # systems aren't stuck staring at a cryptic `command not found` halfway
 # through the install.
 # Detect the OS early so we can pick the right toolchain for every step.
-if uname -s | grep -qi "darwin"; then
-  OS_TYPE="macos"
-else
-  OS_TYPE="linux"
-  echo "ERROR: linux is not supported yet"
-  exit 1
-fi
+case "$(uname -s)" in
+  Darwin) OS_TYPE="macos" ;;
+  Linux) OS_TYPE="linux" ;;
+  *) echo "ERROR: Supported systems are macOS and Linux"; exit 1 ;;
+esac
 
 require_commands() {
   missing=""
-  common="curl tar unzip head tput"
+  common="curl tar head"
+  # unzip is only needed for the ZIP model archives, which macOS is the only
+  # platform to ship: on Linux the models are single .gguf files and the engine
+  # is a tar.gz, so neither path ever calls unzip. tput is only required on
+  # macOS, where it is part of the base system: every call site falls back to
+  # an 80-column terminal, so on Linux it would block minimal images (fedora,
+  # alpine ship without it) for nothing.
   if [ "$OS_TYPE" = "macos" ]; then
-    required="$common shasum pgrep xxd sysctl sw_vers"
+    required="$common unzip tput shasum pgrep xxd sysctl sw_vers"
   else
     required="$common sha256sum"
   fi
@@ -40,9 +44,9 @@ require_commands() {
       echo "  xcode-select --install"
     else
       echo "Install them with your distribution's package manager, e.g.:"
-      echo "  apt-get update && apt-get install -y coreutils"
+      echo "  apt-get update && apt-get install -y curl tar coreutils"
       echo "or"
-      echo "  dnf install -y coreutils"
+      echo "  dnf install -y curl tar coreutils"
     fi
     echo "then re-run this installer."
     exit 1
@@ -61,7 +65,11 @@ CHECK_ONLY=false
 LIST_MODELS=false
 CHECK_ENGINE_UPDATE=false
 UPDATE=false
-MODEL="Qwen3.6-27B-MLX-4bit"
+if [ "$OS_TYPE" = "macos" ]; then
+  MODEL="Qwen3.6-27B-MLX-4bit"
+else
+  MODEL="Qwen3.6-27B-Q4_K_M"
+fi
 CHANNEL="main"
 
 # Test mode (JUNIE_LOCAL_MODEL_TEST_MODE=1): the system requirements are still
@@ -76,7 +84,7 @@ usage() {
   echo "Usage: install.sh [options]"
   echo ""
   echo "Options:"
-  echo "  --model <name>     Model to install: Qwen3.6-27B-MLX-4bit (default)"
+  echo "  --model <name>     Model to install (default: $MODEL)"
   echo "  --channel <name>   Update channel: main (default) or eap"
   echo "  --check-only       Report system information, then exit"
   echo "  --models           List all available models for this architecture, then exit"
@@ -148,7 +156,7 @@ esac
 case "$UNAME_ARCH" in
   arm64|aarch64) ARCH_NAME="aarch64" ;;
   x86_64|amd64)  ARCH_NAME="amd64" ;;
-  *)             ARCH_NAME="$UNAME_ARCH" ;;
+  *) echo "ERROR: Unsupported architecture: $UNAME_ARCH"; exit 1 ;;
 esac
 PLATFORM="${OS_NAME}-${ARCH_NAME}"
 
@@ -178,7 +186,7 @@ get_json_field() {
 # Sum the "size" fields of all archives in the model JSON on stdin. Prints the
 # total in bytes (0 when no sizes are present).
 sum_archive_sizes() {
-  grep -o '"size"[[:space:]]*:[[:space:]]*[0-9]*' | sed 's/.*:[[:space:]]*//' | awk '{ total += $1 } END { printf "%d\n", total }'
+  grep -o '"size"[[:space:]]*:[[:space:]]*[0-9]*' | sed 's/.*:[[:space:]]*//' | awk '{ total += $1 } END { printf "%.0f\n", total }'
 }
 
 # Fetch the model JSON for the given model file id and set two globals:
@@ -396,6 +404,10 @@ get_installed_model_ids() {
 # displayed and reported in the "config" event.
 ENGINE_PORT=19239
 ENGINE_RAM_GB=35
+if [ "$OS_TYPE" = "linux" ]; then
+  # Same 24 GB NVIDIA card the Windows installer targets, so the same allowance.
+  ENGINE_RAM_GB=24
+fi
 
 
 # ============================================================
@@ -503,9 +515,9 @@ wait_and_exit() {
   show_cursor
   if [ "$MACHINE_OUTPUT" != true ] && [ -t 0 ]; then
     echo ""
-    echo "Press any key to exit..."
+    echo "Press Enter to exit..."
     # If read fails, still exit with the intended code (not read's status)
-    read -r -n 1 || true
+    read -r _ || true
   fi
   exit "$1"
 }
@@ -1269,17 +1281,51 @@ download_and_verify() {
   printf '  %sSHA256 verified%s %s%s%s\n' "$JUNIE_GREEN" "$RESET" "$GRAY_DIM" "$actual" "$RESET"
 }
 
-# Check if a model has been fully unzipped to the models directory.
-# Each archive unpacks into $MODELS_DIR/<model_id>. A completion marker file is
-# written after extraction — a model directory without it is a leftover from an
-# interrupted extraction.
+# A completion marker is written only after a verified GGUF file is moved into
+# place or a model ZIP is fully extracted. Both formats use the same model id.
 model_completion_marker() {
   echo "$MODELS_DIR/.$1.installed"
 }
 
 model_installed() {
-  model_id="$1"
-  [ -d "$MODELS_DIR/$model_id" ] && [ -f "$(model_completion_marker "$model_id")" ]
+  local model_id="$1" archive="$2"
+  [ -f "$(model_completion_marker "$model_id")" ] || return 1
+  # The marker is the primary record; the weights still have to be there, so a
+  # model whose file was deleted or truncated is not reported as installed.
+  case "$archive" in
+    *.gguf) [ -s "$MODELS_DIR/$archive" ] ;;
+    *) [ -d "$MODELS_DIR/$model_id" ] ;;
+  esac
+}
+
+# A .gguf archive is the weights file itself: it is copied into models/ under
+# its own name, and nothing is unpacked.
+# Usage: install_gguf_model <model-id> <archive>
+install_gguf_model() {
+  gguf_model_id="$1"
+  gguf_archive="$2"
+
+  cp -f "$DOWNLOAD_DIR/$gguf_archive" "$MODELS_DIR/$gguf_archive"
+  touch "$(model_completion_marker "$gguf_model_id")"
+  printf '  %sModel installed.%s\n\n' "$JUNIE_GREEN" "$RESET"
+}
+
+# Any other archive is a ZIP holding a models/<model-id> directory, which is
+# unpacked in place.
+# Usage: install_zip_model <model-id> <archive> [label]
+install_zip_model() {
+  zip_model_id="$1"
+  zip_archive="$2"
+  zip_label="${3:-}"
+
+  printf '  %sExtracting %s...%s\n' "$GRAY" "$zip_archive" "$RESET"
+  emit_activity "extracting" "$zip_archive" "$zip_label"
+  # Remove leftovers from a previously interrupted extraction — the path is
+  # spelled out instead of using $MODELS_DIR so the rm -rf target is explicit
+  rm -rf "$BASE_DIR/models/$zip_model_id"
+  extract_with_progress "$DOWNLOAD_DIR/$zip_archive" "$MODELS_DIR" "$MODELS_DIR/$zip_model_id" "$zip_label"
+  touch "$(model_completion_marker "$zip_model_id")"
+  printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
 }
 
 # Download and install each model only if not already present.
@@ -1287,27 +1333,27 @@ model_installed() {
 install_model_if_needed() {
   archive_index="$1"
 
-  zip_file=$(get_archive_field "$archive_index" name)
+  archive_file=$(get_archive_field "$archive_index" name)
   download_url=$(get_archive_field "$archive_index" downloadUrl)
   sha256_sum=$(get_archive_field "$archive_index" sha256)
   model_id=$(get_archive_field "$archive_index" modelId)
   model_label=$(get_archive_field "$archive_index" label)
 
-  if model_installed "$model_id"; then
+  if model_installed "$model_id" "$archive_file"; then
     printf '  %sModel %s is already installed. Skipping.%s\n\n' "$GRAY" "$model_id" "$RESET"
     return 0
   fi
 
   printf '  %sModel %s is not installed. Proceeding...%s\n\n' "$GRAY" "$model_label" "$RESET"
-  download_and_verify "$download_url" "$zip_file" "$sha256_sum" "$model_label"
-  printf '  %sExtracting %s...%s\n' "$GRAY" "$zip_file" "$RESET"
-  emit_activity "extracting" "$zip_file" "$model_label"
-  # Remove leftovers from a previously interrupted extraction — the path is
-  # spelled out instead of using $MODELS_DIR so the rm -rf target is explicit
-  rm -rf "$BASE_DIR/models/$model_id"
-  extract_with_progress "$DOWNLOAD_DIR/$zip_file" "$MODELS_DIR" "$MODELS_DIR/$model_id" "$model_label"
-  touch "$(model_completion_marker "$model_id")"
-  printf '  %sExtraction complete.%s\n\n' "$JUNIE_GREEN" "$RESET"
+  # The model is being replaced from here on, so the marker goes first: both
+  # paths below write over the weights, and an install interrupted halfway
+  # must not be reported as finished by the next run.
+  rm -f "$(model_completion_marker "$model_id")"
+  download_and_verify "$download_url" "$archive_file" "$sha256_sum" "$model_label"
+  case "$archive_file" in
+    *.gguf) install_gguf_model "$model_id" "$archive_file" ;;
+    *) install_zip_model "$model_id" "$archive_file" "$model_label" ;;
+  esac
 }
 
 if [ "$LIST_MODELS" = true ]; then
@@ -1398,8 +1444,9 @@ if [ "$OS_TYPE" = "macos" ]; then
   OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
   CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
   MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+  MEM_GB=$((MEM_BYTES / 1073741824))
 else
-  OS_FULL_VERSION=$(grep '^VERSION_ID=' /etc/os-release 2>/dev/null | tr -d '"=' | cut -d' ' -f1)
+  OS_FULL_VERSION=$(sed -n 's/^VERSION_ID=//p' /etc/os-release 2>/dev/null | tr -d '"')
   if [ -z "$OS_FULL_VERSION" ]; then
     OS_FULL_VERSION=$(uname -r)
   fi
@@ -1409,9 +1456,7 @@ else
   else
     CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^[ ]*//' || echo "unknown")
   fi
-  MEM_BYTES=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2 * 1024}' || echo "0")
 fi
-MEM_GB=$((MEM_BYTES / 1073741824))
 
 # ============================================================
 # System info summary: evaluate & display
@@ -1424,7 +1469,7 @@ ALL_OK=true
 
 # OS check
 # macOS: require 26+
-# Linux: require kernel 5.15+ (for CUDA and modern GPU drivers)
+# Linux: kernel 5.15+.
 OS_OK=true
 OS_REQUIREMENT=""
 if [ "$OS_TYPE" = "macos" ]; then
@@ -1453,7 +1498,7 @@ emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
 # Accelerator check
 # macOS: require Apple M4 or newer (MLX); warn on the M4 itself
-# Linux: require NVIDIA GPU with 24 GB VRAM and CUDA 12+ (CUDA)
+# Linux: first NVIDIA GPU with the proprietary driver, same checks as Windows.
 CPU_OK=true
 CPU_WARN=false
 ACCEL_DISPLAY="$CPU_MODEL"
@@ -1461,9 +1506,9 @@ ACCEL_REQUIREMENT=""
 ACCEL_NOTE=""
 GPU_NAME=""
 GPU_VRAM_GB=0
-CUDA_OK=true
-CUDA_DISPLAY=""
-CUDA_REQUIREMENT=""
+DRIVER_OK=true
+DRIVER_DISPLAY=""
+DRIVER_REQUIREMENT=""
 
 if [ "$OS_TYPE" = "macos" ]; then
   # The generation is read out of the brand string ("Apple M4 Pro" -> 4) and
@@ -1481,53 +1526,60 @@ if [ "$OS_TYPE" = "macos" ]; then
   fi
   ACCEL_REQUIREMENT="Apple M4 or newer"
 else
-  # NVIDIA GPU check via nvidia-smi (not required in require_commands, so it
-  # may be absent — handle that gracefully here with a clear message)
+  # Match Windows: allow 256 MiB of reporting headroom for a 24 GiB card
+  # (e.g. an RTX 4090 reports 24564 MiB).
+  MINIMUM_REPORTED_VRAM_MIB=$((24 * 1024 - 256))
+  ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM (at least $MINIMUM_REPORTED_VRAM_MIB MiB reported)"
+  # Windows requires driver 581+; the Linux driver of the same release branch
+  # is numbered 580, so that is the minimum here.
+  MINIMUM_DRIVER_MAJOR=580
+  DRIVER_REQUIREMENT="NVIDIA proprietary driver ${MINIMUM_DRIVER_MAJOR}+"
+  # NVIDIA driver check via nvidia-smi, mirroring the Windows installer.
+  # nvidia-smi only ships with NVIDIA's proprietary driver, so this also rules
+  # out nouveau: with nouveau the tool is absent or cannot talk to the GPU.
   if ! command -v nvidia-smi > /dev/null 2>&1; then
     CPU_OK=false
     ALL_OK=false
-    CUDA_OK=false
+    DRIVER_OK=false
     ACCEL_DISPLAY="nvidia-smi not found"
-    ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
-    CUDA_DISPLAY="CUDA not detected"
-    CUDA_REQUIREMENT="CUDA 12+"
+    DRIVER_DISPLAY="Driver not detected (the open-source nouveau driver is not supported)"
   else
     GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
     if [ -z "$GPU_INFO" ]; then
       CPU_OK=false
       ALL_OK=false
+      DRIVER_OK=false
       ACCEL_DISPLAY="No NVIDIA GPU detected"
-      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
+      DRIVER_DISPLAY="Driver not detected"
     else
       GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
       GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
       GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
       DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
       ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
-      ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM and CUDA 12+"
-      
-      if [ "$GPU_VRAM_GB" -lt 24 ]; then
+
+      if [ "$GPU_VRAM_MB" -lt "$MINIMUM_REPORTED_VRAM_MIB" ]; then
         CPU_OK=false
         ALL_OK=false
       fi
-    fi
 
-    # CUDA version check — nvidia-smi reports the highest supported CUDA version
-    # in its output header, e.g. "CUDA Version: 12.2"
-    CUDA_MAJOR=$(nvidia-smi 2>/dev/null | grep 'CUDA Version' | awk '{print $NF}' | cut -d '.' -f 1)
-    if [ -z "$CUDA_MAJOR" ]; then
-      CUDA_OK=false
-      ALL_OK=false
-      CUDA_DISPLAY="CUDA version not detected"
-      CUDA_REQUIREMENT="CUDA 12+"
-    elif [ "$CUDA_MAJOR" -lt 12 ]; then
-      CUDA_OK=false
-      ALL_OK=false
-      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-      CUDA_REQUIREMENT="CUDA 12+"
-    else
-      CUDA_DISPLAY="CUDA $CUDA_MAJOR.x"
-      CUDA_REQUIREMENT="CUDA 12+"
+      # Driver version check: require at least $MINIMUM_DRIVER_MAJOR, same as
+      # the Windows installer's 581+ check.
+      DRIVER_MAJOR=$(echo "$DRIVER_VERSION" | cut -d'.' -f1)
+      DRIVER_DISPLAY="Driver $DRIVER_VERSION"
+      case "$DRIVER_MAJOR" in
+        ''|*[!0-9]*)
+          DRIVER_OK=false
+          ALL_OK=false
+          DRIVER_DISPLAY="Driver version not recognized: $DRIVER_VERSION"
+          ;;
+        *)
+          if [ "$DRIVER_MAJOR" -lt "$MINIMUM_DRIVER_MAJOR" ]; then
+            DRIVER_OK=false
+            ALL_OK=false
+          fi
+          ;;
+      esac
     fi
   fi
 fi
@@ -1544,21 +1596,24 @@ if [ "$CPU_WARN" = true ]; then
   emit_warning "$ACCEL_DISPLAY: $ACCEL_NOTE"
 fi
 if [ "$OS_TYPE" = "linux" ]; then
-  print_value "CUDA:" "$CUDA_DISPLAY" "$CUDA_OK" false "$CUDA_REQUIREMENT"
-  emit_check "cuda" "$(check_status "$CUDA_OK" false)" "$CUDA_DISPLAY" "$CUDA_REQUIREMENT"
+  print_value "Driver:" "$DRIVER_DISPLAY" "$DRIVER_OK" false "$DRIVER_REQUIREMENT"
+  emit_check "driver" "$(check_status "$DRIVER_OK" false)" "$DRIVER_DISPLAY" "$DRIVER_REQUIREMENT"
 fi
 
-# RAM check (hard: >= 40 GB, recommended: >= 60 GB)
-RAM_OK=true
-RAM_WARN=false
-if [ "$MEM_GB" -lt 40 ]; then
-  RAM_OK=false
-  ALL_OK=false
-elif [ "$MEM_GB" -lt 60 ]; then
-  RAM_WARN=true
+# Windows and Linux do not impose a separate system RAM requirement here.
+if [ "$OS_TYPE" = "macos" ]; then
+  # RAM check (hard: >= 40 GB, recommended: >= 60 GB)
+  RAM_OK=true
+  RAM_WARN=false
+  if [ "$MEM_GB" -lt 40 ]; then
+    RAM_OK=false
+    ALL_OK=false
+  elif [ "$MEM_GB" -lt 60 ]; then
+    RAM_WARN=true
+  fi
+  print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
+  emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
 fi
-print_value "RAM:" "${MEM_GB} GB" "$RAM_OK" "$RAM_WARN" "minimum 40 GB, 60 GB recommended"
-emit_check "ram" "$(check_status "$RAM_OK" "$RAM_WARN")" "${MEM_GB} GB" "minimum 40 GB, 60 GB recommended"
 
 # In test mode an unmet requirement is only reported, never fatal.
 if [ "$TEST_MODE" = true ] && [ "$ALL_OK" = false ]; then
@@ -1583,7 +1638,7 @@ fi
 # are done. This is the first thing in the script that touches the network or
 # writes to disk, and --check-only exits right below without needing any of it,
 # so a check never pays for it — it reports an empty engine version instead.
-if [ "$CHECK_ONLY" != true ]; then
+if [ "$CHECK_ONLY" != true ] && [ "$ALL_OK" = true ]; then
   if [ "$UPDATE" = true ]; then
     fetch_engine_config
     resolve_engine_paths
@@ -1788,5 +1843,12 @@ printf '  %sControl the engine with: %s {start|stop|status|wait}%s\n' "$GRAY" "$
 MAIN_ARCHIVE_INDEX=$(get_main_archive_index)
 MAIN_MODEL_ID=$(get_archive_field "$MAIN_ARCHIVE_INDEX" modelId)
 MAIN_LABEL=$(get_archive_field "$MAIN_ARCHIVE_INDEX" label)
-emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MODELS_DIR/$MAIN_MODEL_ID")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
+MAIN_ARCHIVE=$(get_archive_field "$MAIN_ARCHIVE_INDEX" name)
+# Same rule as model_installed: a .gguf archive is the weights file itself and
+# keeps its own name in models/, everything else is unpacked into models/<id>.
+case "$MAIN_ARCHIVE" in
+  *.gguf) MAIN_MODEL_PATH="$MODELS_DIR/$MAIN_ARCHIVE" ;;
+  *) MAIN_MODEL_PATH="$MODELS_DIR/$MAIN_MODEL_ID" ;;
+esac
+emit_event "\"event\":\"done\",\"model_id\":\"$JUNIE_MODEL_ID\",\"port\":$ENGINE_PORT,\"model_path\":\"$(json_escape "$MAIN_MODEL_PATH")\",\"label\":\"$(json_escape "$MAIN_LABEL")\""
 wait_and_exit 0

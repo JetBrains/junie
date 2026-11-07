@@ -1596,8 +1596,10 @@ Emit-StepDone "start"
 
 # --- Summary ---
 $mainArchiveIndex = Get-MainArchiveIndex
-$mainModelId = Get-ArchiveField -ArchiveIndex $mainArchiveIndex -Field "modelId"
 $mainLabel = Get-ArchiveField -ArchiveIndex $mainArchiveIndex -Field "label"
+# Install-ModelIfNeeded copies the verified archive into models/ under its own
+# name, so the model lives at models/<archive>, not in a models/<modelId> dir.
+$mainArchive = Get-ArchiveField -ArchiveIndex $mainArchiveIndex -Field "name"
 
 Write-Host ""
 if ($Update) {
@@ -1626,7 +1628,7 @@ Write-Host "  The engine serves http://localhost:$Script:EnginePort and the mode
 Write-Host "  Control the engine with: $ctlPath {start|stop|status|wait}"
 Write-Host ""
 
-Emit-Event "`"event`":`"done`",`"model_id`":`"$Script:JunieModelId`",`"port`":$Script:EnginePort,`"model_path`":`"$(Json-Escape "$Script:ModelsDir/$mainModelId")`",`"label`":`"$(Json-Escape "$mainLabel")`""
+Emit-Event "`"event`":`"done`",`"model_id`":`"$Script:JunieModelId`",`"port`":$Script:EnginePort,`"model_path`":`"$(Json-Escape "$Script:ModelsDir/$mainArchive")`",`"label`":`"$(Json-Escape "$mainLabel")`""
 
 Wait-ForExitKey
 exit 0
