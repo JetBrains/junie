@@ -32,6 +32,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "iex (irm 'https://junie.
 
 ```bash
 brew tap jetbrains-junie/junie
+brew trust jetbrains-junie/junie
 brew install junie
 ```
 
