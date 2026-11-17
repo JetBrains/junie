@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Regression test: Unix installers must install the package's own
 # versions/<v>/shim/junie.sh byte-for-byte, and fall back to the embedded
@@ -51,7 +51,7 @@ for name in "${INSTALLERS[@]}"; do
   mkdir -p "$version_dir/shim" "$(dirname "$shim_path")"
   printf 'stale shim\n' > "$shim_path"
 
-  printf '#!/bin/bash\n# JUNIE_MANAGED_SHIM\n# bundled %s\n' "$name" > "$version_dir/shim/junie.sh"
+  printf '#!/usr/bin/env bash\n# JUNIE_MANAGED_SHIM\n# bundled %s\n' "$name" > "$version_dir/shim/junie.sh"
   install_shim "$version_dir" "$shim_path"
   if ! cmp -s "$version_dir/shim/junie.sh" "$shim_path"; then
     echo "FAIL [$name]: bundled shim was not installed byte-for-byte" >&2

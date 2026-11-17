@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Self-test for the atomic-extraction shim embedded in install.sh.
 #
