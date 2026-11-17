@@ -602,7 +602,7 @@
     {
       "id": "devin",
       "name": "Devin",
-      "version": "3000.13.4",
+      "version": "3000.14.30821",
       "description": "Devin CLI coding agent by Cognition",
       "website": "https://docs.devin.ai/cli",
       "authors": [
@@ -614,42 +614,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://static.devin.ai/cli/3000.13.4/devin-3000.13.4-aarch64-apple-darwin.tar.gz",
+            "archive": "https://static.devin.ai/cli/3000.14.30821/devin-3000.14.30821-aarch64-apple-darwin.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://static.devin.ai/cli/3000.13.4/devin-3000.13.4-x86_64-apple-darwin.tar.gz",
+            "archive": "https://static.devin.ai/cli/3000.14.30821/devin-3000.14.30821-x86_64-apple-darwin.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://static.devin.ai/cli/3000.13.4/devin-3000.13.4-aarch64-unknown-linux.tar.gz",
+            "archive": "https://static.devin.ai/cli/3000.14.30821/devin-3000.14.30821-aarch64-unknown-linux.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://static.devin.ai/cli/3000.13.4/devin-3000.13.4-x86_64-unknown-linux.tar.gz",
+            "archive": "https://static.devin.ai/cli/3000.14.30821/devin-3000.14.30821-x86_64-unknown-linux.tar.gz",
             "cmd": "./bin/devin",
             "args": [
               "acp"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://static.devin.ai/cli/3000.13.4/devin-3000.13.4-aarch64-pc-windows.zip",
+            "archive": "https://static.devin.ai/cli/3000.14.30821/devin-3000.14.30821-aarch64-pc-windows.zip",
             "cmd": "./bin\\devin.exe",
             "args": [
               "acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://static.devin.ai/cli/3000.13.4/devin-3000.13.4-x86_64-pc-windows.zip",
+            "archive": "https://static.devin.ai/cli/3000.14.30821/devin-3000.14.30821-x86_64-pc-windows.zip",
             "cmd": "./bin\\devin.exe",
             "args": [
               "acp"
@@ -683,7 +683,7 @@
     {
       "id": "dirac",
       "name": "Dirac",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "description": "Reduces API costs by more than 50%, produces better and faster work. Uses Hash anchored parallel edits, AST manipulation and a whole lot of neat optimizations. Fully Open Source.",
       "repository": "https://github.com/dirac-run/dirac",
       "website": "https://dirac.run",
@@ -695,7 +695,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/dirac.svg",
       "distribution": {
         "npx": {
-          "package": "dirac-cli@0.6.0",
+          "package": "dirac-cli@0.6.1",
           "args": [
             "--acp"
           ]
@@ -705,7 +705,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "1.13.0",
+      "version": "1.13.1",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -715,7 +715,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@1.13.0",
+          "package": "droid@1.13.1",
           "args": [
             "exec",
             "--output-format",
@@ -779,7 +779,7 @@
     {
       "id": "github-copilot-cli",
       "name": "GitHub Copilot",
-      "version": "1.0.112",
+      "version": "1.0.113",
       "description": "GitHub's AI pair programmer",
       "repository": "https://github.com/github/copilot-cli",
       "website": "https://github.com/features/copilot/cli/",
@@ -790,7 +790,7 @@
       "license_url": "https://github.com/github/copilot-cli/blob/main/LICENSE.md",
       "distribution": {
         "npx": {
-          "package": "@github/copilot@1.0.112",
+          "package": "@github/copilot@1.0.113",
           "args": [
             "--acp"
           ]
@@ -893,7 +893,7 @@
     {
       "id": "grok-build",
       "name": "Grok Build",
-      "version": "1.0.88",
+      "version": "1.0.89",
       "description": "xAI's coding agent and CLI",
       "website": "https://x.ai/cli",
       "authors": [
@@ -903,7 +903,7 @@
       "license_url": "https://x.ai/legal/terms-of-service",
       "distribution": {
         "npx": {
-          "package": "@xai-official/grok@1.0.88",
+          "package": "@xai-official/grok@1.0.89",
           "args": [
             "agent",
             "stdio"
@@ -978,7 +978,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4152.1",
+      "version": "4153.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -990,42 +990,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4152.1/junie-nightly-4152.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4153.1/junie-nightly-4153.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4152.1/junie-nightly-4152.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4153.1/junie-nightly-4153.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4152.1/junie-nightly-4152.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4153.1/junie-nightly-4153.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4152.1/junie-nightly-4152.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4153.1/junie-nightly-4153.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4152.1/junie-nightly-4152.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4153.1/junie-nightly-4153.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4152.1/junie-nightly-4152.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4153.1/junie-nightly-4153.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1239,7 +1239,7 @@
     {
       "id": "kimi-code",
       "name": "Kimi Code",
-      "version": "2.6.2",
+      "version": "2.6.3",
       "description": "Moonshot AI's next-gen coding agent",
       "repository": "https://github.com/MoonshotAI/kimi-code",
       "website": "https://moonshotai.github.io/kimi-code/",
@@ -1250,7 +1250,7 @@
       "license_url": "https://github.com/MoonshotAI/kimi-code/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@moonshot-ai/kimi-code@2.6.2",
+          "package": "@moonshot-ai/kimi-code@2.6.3",
           "args": [
             "acp"
           ]
