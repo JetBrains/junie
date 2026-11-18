@@ -1103,8 +1103,8 @@ function Install-Engine {
         # If the archive has a top-level folder, flatten it
         $topLevel = Get-ChildItem -LiteralPath $Script:EngineDir -Directory | Select-Object -First 1
         if ($topLevel -and (Get-ChildItem -LiteralPath $Script:EngineDir).Count -eq 1) {
-            Move-Item -LiteralPath (Join-Path $Script:EngineDir $topLevel.Name)/* `
-                -Destination $Script:EngineDir -Force
+            Get-ChildItem -LiteralPath $topLevel.FullName -Force |
+                Move-Item -Destination $Script:EngineDir -Force
             Remove-Item -LiteralPath $topLevel.FullName -Recurse -Force
         }
 
