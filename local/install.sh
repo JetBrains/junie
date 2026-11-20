@@ -334,8 +334,56 @@ fetch_models_config() {
 
 # Engine update metadata is published per channel as JSONL (one object per
 # line). Fetch the file for the requested channel and pick the entry that
-# matches our platform.
+# matches our platform and, on Linux, the vendor of the GPU.
 ENGINE_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-engine-${CHANNEL}.jsonl"
+
+# Linux exposes each graphics card here. Tests point this at a fake tree.
+DRM_ROOT="${JUNIE_LOCAL_DRM_ROOT:-/sys/class/drm}"
+
+# Print "<VRAM in MiB> <PCI device id>" of the AMD card with the most dedicated
+# VRAM, or nothing. The amdgpu driver reports the VRAM of each card in bytes;
+# an integrated GPU has little of its own, so the discrete card wins.
+find_amd_gpu() {
+  amd_best_mib=0
+  amd_best=""
+  for amd_device in "$DRM_ROOT"/card[0-9]*/device; do
+    [ "$(cat "$amd_device/vendor" 2>/dev/null)" = "0x1002" ] || continue
+    amd_bytes=$(cat "$amd_device/mem_info_vram_total" 2>/dev/null) || continue
+    amd_mib=$((amd_bytes / 1048576))
+    if [ "$amd_mib" -gt "$amd_best_mib" ]; then
+      amd_best_mib=$amd_mib
+      amd_best="$amd_mib $(cat "$amd_device/device" 2>/dev/null)"
+    fi
+  done
+  printf '%s' "$amd_best"
+}
+
+# The engine reaches an AMD card through Vulkan, which Mesa provides for Radeon
+# as the RADV driver. Its description file tells whether it is installed.
+has_radeon_vulkan_driver() {
+  for radeon_icd in /usr/share/vulkan/icd.d/radeon_icd*.json /etc/vulkan/icd.d/radeon_icd*.json; do
+    [ -e "$radeon_icd" ] && return 0
+  done
+  return 1
+}
+
+# Print the GPU vendor as the engine feed names it in "hardware". Each vendor
+# has its own engine package on Linux. An NVIDIA card is recognised by its own
+# tool, an AMD card by its driver. Without either the NVIDIA package stays the
+# default, and the requirement checks then report what is missing. Prints
+# nothing on macOS, where the feed has one engine per platform.
+detect_gpu_hardware() {
+  [ "$OS_TYPE" = "linux" ] || return 0
+  # The tool can outlive its card, so it must succeed and name one.
+  if nvidia_name=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null) &&
+     [ -n "$nvidia_name" ]; then
+    printf 'NVIDIA GPU'
+  elif [ -n "$(find_amd_gpu)" ]; then
+    printf 'AMD GPU'
+  else
+    printf 'NVIDIA GPU'
+  fi
+}
 
 # Filled in by fetch_engine_config. Empty until the metadata is resolved, which
 # only happens on the install path.
@@ -346,9 +394,15 @@ fetch_engine_config() {
     printf '%sERROR: Could not fetch engine config from %s%s\n' "$RED" "$ENGINE_UPDATE_URL" "$RESET"
     exit 1
   }
-  engine_entry=$(printf '%s\n' "$engine_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | tail -1)
+  # "|| true": no match is reported below, not by the shell stopping here.
+  engine_entries=$(printf '%s\n' "$engine_jsonl" | grep "\"platform\":\"${PLATFORM}\"" || true)
+  engine_hardware=$(detect_gpu_hardware)
+  if [ -n "$engine_hardware" ]; then
+    engine_entries=$(printf '%s\n' "$engine_entries" | grep "\"hardware\":\"${engine_hardware}\"" || true)
+  fi
+  engine_entry=$(printf '%s\n' "$engine_entries" | tail -1)
   if [ -z "$engine_entry" ]; then
-    printf '%sERROR: No engine entry found for platform %s in channel %s%s\n' "$RED" "$PLATFORM" "$CHANNEL" "$RESET"
+    printf '%sERROR: No engine entry found for platform %s (%s) in channel %s%s\n' "$RED" "$PLATFORM" "${engine_hardware:-any hardware}" "$CHANNEL" "$RESET"
     exit 1
   fi
 
@@ -1498,7 +1552,8 @@ emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
 # Accelerator check
 # macOS: require Apple M4 or newer (MLX); warn on the M4 itself
-# Linux: first NVIDIA GPU with the proprietary driver, same checks as Windows.
+# Linux: first NVIDIA GPU with the proprietary driver, same checks as Windows,
+#        or an AMD GPU with the Mesa Vulkan driver.
 CPU_OK=true
 CPU_WARN=false
 ACCEL_DISPLAY="$CPU_MODEL"
@@ -1525,6 +1580,28 @@ if [ "$OS_TYPE" = "macos" ]; then
     ACCEL_NOTE="supported, but reading context is slow: prefill is about 4x slower than on Apple M5"
   fi
   ACCEL_REQUIREMENT="Apple M4 or newer"
+elif [ "$(detect_gpu_hardware)" = "AMD GPU" ]; then
+  # Same allowance as for NVIDIA: a Radeon RX 7900 XTX reports 24560 MiB.
+  MINIMUM_REPORTED_VRAM_MIB=$((24 * 1024 - 256))
+  ACCEL_REQUIREMENT="AMD GPU with 24 GB VRAM (at least $MINIMUM_REPORTED_VRAM_MIB MiB reported)"
+  AMD_GPU=$(find_amd_gpu)
+  GPU_VRAM_MB=${AMD_GPU%% *}
+  # Round to the nearest GB: the card reports slightly less than its nominal size.
+  GPU_VRAM_GB=$(((GPU_VRAM_MB + 512) / 1024))
+  GPU_NAME="AMD Radeon GPU ${AMD_GPU#* }"
+  ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, $GPU_VRAM_MB MiB reported)"
+  if [ "$GPU_VRAM_MB" -lt "$MINIMUM_REPORTED_VRAM_MIB" ]; then
+    CPU_OK=false
+    ALL_OK=false
+  fi
+  DRIVER_REQUIREMENT="Mesa Vulkan driver for Radeon (RADV)"
+  if has_radeon_vulkan_driver; then
+    DRIVER_DISPLAY="Mesa RADV Vulkan driver"
+  else
+    DRIVER_OK=false
+    ALL_OK=false
+    DRIVER_DISPLAY="Vulkan driver not detected (install the Mesa Vulkan drivers)"
+  fi
 else
   # Match Windows: allow 256 MiB of reporting headroom for a 24 GiB card
   # (e.g. an RTX 4090 reports 24564 MiB).
