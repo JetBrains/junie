@@ -334,8 +334,81 @@ fetch_models_config() {
 
 # Engine update metadata is published per channel as JSONL (one object per
 # line). Fetch the file for the requested channel and pick the entry that
-# matches our platform.
+# matches our platform and, on Linux, the vendor of the GPU.
 ENGINE_UPDATE_URL="${UPDATE_FILES_BASE_URL}/update-info-engine-${CHANNEL}.jsonl"
+
+# Linux exposes each graphics card here. Tests point this at a fake tree.
+DRM_ROOT="${JUNIE_LOCAL_DRM_ROOT:-/sys/class/drm}"
+
+# Print "<vendor> <VRAM in MiB> <PCI device id>" of the AMD or Intel card with the
+# most dedicated VRAM, or nothing. The amdgpu driver reports the VRAM of each
+# card in bytes. The Intel xe driver has no such file, so the size of the card's
+# memory window (PCI BAR 2) stands in for it: it is the VRAM rounded up to a
+# power of two, which is enough to tell a 24 GB card from a smaller one. Cards
+# under 4 GB are integrated graphics: they are not a card to install for, and
+# they must not hide a discrete card of the other vendor.
+find_display_adapter() {
+  adapter_best_mib=4095
+  adapter_best=""
+  for adapter_device in "$DRM_ROOT"/card[0-9]*/device; do
+    case "$(cat "$adapter_device/vendor" 2>/dev/null)" in
+      0x1002)
+        adapter_vendor="AMD"
+        adapter_bytes=$(cat "$adapter_device/mem_info_vram_total" 2>/dev/null) || continue
+        ;;
+      0x8086)
+        adapter_vendor="Intel"
+        # The size of the file is the size of the window; reading it would read the card.
+        adapter_bytes=$(ls -ln "$adapter_device/resource2" 2>/dev/null | awk '{ print $5 }')
+        [ -n "$adapter_bytes" ] || continue
+        ;;
+      *) continue ;;
+    esac
+    adapter_mib=$((adapter_bytes / 1048576))
+    if [ "$adapter_mib" -gt "$adapter_best_mib" ]; then
+      adapter_best_mib=$adapter_mib
+      adapter_best="$adapter_vendor $adapter_mib $(cat "$adapter_device/device" 2>/dev/null)"
+    fi
+  done
+  printf '%s' "$adapter_best"
+}
+
+# The engine reaches an AMD card through Vulkan, which Mesa provides for Radeon
+# as the RADV driver. Its description file tells whether it is installed.
+has_radeon_vulkan_driver() {
+  for radeon_icd in /usr/share/vulkan/icd.d/radeon_icd*.json /etc/vulkan/icd.d/radeon_icd*.json; do
+    [ -e "$radeon_icd" ] && return 0
+  done
+  return 1
+}
+
+# The engine reaches an Intel card through Level Zero and compiles its kernels
+# through OpenCL. The Intel compute runtime provides a driver for each (on
+# Ubuntu: libze-intel-gpu1 and intel-opencl-icd). The loaders also take drivers
+# named in ZE_ENABLE_ALT_DRIVERS and OCL_ICD_FILENAMES.
+has_intel_compute_runtime() {
+  ldconfig -p 2>/dev/null | grep -q 'libze_intel_gpu\.so' || [ -e "${ZE_ENABLE_ALT_DRIVERS:-}" ] || return 1
+  [ -e /etc/OpenCL/vendors/intel.icd ] || [ -e "${OCL_ICD_FILENAMES:-}" ]
+}
+
+# Print the GPU vendor as the engine feed names it in "hardware". Each vendor
+# has its own engine package on Linux. An NVIDIA card is recognised by its own
+# tool, an AMD or Intel card by its entry in the graphics device tree. Without
+# any of them the NVIDIA package stays the default, and the requirement checks
+# then report what is missing. Prints nothing on macOS, where the feed has one
+# engine per platform.
+detect_gpu_hardware() {
+  [ "$OS_TYPE" = "linux" ] || return 0
+  # The tool can outlive its card, so it must succeed and name one.
+  if nvidia_name=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null) &&
+     [ -n "$nvidia_name" ]; then
+    printf 'NVIDIA GPU'
+  elif display_adapter=$(find_display_adapter) && [ -n "$display_adapter" ]; then
+    printf '%s GPU' "${display_adapter%% *}"
+  else
+    printf 'NVIDIA GPU'
+  fi
+}
 
 # Filled in by fetch_engine_config. Empty until the metadata is resolved, which
 # only happens on the install path.
@@ -346,9 +419,15 @@ fetch_engine_config() {
     printf '%sERROR: Could not fetch engine config from %s%s\n' "$RED" "$ENGINE_UPDATE_URL" "$RESET"
     exit 1
   }
-  engine_entry=$(printf '%s\n' "$engine_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | tail -1)
+  # "|| true": no match is reported below, not by the shell stopping here.
+  engine_entries=$(printf '%s\n' "$engine_jsonl" | grep "\"platform\":\"${PLATFORM}\"" || true)
+  engine_hardware=$(detect_gpu_hardware)
+  if [ -n "$engine_hardware" ]; then
+    engine_entries=$(printf '%s\n' "$engine_entries" | grep "\"hardware\":\"${engine_hardware}\"" || true)
+  fi
+  engine_entry=$(printf '%s\n' "$engine_entries" | tail -1)
   if [ -z "$engine_entry" ]; then
-    printf '%sERROR: No engine entry found for platform %s in channel %s%s\n' "$RED" "$PLATFORM" "$CHANNEL" "$RESET"
+    printf '%sERROR: No engine entry found for platform %s (%s) in channel %s%s\n' "$RED" "$PLATFORM" "${engine_hardware:-any hardware}" "$CHANNEL" "$RESET"
     exit 1
   fi
 
@@ -1498,7 +1577,9 @@ emit_check "os" "$(check_status "$OS_OK" false)" "$OS_DISPLAY" "$OS_REQUIREMENT"
 
 # Accelerator check
 # macOS: require Apple M4 or newer (MLX); warn on the M4 itself
-# Linux: first NVIDIA GPU with the proprietary driver, same checks as Windows.
+# Linux: first NVIDIA GPU with the proprietary driver, same checks as Windows,
+#        or an AMD GPU with the Mesa Vulkan driver,
+#        or an Intel GPU with the Intel compute runtime.
 CPU_OK=true
 CPU_WARN=false
 ACCEL_DISPLAY="$CPU_MODEL"
@@ -1525,6 +1606,42 @@ if [ "$OS_TYPE" = "macos" ]; then
     ACCEL_NOTE="supported, but reading context is slow: prefill is about 4x slower than on Apple M5"
   fi
   ACCEL_REQUIREMENT="Apple M4 or newer"
+elif [ "$(detect_gpu_hardware)" != "NVIDIA GPU" ]; then
+  # "<vendor> <VRAM in MiB> <PCI device id>" of the AMD or Intel card.
+  # shellcheck disable=SC2046
+  set -- $(find_display_adapter)
+  GPU_VENDOR=$1
+  GPU_VRAM_MB=$2
+  # Same allowance as for NVIDIA: a Radeon RX 7900 XTX reports 24560 MiB.
+  MINIMUM_REPORTED_VRAM_MIB=$((24 * 1024 - 256))
+  ACCEL_REQUIREMENT="$GPU_VENDOR GPU with 24 GB VRAM (at least $MINIMUM_REPORTED_VRAM_MIB MiB reported)"
+  # Round to the nearest GB: the card reports slightly less than its nominal size.
+  GPU_VRAM_GB=$(((GPU_VRAM_MB + 512) / 1024))
+  GPU_NAME="$GPU_VENDOR GPU $3"
+  ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, $GPU_VRAM_MB MiB reported)"
+  if [ "$GPU_VRAM_MB" -lt "$MINIMUM_REPORTED_VRAM_MIB" ]; then
+    CPU_OK=false
+    ALL_OK=false
+  fi
+  if [ "$GPU_VENDOR" = "Intel" ]; then
+    DRIVER_REQUIREMENT="Intel compute runtime (Level Zero and OpenCL drivers)"
+    if has_intel_compute_runtime; then
+      DRIVER_DISPLAY="Intel compute runtime"
+    else
+      DRIVER_OK=false
+      ALL_OK=false
+      DRIVER_DISPLAY="Intel compute runtime not detected (install libze-intel-gpu1 and intel-opencl-icd)"
+    fi
+  else
+    DRIVER_REQUIREMENT="Mesa Vulkan driver for Radeon (RADV)"
+    if has_radeon_vulkan_driver; then
+      DRIVER_DISPLAY="Mesa RADV Vulkan driver"
+    else
+      DRIVER_OK=false
+      ALL_OK=false
+      DRIVER_DISPLAY="Vulkan driver not detected (install the Mesa Vulkan drivers)"
+    fi
+  fi
 else
   # Match Windows: allow 256 MiB of reporting headroom for a 24 GiB card
   # (e.g. an RTX 4090 reports 24564 MiB).
