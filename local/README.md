@@ -10,11 +10,14 @@ Installation scripts and update metadata for the Junie local model (on-device in
   emits a `warning` event.
 - **Windows** (`install.ps1`): NVIDIA GPU with 24 GB VRAM, driver 581+, Visual
   C++ Redistributable; `windows-amd64` and `windows-aarch64`. On `windows-amd64`
-  also an AMD GPU with 24 GB VRAM and a graphics driver with Vulkan.
+  also an AMD GPU with 24 GB VRAM and a graphics driver with Vulkan, or an Intel
+  GPU with 24 GB VRAM and a graphics driver with Level Zero.
 - **Linux** (`install.sh`): `linux-amd64` or `linux-aarch64`, kernel 5.15+,
   NVIDIA GPU with 24 GB VRAM (at least 24320 MiB reported by `nvidia-smi`) and
   the NVIDIA proprietary driver 580+. On `linux-amd64` also an AMD GPU with
-  24 GB VRAM and the Mesa Vulkan driver (RADV).
+  24 GB VRAM and the Mesa Vulkan driver (RADV), or an Intel GPU with 24 GB VRAM
+  and the Intel compute runtime (its Level Zero and OpenCL drivers; on Ubuntu
+  `libze-intel-gpu1` and `intel-opencl-icd`).
 
 On Windows and Linux only the first NVIDIA GPU is checked; VRAM of several GPUs
 is not combined. Linux uses the same GGUF models as Windows. The Linux driver
@@ -33,10 +36,15 @@ and picks the last entry whose `platform` and `hardware` both match:
 |---|---|---|
 | NVIDIA card | `NVIDIA GPU` | `nvidia-smi` is present |
 | AMD card | `AMD GPU` | Linux: an `amdgpu` card in `/sys/class/drm`; Windows: a display adapter of vendor `1002` in the registry |
+| Intel card | `Intel GPU` | Linux: a card of vendor `8086` in `/sys/class/drm`; Windows: a display adapter of vendor `8086` in the registry |
 | neither | `NVIDIA GPU` | the NVIDIA checks then report what is missing |
 
-With an integrated and a discrete AMD GPU, the one with the most dedicated VRAM
-is checked. macOS has one engine per platform and ignores `hardware`.
+On both systems the AMD or Intel card with the most dedicated VRAM is checked, and
+cards with less than 4 GB (integrated graphics) are ignored, so they neither count as
+a card nor hide a discrete card of the other vendor. The Intel driver on Linux does
+not report the VRAM, so the installer takes the size of the card's memory window
+(`resource2`): the VRAM rounded up to a power of two. macOS has one engine per
+platform and ignores `hardware`.
 
 ## The installer API
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Regression test: the local model installer must recognise an AMD card from the
-# Linux graphics device tree and pick the engine package published for the
-# detected GPU vendor, so adding an AMD package never changes what NVIDIA
+# Regression test: the local model installer must recognise an AMD or Intel card
+# from the Linux graphics device tree and pick the engine package published for
+# the detected GPU vendor, so adding such a package never changes what NVIDIA
 # machines download.
 #
 # Usage:
@@ -36,10 +36,20 @@ add_card() {
   echo "$4" > "$WORK/drm/$1/device/device"
 }
 
+# One fake Intel card: the size of its memory window in bytes, PCI device id.
+# The xe driver has no VRAM file; the installer reads the size of "resource2".
+add_intel_card() {
+  mkdir -p "$WORK/drm/$1/device"
+  echo 0x8086 > "$WORK/drm/$1/device/vendor"
+  echo "$3" > "$WORK/drm/$1/device/device"
+  dd if=/dev/zero of="$WORK/drm/$1/device/resource2" bs=1 count=0 seek="$2" 2>/dev/null
+}
+
 cat > "$WORK/feed.jsonl" <<'FEED'
 {"version":"1.0","platform":"linux-amd64","hardware":"NVIDIA GPU","downloadUrl":"https://example.com/nvidia-1.0.tar.gz","sha256":"aa"}
 {"version":"1.1","platform":"linux-amd64","hardware":"NVIDIA GPU","downloadUrl":"https://example.com/nvidia-1.1.tar.gz","sha256":"bb"}
 {"version":"1.1","platform":"linux-amd64","hardware":"AMD GPU","downloadUrl":"https://example.com/amd-1.1.tar.gz","sha256":"cc"}
+{"version":"1.1","platform":"linux-amd64","hardware":"Intel GPU","downloadUrl":"https://example.com/intel-1.1.tar.gz","sha256":"dd"}
 FEED
 
 # Run the installer's own detection and engine selection with stubbed tools.
@@ -76,9 +86,17 @@ check "AMD card gets the AMD package" "$(select_engine none)" "AMD GPU|https://e
 check "NVIDIA card keeps the NVIDIA package" "$(select_engine nvidia)" "NVIDIA GPU|https://example.com/nvidia-1.1.tar.gz"
 check "a failing nvidia-smi does not hide the AMD card" "$(select_engine broken)" "AMD GPU|https://example.com/amd-1.1.tar.gz"
 
+# An Arc Pro B65 beside the integrated Radeon of the processor.
 rm -rf "$WORK/drm"
-add_card card0 0x8086 0 0xe222
-check "no known card falls back to the NVIDIA package" "$(select_engine none)" "NVIDIA GPU|https://example.com/nvidia-1.1.tar.gz"
+add_card card0 0x1002 2147483648 0x13c0
+add_intel_card card1 34359738368 0xe222
+check "Intel card beside AMD integrated graphics gets the Intel package" "$(select_engine none)" "Intel GPU|https://example.com/intel-1.1.tar.gz"
+
+# Integrated graphics alone: an Intel one with a 256 MiB window, an AMD one with 2 GiB.
+rm -rf "$WORK/drm"
+add_intel_card card0 268435456 0x7d55
+add_card card1 0x1002 2147483648 0x13c0
+check "integrated graphics fall back to the NVIDIA package" "$(select_engine none)" "NVIDIA GPU|https://example.com/nvidia-1.1.tar.gz"
 
 echo "$PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
