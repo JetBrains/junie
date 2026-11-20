@@ -146,7 +146,7 @@
     {
       "id": "autohand",
       "name": "Autohand Code",
-      "version": "0.9.11",
+      "version": "0.9.12",
       "description": "Autohand Code CLI with native ACP support",
       "repository": "https://github.com/autohandai/code-cli",
       "website": "https://github.com/autohandai/code-cli/blob/main/docs/guides/ACP.md",
@@ -158,56 +158,56 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.11/autohand-macos-arm64.tar.gz",
-            "sha256": "d98de36979a1a4b6442a5b0ff746a2a5f5a5408e493c93c380aa4b3ef312fe24",
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.12/autohand-macos-arm64.tar.gz",
+            "sha256": "31c671b6c2537af93e06a49448262a64b6153dab96277af144030f9d6fd79737",
             "cmd": "./autohand",
             "args": [
               "--acp"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.11/autohand-macos-x64.tar.gz",
-            "sha256": "8854375088184bb794ad33ed8a2235ccbdda2559067003a9a23a7a9e231eb5fb",
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.12/autohand-macos-x64.tar.gz",
+            "sha256": "c8b732fe9e0ab2e6873a89e290d41423e558ed3da6bfa0d7aa952f8f7c2ac932",
             "cmd": "./autohand",
             "args": [
               "--acp"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.11/autohand-linux-arm64.tar.gz",
-            "sha256": "6239dc00b0334624aea60329653429cd06f2664b749350de20eda37d9a314f33",
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.12/autohand-linux-arm64.tar.gz",
+            "sha256": "a3907692e8757d40aed4d3f34f047139d07ae5a370faef8fda0c0f8af9c272f0",
             "cmd": "./autohand",
             "args": [
               "--acp"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.11/autohand-linux-x64.tar.gz",
-            "sha256": "6ec018d0cb135ce874228b0d031e94e52850fffa13b54e81e6360ddccc0dfb64",
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.12/autohand-linux-x64.tar.gz",
+            "sha256": "49b61212c3156b8fda2dd98b7a4997f35fae822c6e42cf8307aa9b0e7114873f",
             "cmd": "./autohand",
             "args": [
               "--acp"
             ]
           },
           "linux-aarch64-musl": {
-            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.11/autohand-linux-arm64-musl.tar.gz",
-            "sha256": "8282e2beae416d28ebb60dc99bfc9dab09606f4b16f80379da2217853d28a51b",
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.12/autohand-linux-arm64-musl.tar.gz",
+            "sha256": "df896d82b93825f884f95270695f435aca3e2d583a932f5ff468708062a671a3",
             "cmd": "./autohand",
             "args": [
               "--acp"
             ]
           },
           "linux-x86_64-musl": {
-            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.11/autohand-linux-x64-musl.tar.gz",
-            "sha256": "6aad47193dc28196b2ece5ef7260c55754b2cd4de490c7bd2c2663f572940fc2",
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.12/autohand-linux-x64-musl.tar.gz",
+            "sha256": "6f3fa4b1d8d3a116cb2951d265fedda14ec909e213d6e5a14a0cf33e74bc9dda",
             "cmd": "./autohand",
             "args": [
               "--acp"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.11/autohand-windows-x64.zip",
-            "sha256": "58a9194f40e6a676427001572128062e712332766d1189acdb5fbbbf59ca2a5d",
+            "archive": "https://github.com/autohandai/code-cli/releases/download/v0.9.12/autohand-windows-x64.zip",
+            "sha256": "3d4fd36f7bd69ca8acc9f0b3dc4de92823f08096814d7cce0a7eb433f4140fe1",
             "cmd": "./autohand.exe",
             "args": [
               "--acp"
@@ -652,7 +652,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.5.29",
+      "version": "0.5.30",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimagent.cn/",
       "authors": [
@@ -662,7 +662,7 @@
       "license_url": "https://dimagent.cn/terms",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.5.29",
+          "package": "dimcode@0.5.30",
           "args": [
             "acp"
           ]
@@ -809,7 +809,7 @@
     {
       "id": "goose",
       "name": "goose",
-      "version": "1.60.1",
+      "version": "1.60.2",
       "description": "A local, extensible, open source AI agent that automates engineering tasks",
       "repository": "https://github.com/block/goose",
       "website": "https://block.github.io/goose/",
@@ -821,60 +821,60 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.1/goose-aarch64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-aarch64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "0c96b02a4a26be06095f710612fd66675bb5e96ef298ccbc335dd82057ca7b5a"
+            "sha256": "5b87260719bf565958f305b32a761cd8cd6d5f7ce9e7b5831a18c8b3f3cb01f8"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.1/goose-x86_64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "126d2af199faf1ea23c46540cf031a421dfbcef5a886bdb51a7ab5027e277799"
+            "sha256": "b83fead3e3813b876247d3612352783ae727f7620bddfb8ef352e909cc6bf63b"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.1/goose-aarch64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-aarch64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "682e1830be33ab955a0b90bf3c43d3c9a46985b34c1c5c27b253ef992fb0f4e3"
+            "sha256": "9d0fed3d301ce61b2b50cc19039795d3fa85270fe8857abe4a16ed35b21a1fbf"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.1/goose-x86_64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "f1b477e531c11e74b82761367e0284c7817908efe30a842889959713820584d8"
+            "sha256": "83fef08e07c63c8cd41f9702e5e840487463f3b4e1290711a94ade5beab2d082"
           },
           "linux-aarch64-musl": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.1/goose-aarch64-unknown-linux-musl.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-aarch64-unknown-linux-musl.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "ea2dd27880823a0515ef8fc5a16b797a14544d9a3a74470eda395b87d7d965c8"
+            "sha256": "e5c73e19d9954dc72aae0c4581c97f9ed8339559dbd11b6b0c645e1875b845ee"
           },
           "linux-x86_64-musl": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.1/goose-x86_64-unknown-linux-musl.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-unknown-linux-musl.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "f5d0363a60eaf9909439cc29085ad591a884de7e3eb09f2154306445aa463b91"
+            "sha256": "3ec76884cd41adb1dc14f9bb24123febd62ad19cc574e664f74fe8d1c75c9afb"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.1/goose-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-pc-windows-msvc.zip",
             "cmd": "./goose-package\\goose.exe",
             "args": [
               "acp"
             ],
-            "sha256": "1b66929a43d9645cbe2b31691c84fef95c880aee57dd7a207050976d312f0238"
+            "sha256": "5b838ab498f7a6b121fab621b99d39a480458c373f16be7f7ce7869e9bc54888"
           }
         }
       },
@@ -968,7 +968,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4183.1",
+      "version": "4184.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -980,42 +980,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4183.1/junie-nightly-4183.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4184.1/junie-nightly-4184.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4183.1/junie-nightly-4183.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4184.1/junie-nightly-4184.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4183.1/junie-nightly-4183.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4184.1/junie-nightly-4184.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4183.1/junie-nightly-4183.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4184.1/junie-nightly-4184.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4183.1/junie-nightly-4183.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4184.1/junie-nightly-4184.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4183.1/junie-nightly-4183.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4184.1/junie-nightly-4184.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1108,7 +1108,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.37.2",
+      "version": "1.37.3",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -1120,8 +1120,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.2/kimchi_darwin_arm64.tar.gz",
-            "sha256": "0ad4e8998690b40fb7292a3657341f7f6a0e0a1d80bebe8e7827a3502b360206",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.3/kimchi_darwin_arm64.tar.gz",
+            "sha256": "b51755230c02e32e9414b4a61261c2d030f35297fe934e12ae446de3af6f736b",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1129,8 +1129,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.2/kimchi_darwin_amd64.tar.gz",
-            "sha256": "84ab069edfacd035a0f41001f83f172f990e3b18861ee6f61e56acfce74620b9",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.3/kimchi_darwin_amd64.tar.gz",
+            "sha256": "e8cb8e906716bb847434e57fd73ffb9c2506d5b3e32be71ab24b98e25dc7c886",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1138,8 +1138,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.2/kimchi_linux_arm64.tar.gz",
-            "sha256": "9db23d892dd2d636b72d688ed81c9b757e9ab52f16516a564d000e897e8dfd38",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.3/kimchi_linux_arm64.tar.gz",
+            "sha256": "61588efed6d4ec2dee650e00ab2acfa33d17d09565ec7089f8e6cbbe5b411a7c",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1147,8 +1147,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.2/kimchi_linux_amd64.tar.gz",
-            "sha256": "03a7baac4e25eb6f697e76d546250b7d979c5d3b3dce759a248752f71cc5bc5c",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.3/kimchi_linux_amd64.tar.gz",
+            "sha256": "a90bb1fb370d6506a6b3c9f2d432fce261403022f4e997793ac78fc352cdfd5e",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1156,8 +1156,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.2/kimchi_windows_amd64.zip",
-            "sha256": "de4d91a7e3d8d0b5158c25de6d5328b75ac9a88b9e77fc8a93d92ee7fdf834ea",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.37.3/kimchi_windows_amd64.zip",
+            "sha256": "3dc848b33c9bf00e4b55cbeee8dd0d9cd17f83e5d871b68fcf1f3094721fa3f6",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
@@ -1229,7 +1229,7 @@
     {
       "id": "kimi-code",
       "name": "Kimi Code",
-      "version": "2.7.0",
+      "version": "2.7.2",
       "description": "Moonshot AI's next-gen coding agent",
       "repository": "https://github.com/MoonshotAI/kimi-code",
       "website": "https://moonshotai.github.io/kimi-code/",
@@ -1240,7 +1240,7 @@
       "license_url": "https://github.com/MoonshotAI/kimi-code/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@moonshot-ai/kimi-code@2.7.0",
+          "package": "@moonshot-ai/kimi-code@2.7.2",
           "args": [
             "acp"
           ]
@@ -1323,7 +1323,7 @@
     {
       "id": "minimax-code",
       "name": "MiniMax Code",
-      "version": "0.7.8",
+      "version": "0.7.9",
       "description": "MiniMax Code is an AI coding agent with Agent Client Protocol support.",
       "website": "https://agent.minimax.io",
       "authors": [
@@ -1333,7 +1333,7 @@
       "license_url": "https://agent.minimax.io/doc/en/terms-of-service.html",
       "distribution": {
         "npx": {
-          "package": "@minimax-ai/code-acp@0.7.8",
+          "package": "@minimax-ai/code-acp@0.7.9",
           "args": [
             "acp"
           ]
