@@ -968,7 +968,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4200.1",
+      "version": "4201.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -980,42 +980,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4200.1/junie-nightly-4200.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4201.1/junie-nightly-4201.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4200.1/junie-nightly-4200.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4201.1/junie-nightly-4201.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4200.1/junie-nightly-4200.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4201.1/junie-nightly-4201.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4200.1/junie-nightly-4200.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4201.1/junie-nightly-4201.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4200.1/junie-nightly-4200.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4201.1/junie-nightly-4201.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4200.1/junie-nightly-4200.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4201.1/junie-nightly-4201.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1365,7 +1365,7 @@
     {
       "id": "mistral-vibe",
       "name": "Mistral Vibe",
-      "version": "3.1.1",
+      "version": "3.1.4",
       "description": "Mistral's open-source coding assistant",
       "repository": "https://github.com/mistralai/mistral-vibe",
       "website": "https://mistral.ai/products/vibe",
@@ -1378,29 +1378,29 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.1/vibe-acp-darwin-aarch64-3.1.1.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.4/vibe-acp-darwin-aarch64-3.1.4.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "c5cec6fb85ca6249e68d6f9a60fbbfba3f0d4740ea97add3208170408fa98315"
+            "sha256": "4492735d66b615cb321e19e762199df957744ff9f8e7cccaf39fbebd55cad8a0"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.1/vibe-acp-darwin-x86_64-3.1.1.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.4/vibe-acp-darwin-x86_64-3.1.4.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "c229d6d118815c26d1d08ad7ce0afb38d399f90a873ee040f1b4518e4cfd1613"
+            "sha256": "a5e2fac0ec4ea09c7c8fd218ae2acbb9b830ecd071668fe7f4293e793a104940"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.1/vibe-acp-linux-aarch64-3.1.1.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.4/vibe-acp-linux-aarch64-3.1.4.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "c2dbf99928f80b368a795af5ae870c6ccf2137ac06ad5478d52c44856ea6a219"
+            "sha256": "3db34e9f64920ddc819687e848ac3ebb730112538a56b0b64633bce6beccaf74"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.1/vibe-acp-linux-x86_64-3.1.1.tar.gz",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.4/vibe-acp-linux-x86_64-3.1.4.tar.gz",
             "cmd": "./vibe-acp",
-            "sha256": "ea3b33b2faebbd5cd2c4bc1c5226e865a8cafeb7486fb7fbd869418b4e4f6fec"
+            "sha256": "934a79356755821a31e6ce1aee7f7f1eacb6b1e6c78901acf1eb7fc4650aece7"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.1/vibe-acp-windows-x86_64-3.1.1.zip",
+            "archive": "https://github.com/mistralai/mistral-vibe/releases/download/v3.1.4/vibe-acp-windows-x86_64-3.1.4.zip",
             "cmd": "./vibe-acp.exe",
-            "sha256": "ff827873a0506fdb110c9b6080f7a26bac804d6bdc49c6103b2f36873927f2fd"
+            "sha256": "4f8681d6e0496a258ba62acf57188961ebdfdc5799f26fe218adb43c637c7b79"
           }
         }
       }
@@ -1594,9 +1594,9 @@
     },
     {
       "id": "opencode-v2",
-      "name": "OpenCode V2",
+      "name": "OpenCode (legacy ID)",
       "version": "2.3.2",
-      "description": "The open source coding agent, version 2",
+      "description": "Compatibility entry for existing opencode-v2 installations. Select OpenCode (opencode) for new installations.",
       "repository": "https://github.com/anomalyco/opencode",
       "website": "https://opencode.ai",
       "authors": [
@@ -1608,7 +1608,7 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-darwin-arm64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-darwin-arm64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
@@ -1616,7 +1616,7 @@
             "sha256": "31ab5a06a29edc7e49b895f35c2b64ebfe7c7f0437b0f2581b006efcd79fee1a"
           },
           "darwin-x86_64": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-darwin-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-darwin-x64.zip",
             "cmd": "./opencode",
             "args": [
               "acp"
@@ -1624,7 +1624,7 @@
             "sha256": "1875a6d1106702f04c9468831563c061bd00337f891a1b4a6cd151155e6aaf5c"
           },
           "linux-aarch64": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-linux-arm64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-linux-arm64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
@@ -1632,7 +1632,7 @@
             "sha256": "9d10185acdb72336e086e699ca363a6065f410fd3c1caed0dc8046e95ac06ccb"
           },
           "linux-x86_64": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-linux-x64.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-linux-x64.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
@@ -1640,7 +1640,7 @@
             "sha256": "563b5d663637226b6e3bb4bb6803281bc39b0d2cd88db06d674b6420aab009b0"
           },
           "linux-aarch64-musl": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-linux-arm64-musl.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-linux-arm64-musl.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
@@ -1648,7 +1648,7 @@
             "sha256": "2148ba748f5410177868ed67d59ef70626cb6bd4fb2abc5177c807adfdc24fc3"
           },
           "linux-x86_64-musl": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-linux-x64-musl.tar.gz",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-linux-x64-musl.tar.gz",
             "cmd": "./opencode",
             "args": [
               "acp"
@@ -1656,7 +1656,7 @@
             "sha256": "4e952a67874cfdb4f53eeae5840f9813acc9f109c10e61bc26020271f56d7d84"
           },
           "windows-aarch64": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-windows-arm64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-windows-arm64.zip",
             "cmd": "./opencode.exe",
             "args": [
               "acp"
@@ -1664,7 +1664,7 @@
             "sha256": "13dabbf6874c8abfc7ff44bee0e64c3758e918a0e27f56f74173c353d56a842d"
           },
           "windows-x86_64": {
-            "archive": "https://opencode.ai/files/bin/2.3.2/opencode-windows-x64.zip",
+            "archive": "https://github.com/anomalyco/opencode/releases/download/v2.3.2/opencode-windows-x64.zip",
             "cmd": "./opencode.exe",
             "args": [
               "acp"
