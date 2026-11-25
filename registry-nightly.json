@@ -315,7 +315,7 @@
     {
       "id": "codebuddy-code",
       "name": "Codebuddy Code",
-      "version": "2.186.0",
+      "version": "2.187.0",
       "description": "Tencent Cloud's official intelligent coding tool",
       "website": "https://www.codebuddy.cn/cli/",
       "authors": [
@@ -325,7 +325,7 @@
       "license_url": "https://www.codebuddy.cn/agreement/",
       "distribution": {
         "npx": {
-          "package": "@tencent-ai/codebuddy-code@2.186.0",
+          "package": "@tencent-ai/codebuddy-code@2.187.0",
           "args": [
             "--acp"
           ]
@@ -652,7 +652,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.5.32",
+      "version": "0.5.33",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimagent.cn/",
       "authors": [
@@ -662,7 +662,7 @@
       "license_url": "https://dimagent.cn/terms",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.5.32",
+          "package": "dimcode@0.5.33",
           "args": [
             "acp"
           ]
@@ -809,7 +809,7 @@
     {
       "id": "goose",
       "name": "goose",
-      "version": "1.60.2",
+      "version": "1.61.0",
       "description": "A local, extensible, open source AI agent that automates engineering tasks",
       "repository": "https://github.com/block/goose",
       "website": "https://block.github.io/goose/",
@@ -821,60 +821,60 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-aarch64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.61.0/goose-aarch64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "5b87260719bf565958f305b32a761cd8cd6d5f7ce9e7b5831a18c8b3f3cb01f8"
+            "sha256": "f225bdd7d4b86dc6b83c392e99265e14ca92ba671e263aa29c5c75a2a1c5aa5d"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-apple-darwin.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.61.0/goose-x86_64-apple-darwin.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "b83fead3e3813b876247d3612352783ae727f7620bddfb8ef352e909cc6bf63b"
+            "sha256": "c649310d54c62d47a9509065c4a3b0ca9841cd18a821e2b740928d0c48c0c398"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-aarch64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.61.0/goose-aarch64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "9d0fed3d301ce61b2b50cc19039795d3fa85270fe8857abe4a16ed35b21a1fbf"
+            "sha256": "535f240b1193525290045a0a10f93f42986a2999fb6e8183baecdfe17eddc1bb"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-unknown-linux-gnu.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.61.0/goose-x86_64-unknown-linux-gnu.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "83fef08e07c63c8cd41f9702e5e840487463f3b4e1290711a94ade5beab2d082"
+            "sha256": "493c41b6544817b4c2669c3ba465d9d7161185cacfb9088e83dc26566d36f36d"
           },
           "linux-aarch64-musl": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-aarch64-unknown-linux-musl.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.61.0/goose-aarch64-unknown-linux-musl.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "e5c73e19d9954dc72aae0c4581c97f9ed8339559dbd11b6b0c645e1875b845ee"
+            "sha256": "8d4a8aebda51f31887f35c64304d1d64892b58ed8948a52c949d88042013ef13"
           },
           "linux-x86_64-musl": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-unknown-linux-musl.tar.bz2",
+            "archive": "https://github.com/block/goose/releases/download/v1.61.0/goose-x86_64-unknown-linux-musl.tar.bz2",
             "cmd": "./goose",
             "args": [
               "acp"
             ],
-            "sha256": "3ec76884cd41adb1dc14f9bb24123febd62ad19cc574e664f74fe8d1c75c9afb"
+            "sha256": "c25b9b79f60f984f369a51be64bc75742b07808ac89d8f1556bb089e12ea3b77"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/block/goose/releases/download/v1.60.2/goose-x86_64-pc-windows-msvc.zip",
+            "archive": "https://github.com/block/goose/releases/download/v1.61.0/goose-x86_64-pc-windows-msvc.zip",
             "cmd": "./goose-package\\goose.exe",
             "args": [
               "acp"
             ],
-            "sha256": "5b838ab498f7a6b121fab621b99d39a480458c373f16be7f7ce7869e9bc54888"
+            "sha256": "03f7396b9babecb1649ec3e600def93a701d3deadbb704d379774798099f03b7"
           }
         }
       },
@@ -968,7 +968,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4221.1",
+      "version": "4223.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -980,42 +980,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4221.1/junie-nightly-4221.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4223.1/junie-nightly-4223.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4221.1/junie-nightly-4221.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4223.1/junie-nightly-4223.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4221.1/junie-nightly-4221.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4223.1/junie-nightly-4223.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4221.1/junie-nightly-4221.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4223.1/junie-nightly-4223.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4221.1/junie-nightly-4221.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4223.1/junie-nightly-4223.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4221.1/junie-nightly-4221.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4223.1/junie-nightly-4223.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1229,7 +1229,7 @@
     {
       "id": "kimi-code",
       "name": "Kimi Code",
-      "version": "2.7.3",
+      "version": "2.8.0",
       "description": "Moonshot AI's next-gen coding agent",
       "repository": "https://github.com/MoonshotAI/kimi-code",
       "website": "https://moonshotai.github.io/kimi-code/",
@@ -1240,7 +1240,7 @@
       "license_url": "https://github.com/MoonshotAI/kimi-code/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@moonshot-ai/kimi-code@2.7.3",
+          "package": "@moonshot-ai/kimi-code@2.8.0",
           "args": [
             "acp"
           ]
@@ -1761,7 +1761,7 @@
     {
       "id": "qoder",
       "name": "Qoder CLI",
-      "version": "1.1.97",
+      "version": "1.1.98",
       "description": "AI coding assistant with agentic capabilities",
       "website": "https://qoder.com",
       "authors": [
@@ -1772,7 +1772,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
-          "package": "@qoder-ai/qodercli@1.1.97",
+          "package": "@qoder-ai/qodercli@1.1.98",
           "args": [
             "--acp"
           ]
