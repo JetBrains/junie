@@ -241,7 +241,7 @@
     {
       "id": "claude-acp",
       "name": "Claude Agent",
-      "version": "0.112.0",
+      "version": "0.113.0",
       "description": "ACP wrapper for Anthropic's Claude",
       "repository": "https://github.com/agentclientprotocol/claude-agent-acp",
       "authors": [
@@ -254,38 +254,38 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.112.0/claude-agent-acp-darwin-arm64.zip",
+            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.113.0/claude-agent-acp-darwin-arm64.zip",
             "cmd": "./claude-agent-acp",
-            "sha256": "ada7afbea165c20e5ec50a190653309bfba528ed9f74ef86a24f2734329ec59c"
+            "sha256": "68064a101b35cb4b671861270909435c083fdcd35701043394d6e376b192b482"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.112.0/claude-agent-acp-darwin-x64.zip",
+            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.113.0/claude-agent-acp-darwin-x64.zip",
             "cmd": "./claude-agent-acp",
-            "sha256": "6be80ad3f2c7487829ff17c58d51b09043d19419c2b206657aad9a7affeb5ead"
+            "sha256": "3ecfe12daa3171bc9a2dbdb07b616ac053e360aa548f69c61f051b8450d9078b"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.112.0/claude-agent-acp-linux-arm64.tar.gz",
+            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.113.0/claude-agent-acp-linux-arm64.tar.gz",
             "cmd": "./claude-agent-acp",
-            "sha256": "44b251fe102f2ba5c50fd458be4a8f980afe34dafac393368f51d129e0ae2a65"
+            "sha256": "b695145e2ef07bb8ff9ce8aa9277e5538ff834a6c625fc4b5710116ded228abf"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.112.0/claude-agent-acp-linux-x64.tar.gz",
+            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.113.0/claude-agent-acp-linux-x64.tar.gz",
             "cmd": "./claude-agent-acp",
-            "sha256": "5ba71f9005177f11b231bf15d464d2444d3cb8bc0f9bb7094d88dc051da7a8c5"
+            "sha256": "493595c4caef6dfb5d20f187ae96f887188262a281b0db95bb794d1977ddaf02"
           },
           "linux-aarch64-musl": {
-            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.112.0/claude-agent-acp-linux-arm64-musl.tar.gz",
+            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.113.0/claude-agent-acp-linux-arm64-musl.tar.gz",
             "cmd": "./claude-agent-acp",
-            "sha256": "0019eb3243c50706820451110c7e834c79dd16e8f05b1a9b811f13c124f1b9db"
+            "sha256": "1d0bc41870ea7eab5cd1c0d499143fc6ee8a47bdfa59cad0daf467166c32a04f"
           },
           "linux-x86_64-musl": {
-            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.112.0/claude-agent-acp-linux-x64-musl.tar.gz",
+            "archive": "https://github.com/agentclientprotocol/claude-agent-acp/releases/download/v0.113.0/claude-agent-acp-linux-x64-musl.tar.gz",
             "cmd": "./claude-agent-acp",
-            "sha256": "2dfaf7d6c8640e7d6a74db24a6f263f7a2191d17c09fedd20d9e4134aadca361"
+            "sha256": "f57b8a21a9519f7864449f835a9d99dddebd630d94c352ebd23b946569f1a9b8"
           }
         },
         "npx": {
-          "package": "@agentclientprotocol/claude-agent-acp@0.112.0"
+          "package": "@agentclientprotocol/claude-agent-acp@0.113.0"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/claude-acp.svg"
@@ -968,7 +968,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4233.1",
+      "version": "4234.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -980,42 +980,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4233.1/junie-nightly-4233.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4234.1/junie-nightly-4234.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4233.1/junie-nightly-4233.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4234.1/junie-nightly-4234.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4233.1/junie-nightly-4233.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4234.1/junie-nightly-4234.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4233.1/junie-nightly-4233.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4234.1/junie-nightly-4234.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4233.1/junie-nightly-4233.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4234.1/junie-nightly-4234.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4233.1/junie-nightly-4233.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4234.1/junie-nightly-4234.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
