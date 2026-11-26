@@ -293,7 +293,7 @@
     {
       "id": "cline",
       "name": "Cline",
-      "version": "3.0.75",
+      "version": "3.0.76",
       "description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
       "repository": "https://github.com/cline/cline",
       "website": "https://cline.bot/cli",
@@ -305,7 +305,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/cline.svg",
       "distribution": {
         "npx": {
-          "package": "cline@3.0.75",
+          "package": "cline@3.0.76",
           "args": [
             "--acp"
           ]
@@ -652,7 +652,7 @@
     {
       "id": "dimcode",
       "name": "DimCode",
-      "version": "0.5.33",
+      "version": "0.5.35",
       "description": "A coding agent that puts leading models at your command.",
       "website": "https://dimagent.cn/",
       "authors": [
@@ -662,7 +662,7 @@
       "license_url": "https://dimagent.cn/terms",
       "distribution": {
         "npx": {
-          "package": "dimcode@0.5.33",
+          "package": "dimcode@0.5.35",
           "args": [
             "acp"
           ]
@@ -695,7 +695,7 @@
     {
       "id": "factory-droid",
       "name": "Factory Droid",
-      "version": "1.21.0",
+      "version": "1.21.1",
       "description": "Factory Droid - AI coding agent powered by Factory AI",
       "website": "https://factory.ai/product/cli",
       "authors": [
@@ -705,7 +705,7 @@
       "license_url": "https://factory.ai/legal/terms",
       "distribution": {
         "npx": {
-          "package": "droid@1.21.0",
+          "package": "droid@1.21.1",
           "args": [
             "exec",
             "--output-format",
@@ -968,7 +968,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4236.1",
+      "version": "4237.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -980,42 +980,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4236.1/junie-nightly-4236.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4237.1/junie-nightly-4237.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4236.1/junie-nightly-4236.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4237.1/junie-nightly-4237.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4236.1/junie-nightly-4236.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4237.1/junie-nightly-4237.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4236.1/junie-nightly-4236.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4237.1/junie-nightly-4237.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4236.1/junie-nightly-4236.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4237.1/junie-nightly-4237.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4236.1/junie-nightly-4236.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4237.1/junie-nightly-4237.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1108,7 +1108,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.41.1",
+      "version": "1.42.2",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -1120,8 +1120,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.41.1/kimchi_darwin_arm64.tar.gz",
-            "sha256": "b81b750b62d4517849591b39bcb59f72300868598276197ea973dbf2076396b5",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_darwin_arm64.tar.gz",
+            "sha256": "21245ae47be50c83cbf6bc3b5a711cf0f0deb9d1982e4580a593f86517691b4c",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1129,8 +1129,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.41.1/kimchi_darwin_amd64.tar.gz",
-            "sha256": "51a532599c6b4c1568e5b6db74ebcf24a62b075d62051b6d56aa5f15f5c7c7e6",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_darwin_amd64.tar.gz",
+            "sha256": "ebfba557717ff74bc3557f1c9b76920650d9f7e6b4fdbb54e54fdc71786cf764",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1138,8 +1138,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.41.1/kimchi_linux_arm64.tar.gz",
-            "sha256": "ce08749a05389cc0a6eda71a96ef01663209ab95fa37f512c6f80fd72f05ea74",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_linux_arm64.tar.gz",
+            "sha256": "99597b74dc6daf63915230b0734f2f7bddebf8767a325e6ea705e95505f8e637",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1147,8 +1147,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.41.1/kimchi_linux_amd64.tar.gz",
-            "sha256": "666133baf19d19b5615303b2c54cfe20dcb36b3d70d42afd77d0c4c82384dc22",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_linux_amd64.tar.gz",
+            "sha256": "8a69ebb4b5db4beb0262d40872a531d48c117057de285b837aa8186160c7bc76",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1156,8 +1156,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.41.1/kimchi_windows_amd64.zip",
-            "sha256": "de05cc9c9c55c577b118e288d52ba213fbc344ad2d488494722de3e7590a40e3",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_windows_amd64.zip",
+            "sha256": "ccc8575d06acbb267b0ba8a6e4c01203e11386660c179843279242034b42dd38",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
@@ -1229,7 +1229,7 @@
     {
       "id": "kimi-code",
       "name": "Kimi Code",
-      "version": "2.8.0",
+      "version": "2.8.1",
       "description": "Moonshot AI's next-gen coding agent",
       "repository": "https://github.com/MoonshotAI/kimi-code",
       "website": "https://moonshotai.github.io/kimi-code/",
@@ -1240,7 +1240,7 @@
       "license_url": "https://github.com/MoonshotAI/kimi-code/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@moonshot-ai/kimi-code@2.8.0",
+          "package": "@moonshot-ai/kimi-code@2.8.1",
           "args": [
             "acp"
           ]
@@ -1755,7 +1755,7 @@
     {
       "id": "qoder",
       "name": "Qoder CLI",
-      "version": "1.1.98",
+      "version": "1.1.99",
       "description": "AI coding assistant with agentic capabilities",
       "website": "https://qoder.com",
       "authors": [
@@ -1766,7 +1766,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
-          "package": "@qoder-ai/qodercli@1.1.98",
+          "package": "@qoder-ai/qodercli@1.1.99",
           "args": [
             "--acp"
           ]
@@ -1776,7 +1776,7 @@
     {
       "id": "qwen-code",
       "name": "Qwen Code",
-      "version": "0.28.4",
+      "version": "0.28.6",
       "description": "Alibaba's Qwen coding assistant",
       "repository": "https://github.com/QwenLM/qwen-code",
       "website": "https://qwenlm.github.io/qwen-code-docs/en/users/overview",
@@ -1787,7 +1787,7 @@
       "license_url": "https://github.com/QwenLM/qwen-code/blob/main/LICENSE",
       "distribution": {
         "npx": {
-          "package": "@qwen-code/qwen-code@0.28.4",
+          "package": "@qwen-code/qwen-code@0.28.6",
           "args": [
             "--acp",
             "--experimental-skills"
