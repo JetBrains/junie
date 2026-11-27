@@ -968,7 +968,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4243.1",
+      "version": "4244.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -980,42 +980,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4243.1/junie-nightly-4243.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4244.1/junie-nightly-4244.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4243.1/junie-nightly-4243.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4244.1/junie-nightly-4244.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4243.1/junie-nightly-4243.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4244.1/junie-nightly-4244.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4243.1/junie-nightly-4243.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4244.1/junie-nightly-4244.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4243.1/junie-nightly-4243.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4244.1/junie-nightly-4244.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4243.1/junie-nightly-4243.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4244.1/junie-nightly-4244.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1317,7 +1317,7 @@
     {
       "id": "minimax-code",
       "name": "MiniMax Code",
-      "version": "0.7.10",
+      "version": "0.8.0",
       "description": "MiniMax Code is an AI coding agent with Agent Client Protocol support.",
       "website": "https://agent.minimax.io",
       "authors": [
@@ -1327,7 +1327,7 @@
       "license_url": "https://agent.minimax.io/doc/en/terms-of-service.html",
       "distribution": {
         "npx": {
-          "package": "@minimax-ai/code-acp@0.7.10",
+          "package": "@minimax-ai/code-acp@0.8.0",
           "args": [
             "acp"
           ]
