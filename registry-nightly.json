@@ -769,7 +769,7 @@
     {
       "id": "github-copilot-cli",
       "name": "GitHub Copilot",
-      "version": "1.0.116",
+      "version": "1.0.117",
       "description": "GitHub's AI pair programmer",
       "repository": "https://github.com/github/copilot-cli",
       "website": "https://github.com/features/copilot/cli/",
@@ -780,7 +780,7 @@
       "license_url": "https://github.com/github/copilot-cli/blob/main/LICENSE.md",
       "distribution": {
         "npx": {
-          "package": "@github/copilot@1.0.116",
+          "package": "@github/copilot@1.0.117",
           "args": [
             "--acp"
           ]
@@ -791,7 +791,7 @@
     {
       "id": "glm-acp-agent",
       "name": "GLM Agent",
-      "version": "1.17.1",
+      "version": "1.18.0",
       "description": "ACP agent powered by Zhipu AI's GLM Coding Plan models (glm-5.1, glm-5-turbo, glm-4.7, glm-4.5-air). Supports streaming, tool calls, mid-session model switching, image input via Z.AI Coding Plan Vision MCP, and session load/fork/resume with on-disk persistence.",
       "repository": "https://github.com/stefandevo/glm-acp-agent",
       "authors": [
@@ -802,7 +802,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/glm-acp-agent.svg",
       "distribution": {
         "npx": {
-          "package": "glm-acp-agent@1.17.1"
+          "package": "glm-acp-agent@1.18.0"
         }
       }
     },
@@ -968,7 +968,7 @@
     {
       "id": "junie",
       "name": "Junie",
-      "version": "4248.1",
+      "version": "4249.1",
       "description": "AI Coding Agent by JetBrains",
       "repository": "https://github.com/JetBrains/junie-acp-release",
       "website": "https://junie.jetbrains.com",
@@ -980,42 +980,42 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4248.1/junie-nightly-4248.1-macos-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4249.1/junie-nightly-4249.1-macos-aarch64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4248.1/junie-nightly-4248.1-macos-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4249.1/junie-nightly-4249.1-macos-amd64.zip",
             "cmd": "./Applications/junie.app/Contents/MacOS/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4248.1/junie-nightly-4248.1-linux-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4249.1/junie-nightly-4249.1-linux-aarch64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4248.1/junie-nightly-4248.1-linux-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4249.1/junie-nightly-4249.1-linux-amd64.zip",
             "cmd": "./junie-app/bin/junie",
             "args": [
               "--acp=true"
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4248.1/junie-nightly-4248.1-windows-amd64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4249.1/junie-nightly-4249.1-windows-amd64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
             ]
           },
           "windows-aarch64": {
-            "archive": "https://github.com/JetBrains/junie/releases/download/4248.1/junie-nightly-4248.1-windows-aarch64.zip",
+            "archive": "https://github.com/JetBrains/junie/releases/download/4249.1/junie-nightly-4249.1-windows-aarch64.zip",
             "cmd": "./junie/junie.exe",
             "args": [
               "--acp=true"
@@ -1108,7 +1108,7 @@
     {
       "id": "kimchi",
       "name": "Kimchi",
-      "version": "1.42.2",
+      "version": "1.42.4",
       "description": "Coding agent powered by multi-model orchestration",
       "repository": "https://github.com/getkimchi/kimchi",
       "website": "https://kimchi.dev",
@@ -1120,8 +1120,8 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_darwin_arm64.tar.gz",
-            "sha256": "21245ae47be50c83cbf6bc3b5a711cf0f0deb9d1982e4580a593f86517691b4c",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.4/kimchi_darwin_arm64.tar.gz",
+            "sha256": "a593927012d8da8206b1ae96f1040f20910385a732e7ef0f0bead48d1d0c40e5",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1129,8 +1129,8 @@
             ]
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_darwin_amd64.tar.gz",
-            "sha256": "ebfba557717ff74bc3557f1c9b76920650d9f7e6b4fdbb54e54fdc71786cf764",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.4/kimchi_darwin_amd64.tar.gz",
+            "sha256": "7135f359d1fc630221b50d2c561ca11676e7fce4d584b1d9bfd1b7c4c8742108",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1138,8 +1138,8 @@
             ]
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_linux_arm64.tar.gz",
-            "sha256": "99597b74dc6daf63915230b0734f2f7bddebf8767a325e6ea705e95505f8e637",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.4/kimchi_linux_arm64.tar.gz",
+            "sha256": "9dab2493950824fabef1e299b76c73158e515f71a076e7bd01c973b68bca5ca3",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1147,8 +1147,8 @@
             ]
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_linux_amd64.tar.gz",
-            "sha256": "8a69ebb4b5db4beb0262d40872a531d48c117057de285b837aa8186160c7bc76",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.4/kimchi_linux_amd64.tar.gz",
+            "sha256": "f00dc349b04c9db0ce87899c967c498395f5c8bbcb907f6f685811b3aae8d522",
             "cmd": "./bin/kimchi",
             "args": [
               "--mode",
@@ -1156,8 +1156,8 @@
             ]
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.2/kimchi_windows_amd64.zip",
-            "sha256": "ccc8575d06acbb267b0ba8a6e4c01203e11386660c179843279242034b42dd38",
+            "archive": "https://github.com/getkimchi/kimchi/releases/download/v1.42.4/kimchi_windows_amd64.zip",
+            "sha256": "8c2f63a76b1f6cc9aa303b0bbc362565ddeec5d6e22a5d91cf72553e8d81cf3b",
             "cmd": "./bin/kimchi.exe",
             "args": [
               "--mode",
@@ -1755,7 +1755,7 @@
     {
       "id": "qoder",
       "name": "Qoder CLI",
-      "version": "1.1.99",
+      "version": "1.1.100",
       "description": "AI coding assistant with agentic capabilities",
       "website": "https://qoder.com",
       "authors": [
@@ -1766,7 +1766,7 @@
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/qoder.svg",
       "distribution": {
         "npx": {
-          "package": "@qoder-ai/qodercli@1.1.99",
+          "package": "@qoder-ai/qodercli@1.1.100",
           "args": [
             "--acp"
           ]
@@ -1799,7 +1799,7 @@
     {
       "id": "sigit",
       "name": "siGit Code",
-      "version": "1.7.10",
+      "version": "1.7.11",
       "description": "Local-first coding agent. Runs entirely on your machine with optional on-device LLM inference via Onde.",
       "repository": "https://github.com/getsigit/sigit",
       "website": "https://github.com/getsigit/sigit",
@@ -1811,38 +1811,38 @@
       "distribution": {
         "binary": {
           "darwin-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.10/sigit-macos-arm64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.11/sigit-macos-arm64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "2802e3a5a430e72b3c448e83e68509ad5668e4a19873b0ff0c917575400036f1"
+            "sha256": "e6f11f8231087301396f3e69fa88973cba75823e72e12196221c334e6c014156"
           },
           "darwin-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.10/sigit-macos-amd64.tar.gz",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.11/sigit-macos-amd64.tar.gz",
             "cmd": "./sigit",
-            "sha256": "ab11cb079bb1a90e3534d3efe6ffd80cb98d4ca4ea43b378f25882acbf671bf5"
+            "sha256": "03ad90b24eef45ff9670eb78b186b9aedcfe91a9478c4a02dfba03949f68ea99"
           },
           "linux-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.10/sigit-linux-arm64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.11/sigit-linux-arm64",
             "cmd": "./sigit-linux-arm64",
-            "sha256": "4f013ef2f7df26a68fede65b25d86a1e63cd6a0dd3af553c483cec2cde16457f"
+            "sha256": "fed2bcd36f2d59c4e224bc8ce79cd7280ed2bc7fb58d925ed2e0c7881da438df"
           },
           "linux-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.10/sigit-linux-amd64",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.11/sigit-linux-amd64",
             "cmd": "./sigit-linux-amd64",
-            "sha256": "a748a6dc1acbe873f116f2d1837b95f5ca19c44bede012f04ae69f88269e459a"
+            "sha256": "0bcff3bc594456d7f7dd1595d5dfd5590b2d52dc63f81c22ae41b8e80b4fbc9b"
           },
           "windows-aarch64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.10/sigit-win-arm64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.11/sigit-win-arm64.exe",
             "cmd": "./sigit-win-arm64.exe",
-            "sha256": "ec2452dc1eef001ed85f7ab0efb58db5cec52dfebcf261021e6d1715a56f92d1"
+            "sha256": "564e02799b6b315dd81c569a561f2a98a357c4acd0b2d0fa24e4d5161170afd0"
           },
           "windows-x86_64": {
-            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.10/sigit-win-amd64.exe",
+            "archive": "https://github.com/getsigit/sigit/releases/download/v1.7.11/sigit-win-amd64.exe",
             "cmd": "./sigit-win-amd64.exe",
-            "sha256": "332057a6219dfdf2fdce1e515b80a1c75912ec34723b28e4816071e6aa751afc"
+            "sha256": "5a39ebe1b4a4ea77d7f2e9b50d6112e719f19f81cb4da9f969684d5341b3e3ac"
           }
         },
         "npx": {
-          "package": "@smbcloud/sigit@1.7.10"
+          "package": "@smbcloud/sigit@1.7.11"
         }
       },
       "icon": "https://cdn.agentclientprotocol.com/registry/v1/latest/sigit.svg"
