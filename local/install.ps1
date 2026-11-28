@@ -514,8 +514,8 @@ if ($ListModels -and $Script:PlatformSupported) {
     })
     $availableMemoryMiB = 0
     if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
-        $report = nvidia-smi '--query-gpu=memory.total' '--format=csv,noheader,nounits' | Select-Object -First 1
-        if ($LASTEXITCODE -eq 0) { [void][int]::TryParse($report, [ref]$availableMemoryMiB) }
+        $report = @(nvidia-smi '--query-gpu=memory.total' '--format=csv,noheader,nounits')
+        if ($LASTEXITCODE -eq 0 -and $report.Count -gt 0) { [void][int]::TryParse($report[0], [ref]$availableMemoryMiB) }
     }
     $platformLines = @($platformLines | Where-Object {
         $minimumVram = ($_ | ConvertFrom-Json).min_vram
