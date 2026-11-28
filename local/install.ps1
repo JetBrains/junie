@@ -11,8 +11,9 @@
 
   System checks are modelled after the JBInferenceRunner setup.ps1:
   - 64-bit Windows 10+ (build 19041+)
-  - NVIDIA GPU with sufficient VRAM
-  - NVIDIA driver 581+
+  - NVIDIA GPU with sufficient VRAM and NVIDIA driver 581+,
+    or AMD GPU with sufficient VRAM and a graphics driver with Vulkan,
+    or Intel GPU with sufficient VRAM and a graphics driver with Level Zero
   - Microsoft Visual C++ Redistributable
 
 .PARAMETER Model
@@ -421,12 +422,15 @@ function Fetch-EngineConfig {
 
     $lines = $jsonl -split "`r?`n" | Where-Object { $_.Trim() -ne "" }
     $dq = [char]34
+    # Each GPU vendor has its own engine package; "hardware" tells them apart.
+    $hardware = Get-GpuHardware
     $entry = @($lines | Where-Object {
-        $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
+        $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}" -and
+        $_ -match "${dq}hardware${dq}:${dq}$([regex]::Escape($hardware))${dq}"
     }) | Select-Object -Last 1
 
     if (-not $entry) {
-        Write-Host "ERROR: No engine entry found for platform $Script:Platform in channel $Script:Channel" -ForegroundColor Red
+        Write-Host "ERROR: No engine entry found for platform $Script:Platform ($hardware) in channel $Script:Channel" -ForegroundColor Red
         exit 1
     }
 
@@ -690,6 +694,65 @@ function Get-NvidiaGpu {
         $Script:GpuOk = $false
     }
 
+    return $gpu
+}
+
+# Windows keeps one registry key per display adapter. Unlike WMI, which stops
+# at 4 GB, the key holds the full dedicated VRAM as a 64-bit number.
+# Returns the AMD or Intel card with the most dedicated VRAM, or nothing.
+function Find-DisplayAdapter {
+    $vendors = @{ "1002" = "AMD"; "8086" = "Intel" }
+    $displayClass = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+    $adapters = @(Get-ChildItem $displayClass -ErrorAction SilentlyContinue | ForEach-Object {
+        $key = Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue
+        $memory = $key."HardwareInformation.qwMemorySize"
+        # The size is a 64-bit number; a driver that stores it another way is skipped.
+        if ($key.MatchingDeviceId -match "ven_(1002|8086)" -and $memory -and $memory -isnot [array]) {
+            [PSCustomObject]@{
+                Vendor = $vendors[$Matches[1]]
+                Name = [string]$key.DriverDesc
+                DriverVersion = [string]$key.DriverVersion
+                MemoryMiB = [int]([uint64]$memory / 1MB)
+            }
+        }
+    })
+    # Integrated graphics have little dedicated VRAM: they are not a card to install for,
+    # and they must not hide a discrete card of the other vendor.
+    return $adapters | Where-Object { $_.MemoryMiB -ge 4096 } |
+        Sort-Object MemoryMiB -Descending | Select-Object -First 1
+}
+
+# The GPU vendor as the engine feed names it in "hardware". An NVIDIA card is
+# recognised by its own tool, an AMD or Intel card by its display adapter. Without
+# any of them the NVIDIA package stays the default, and the checks report what is missing.
+function Get-GpuHardware {
+    # The tool can outlive its card, so it must also name one.
+    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
+        $nvidiaName = & nvidia-smi --query-gpu=name --format=csv,noheader
+        if ($LASTEXITCODE -eq 0 -and $nvidiaName) {
+            return "NVIDIA GPU"
+        }
+    }
+    $adapter = Find-DisplayAdapter
+    if ($adapter) {
+        return "$($adapter.Vendor) GPU"
+    }
+    return "NVIDIA GPU"
+}
+
+function Get-AdapterGpu {
+    $gpu = Find-DisplayAdapter
+    $gpuVramGiB = ($gpu.MemoryMiB / 1024).ToString("F2", [Globalization.CultureInfo]::InvariantCulture)
+    $Script:AccelDisplay = "$($gpu.Name) ($gpuVramGiB GiB VRAM, $($gpu.MemoryMiB) MiB reported, driver $($gpu.DriverVersion))"
+    $Script:AccelRequirement = "$($gpu.Vendor) GPU with 24 GB VRAM"
+    # Same allowance as for NVIDIA: a Radeon RX 7900 XTX reports 24560 MiB.
+    $Script:GpuOk = $gpu.MemoryMiB -ge ((24 * 1024) - 256)
+    # The engine reaches an AMD card through Vulkan and an Intel card through
+    # Level Zero; the graphics driver of each vendor installs its library.
+    $library, $api = if ($gpu.Vendor -eq "Intel") { "ze_loader.dll", "Level Zero" } else { "vulkan-1.dll", "Vulkan" }
+    $Script:DriverOk = Test-Path (Join-Path $env:WINDIR "System32\$library")
+    $Script:DriverDisplay = if ($Script:DriverOk) { "Driver $($gpu.DriverVersion)" } else { "$api runtime not found" }
+    $Script:DriverRequirement = "$($gpu.Vendor) graphics driver with $api"
     return $gpu
 }
 
@@ -1379,7 +1442,7 @@ if (-not $Script:OsOk) {
     $Script:AllOk = $false
 }
 
-$gpu = Get-NvidiaGpu
+$gpu = if ((Get-GpuHardware) -eq "NVIDIA GPU") { Get-NvidiaGpu } else { Get-AdapterGpu }
 if (-not $Script:GpuOk) {
     $Script:AllOk = $false
 }

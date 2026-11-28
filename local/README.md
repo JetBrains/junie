@@ -9,10 +9,15 @@ Installation scripts and update metadata for the Junie local model (on-device in
   than on an M5 — so the installer reports the `gpu` check as `warn` there and
   emits a `warning` event.
 - **Windows** (`install.ps1`): NVIDIA GPU with 24 GB VRAM, driver 581+, Visual
-  C++ Redistributable; `windows-amd64` and `windows-aarch64`
+  C++ Redistributable; `windows-amd64` and `windows-aarch64`. On `windows-amd64`
+  also an AMD GPU with 24 GB VRAM and a graphics driver with Vulkan, or an Intel
+  GPU with 24 GB VRAM and a graphics driver with Level Zero.
 - **Linux** (`install.sh`): `linux-amd64` or `linux-aarch64`, kernel 5.15+,
   NVIDIA GPU with 24 GB VRAM (at least 24320 MiB reported by `nvidia-smi`) and
-  the NVIDIA proprietary driver 580+. 
+  the NVIDIA proprietary driver 580+. On `linux-amd64` also an AMD GPU with
+  24 GB VRAM and the Mesa Vulkan driver (RADV), or an Intel GPU with 24 GB VRAM
+  and the Intel compute runtime (its Level Zero and OpenCL drivers; on Ubuntu
+  `libze-intel-gpu1` and `intel-opencl-icd`).
 
 On Windows and Linux only the first NVIDIA GPU is checked; VRAM of several GPUs
 is not combined. Linux uses the same GGUF models as Windows. The Linux driver
@@ -20,6 +25,26 @@ minimum is 580 because that is the Linux number of the release branch that
 Windows ships as 581. `nvidia-smi` ships only with the proprietary driver, so the
 open-source nouveau driver fails the check. Neither Windows nor Linux imposes a
 system RAM requirement; both report `ram_gb: 24` in the `config` event.
+
+### GPU vendor and engine package
+
+Each GPU vendor has its own engine package, so one platform can have several
+entries in `update-info-engine-<channel>.jsonl`. The installer detects the vendor
+and picks the last entry whose `platform` and `hardware` both match:
+
+| Detected | `hardware` | How it is detected |
+|---|---|---|
+| NVIDIA card | `NVIDIA GPU` | `nvidia-smi` is present |
+| AMD card | `AMD GPU` | Linux: an `amdgpu` card in `/sys/class/drm`; Windows: a display adapter of vendor `1002` in the registry |
+| Intel card | `Intel GPU` | Linux: a card of vendor `8086` in `/sys/class/drm`; Windows: a display adapter of vendor `8086` in the registry |
+| neither | `NVIDIA GPU` | the NVIDIA checks then report what is missing |
+
+On both systems the AMD or Intel card with the most dedicated VRAM is checked, and
+cards with less than 4 GB (integrated graphics) are ignored, so they neither count as
+a card nor hide a discrete card of the other vendor. The Intel driver on Linux does
+not report the VRAM, so the installer takes the size of the card's memory window
+(`resource2`): the VRAM rounded up to a power of two. macOS has one engine per
+platform and ignores `hardware`.
 
 ## The installer API
 
