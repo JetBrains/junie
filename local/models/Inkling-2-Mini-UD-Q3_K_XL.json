@@ -1,0 +1,48 @@
+{
+  "id": "local-inkling-2-mini-ud-q3-k-xl",
+  "main_model": "Inkling-2-Mini-UD-Q3_K_XL",
+  "draft_model": "Inkling-2-Mini-DSpark-333M",
+  "vision_model": "mmproj-Inkling-2-Mini-F16",
+  "draft_kind": "dflash",
+  "junieConfig": {
+    "displayName": "Inkling 2 Mini",
+    "providerName": "Local",
+    "id": "Inkling-2-Mini-UD-Q3_K_XL",
+    "baseUrl": "http://localhost:$ENGINE_PORT/v1/chat/completions",
+    "apiType": "OpenAICompletion",
+    "apiKey": "$AUTH_TOKEN",
+    "maxContextLength": 300000,
+    "temperature": 1.0,
+    "extraBody": {
+      "top_p": 1.0,
+      "top_k": 0,
+      "min_p": 0.0
+    }
+  },
+  "archives": [
+    {
+      "modelId": "Inkling-2-Mini-UD-Q3_K_XL",
+      "label": "Inkling 2 Mini UD-Q3_K_XL",
+      "name": "Inkling-2-Mini-UD-Q3_K_XL.gguf",
+      "downloadUrl": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF/resolve/main/Inkling-2-Mini-UD-Q3_K_XL.gguf",
+      "sha256": "e2d03e8c92ac21cff0e3309b95f40dfd27d1825184f0d2bc09db249797273639",
+      "size": 13631779296
+    },
+    {
+      "modelId": "mmproj-Inkling-2-Mini-F16",
+      "label": "Inkling 2 Mini (vision)",
+      "name": "mmproj-Inkling-2-Mini-F16.gguf",
+      "downloadUrl": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF/resolve/main/mmproj-F16.gguf",
+      "sha256": "3bff75ffeb2d6e0371ba7bd42e30d26a7d98aea681fa44b03b5a20891cfa2c5f",
+      "size": 639348160
+    },
+    {
+      "modelId": "Inkling-2-Mini-DSpark-333M",
+      "label": "Inkling 2 Mini DSpark draft",
+      "name": "Inkling-2-Mini-DSpark-333M.gguf",
+      "downloadUrl": "https://huggingface.co/Ninnix96/Inkling-2-Mini-DSpark-GGUF/resolve/main/Inkling-2-Mini-DSpark-333M.gguf",
+      "sha256": "89cddd423e0b05a55ee97384c6cc3b45e608e683f5a70030892bfceb9dfa6f05",
+      "size": 333053536
+    }
+  ]
+}
