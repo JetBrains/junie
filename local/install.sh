@@ -183,6 +183,11 @@ get_json_field() {
   grep -o "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | head -1 | sed "s/\"${field}\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\"/\\1/"
 }
 
+get_json_number_field() {
+  local field="$1"
+  grep -o "\"${field}\"[[:space:]]*:[[:space:]]*[0-9][0-9]*" | head -1 | sed "s/.*:[[:space:]]*//"
+}
+
 # Sum the "size" fields of all archives in the model JSON on stdin. Prints the
 # total in bytes (0 when no sizes are present).
 sum_archive_sizes() {
@@ -216,47 +221,39 @@ list_available_models() {
     emit_error "Could not fetch models list from $MODELS_UPDATE_URL"
     exit 1
   }
-  if [ "$MACHINE_OUTPUT" = true ]; then
-    # Build a JSON array of {"id":...,"displayName":...,"description":...}.
-    models_array="["
-    first=true
-    while IFS= read -r entry; do
-      case "$entry" in
-        *"\"platform\":\"${PLATFORM}\""*) ;;
-        *) continue ;;
-      esac
-      id=$(printf '%s' "$entry" | get_json_field id)
-      name=$(printf '%s' "$entry" | get_json_field displayName)
-      description=$(printf '%s' "$entry" | get_json_field description)
-      load_model_details "$id"
+  models_array="["
+  first=true
+  while IFS= read -r entry; do
+    case "$entry" in
+      *"\"platform\":\"${PLATFORM}\""*) ;;
+      *) continue ;;
+    esac
+    min_vram=$(printf '%s' "$entry" | get_json_number_field min_vram)
+    if [ "$MODEL_MEMORY_GB" -lt "${min_vram:-$DEFAULT_MIN_VRAM}" ]; then
+      continue
+    fi
+    id=$(printf '%s' "$entry" | get_json_field id)
+    name=$(printf '%s' "$entry" | get_json_field displayName)
+    description=$(printf '%s' "$entry" | get_json_field description)
+    load_model_details "$id"
+    if [ "$MACHINE_OUTPUT" = true ]; then
       if [ "$first" = true ]; then
         first=false
       else
         models_array="$models_array,"
       fi
       models_array="$models_array{\"id\":\"$(json_escape "$id")\",\"displayName\":\"$(json_escape "$name")\",\"description\":\"$(json_escape "$description")\",\"junieModelId\":\"$(json_escape "$model_junie_id")\",\"size\":$model_total_size}"
-    done <<EOF
-$(printf '%s\n' "$models_jsonl")
-EOF
-    models_array="$models_array]"
-    emit_event "\"event\":\"models\",\"platform\":\"$(json_escape "$PLATFORM")\",\"channel\":\"$(json_escape "$CHANNEL")\",\"models\":$models_array"
-  else
-    while IFS= read -r entry; do
-      case "$entry" in
-        *"\"platform\":\"${PLATFORM}\""*) ;;
-        *) continue ;;
-      esac
-      id=$(printf '%s' "$entry" | get_json_field id)
-      name=$(printf '%s' "$entry" | get_json_field displayName)
-      description=$(printf '%s' "$entry" | get_json_field description)
-      load_model_details "$id"
+    else
       printf '  %s%s%s (%s, %s)\n' "$GRAY" "$name" "$RESET" "$id" "$(format_size_gb "$model_total_size")"
       if [ -n "$description" ]; then
         printf '    %s%s%s\n' "$GRAY_DIM" "$description" "$RESET"
       fi
-    done <<EOF
-$(printf '%s\n' "$models_jsonl")
+    fi
+  done <<EOF
+$models_jsonl
 EOF
+  if [ "$MACHINE_OUTPUT" = true ]; then
+    emit_event "\"event\":\"models\",\"platform\":\"$(json_escape "$PLATFORM")\",\"channel\":\"$(json_escape "$CHANNEL")\",\"models\":$models_array]"
   fi
 }
 
@@ -299,6 +296,15 @@ fetch_models_config() {
   if [ -z "$model_entry" ]; then
     supported=$(printf '%s\n' "$models_jsonl" | grep "\"platform\":\"${PLATFORM}\"" | while IFS= read -r e; do printf '%s' "$e" | get_json_field id; done | tr '\n' ',' | sed 's/,$//')
     printf '%sERROR: Unknown model: %s for platform %s (supported: %s)%s\n' "$RED" "$MODEL" "$PLATFORM" "$supported" "$RESET"
+    exit 1
+  fi
+
+  model_min_vram=$(printf '%s' "$model_entry" | get_json_number_field min_vram)
+  model_min_vram=${model_min_vram:-$DEFAULT_MIN_VRAM}
+  if [ "$MODEL_MEMORY_GB" -lt "$model_min_vram" ]; then
+    message="Model $MODEL requires $model_min_vram GiB of memory; this device has $MODEL_MEMORY_GB GiB"
+    printf '%sERROR: %s%s\n' "$RED" "$message" "$RESET"
+    emit_error "$message"
     exit 1
   fi
 
@@ -1356,6 +1362,21 @@ install_model_if_needed() {
   esac
 }
 
+if [ "$LIST_MODELS" = true ] || [ "$CHECK_ENGINE_UPDATE" != true ]; then
+  if [ "$OS_TYPE" = macos ]; then
+    MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo 0)
+    MODEL_MEMORY_GB=$((MEM_BYTES / 1073741824))
+    DEFAULT_MIN_VRAM=40
+  else
+    GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
+    GPU_VRAM_MB=$(printf '%s' "$GPU_INFO" | cut -d',' -f2 | tr -d '[:space:]')
+    case "$GPU_VRAM_MB" in ''|*[!0-9]*) GPU_VRAM_MB=0 ;; esac
+    # nvidia-smi may report slightly less than the card's nominal capacity.
+    MODEL_MEMORY_GB=$(((GPU_VRAM_MB + 256) / 1024))
+    DEFAULT_MIN_VRAM=24
+  fi
+fi
+
 if [ "$LIST_MODELS" = true ]; then
   if [ "$MACHINE_OUTPUT" != true ]; then
     echo "Available models for $PLATFORM ($CHANNEL channel):"
@@ -1443,8 +1464,7 @@ if [ "$OS_TYPE" = "macos" ]; then
   OS_FULL_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
   OS_VERSION=$(echo "$OS_FULL_VERSION" | cut -d '.' -f 1)
   CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "unknown")
-  MEM_BYTES=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
-  MEM_GB=$((MEM_BYTES / 1073741824))
+  MEM_GB=$MODEL_MEMORY_GB
 else
   OS_FULL_VERSION=$(sed -n 's/^VERSION_ID=//p' /etc/os-release 2>/dev/null | tr -d '"')
   if [ -z "$OS_FULL_VERSION" ]; then
@@ -1505,7 +1525,6 @@ ACCEL_DISPLAY="$CPU_MODEL"
 ACCEL_REQUIREMENT=""
 ACCEL_NOTE=""
 GPU_NAME=""
-GPU_VRAM_GB=0
 DRIVER_OK=true
 DRIVER_DISPLAY=""
 DRIVER_REQUIREMENT=""
@@ -1526,10 +1545,9 @@ if [ "$OS_TYPE" = "macos" ]; then
   fi
   ACCEL_REQUIREMENT="Apple M4 or newer"
 else
-  # Match Windows: allow 256 MiB of reporting headroom for a 24 GiB card
-  # (e.g. an RTX 4090 reports 24564 MiB).
-  MINIMUM_REPORTED_VRAM_MIB=$((24 * 1024 - 256))
-  ACCEL_REQUIREMENT="NVIDIA GPU with 24 GB VRAM (at least $MINIMUM_REPORTED_VRAM_MIB MiB reported)"
+  # Match Windows: allow 256 MiB of reporting headroom for a 16 GiB card.
+  MINIMUM_REPORTED_VRAM_MIB=$((16 * 1024 - 256))
+  ACCEL_REQUIREMENT="NVIDIA GPU with 16 GB VRAM (at least $MINIMUM_REPORTED_VRAM_MIB MiB reported)"
   # Windows requires driver 581+; the Linux driver of the same release branch
   # is numbered 580, so that is the minimum here.
   MINIMUM_DRIVER_MAJOR=580
@@ -1544,7 +1562,6 @@ else
     ACCEL_DISPLAY="nvidia-smi not found"
     DRIVER_DISPLAY="Driver not detected (the open-source nouveau driver is not supported)"
   else
-    GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits 2>/dev/null | head -1)
     if [ -z "$GPU_INFO" ]; then
       CPU_OK=false
       ALL_OK=false
@@ -1553,10 +1570,8 @@ else
       DRIVER_DISPLAY="Driver not detected"
     else
       GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | sed 's/^[ ]*//')
-      GPU_VRAM_MB=$(echo "$GPU_INFO" | cut -d',' -f2 | sed 's/^[ ]*//')
-      GPU_VRAM_GB=$((GPU_VRAM_MB / 1024))
       DRIVER_VERSION=$(echo "$GPU_INFO" | cut -d',' -f3 | sed 's/^[ ]*//')
-      ACCEL_DISPLAY="$GPU_NAME ($GPU_VRAM_GB GB VRAM, driver $DRIVER_VERSION)"
+      ACCEL_DISPLAY="$GPU_NAME ($MODEL_MEMORY_GB GB VRAM, driver $DRIVER_VERSION)"
 
       if [ "$GPU_VRAM_MB" -lt "$MINIMUM_REPORTED_VRAM_MIB" ]; then
         CPU_OK=false

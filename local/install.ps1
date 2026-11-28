@@ -351,6 +351,15 @@ function Fetch-ModelsConfig {
         exit 1
     }
 
+    $modelMinVram = ($entry | ConvertFrom-Json).min_vram
+    if ($null -eq $modelMinVram) { $modelMinVram = 24 }
+    if ($Script:GpuMemoryMiB + 256 -lt $modelMinVram * 1024) {
+        $message = "Model $Script:Model requires at least $modelMinVram GB VRAM; this device has $Script:GpuMemoryMiB MiB"
+        Write-Host "ERROR: $message" -ForegroundColor Red
+        Emit-Error $message
+        exit 1
+    }
+
     $Script:ModelFileId = $entry | Get-JsonField -Field "id"
 
     # Fetch the model JSON file
@@ -503,6 +512,16 @@ if ($ListModels -and $Script:PlatformSupported) {
     $platformLines = @($lines | Where-Object {
         $_ -match "${dq}platform${dq}:${dq}$([regex]::Escape($Script:Platform))${dq}"
     })
+    $availableMemoryMiB = 0
+    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
+        $report = nvidia-smi '--query-gpu=memory.total' '--format=csv,noheader,nounits' | Select-Object -First 1
+        if ($LASTEXITCODE -eq 0) { [void][int]::TryParse($report, [ref]$availableMemoryMiB) }
+    }
+    $platformLines = @($platformLines | Where-Object {
+        $minimumVram = ($_ | ConvertFrom-Json).min_vram
+        if ($null -eq $minimumVram) { $minimumVram = 24 }
+        $availableMemoryMiB + 256 -ge $minimumVram * 1024
+    })
 
     if ($Script:MachineOutput) {
         $array = "["
@@ -622,11 +641,12 @@ function Test-WindowsRequirements {
 }
 
 function Get-NvidiaGpu {
+    $Script:GpuMemoryMiB = 0
     $nvidiaSmi = Get-Command nvidia-smi -ErrorAction SilentlyContinue
     if (-not $nvidiaSmi) {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "nvidia-smi not found"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
+        $Script:AccelRequirement = "NVIDIA GPU with 16 GB VRAM and driver 581+"
         $Script:DriverOk = $false
         $Script:DriverDisplay = "Driver not detected"
         $Script:DriverRequirement = "Driver 581+"
@@ -640,7 +660,7 @@ function Get-NvidiaGpu {
     if ($LASTEXITCODE -ne 0) {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "nvidia-smi failed"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
+        $Script:AccelRequirement = "NVIDIA GPU with 16 GB VRAM and driver 581+"
         return $null
     }
 
@@ -648,7 +668,7 @@ function Get-NvidiaGpu {
     if ($columns.Count -ne 4) {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "GPU info parse error"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
+        $Script:AccelRequirement = "NVIDIA GPU with 16 GB VRAM and driver 581+"
         return $null
     }
 
@@ -666,17 +686,18 @@ function Get-NvidiaGpu {
     catch {
         $Script:GpuOk = $false
         $Script:AccelDisplay = "GPU info parse error: $_"
-        $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
+        $Script:AccelRequirement = "NVIDIA GPU with 16 GB VRAM and driver 581+"
         return $null
     }
 
     $Script:GpuOk = $true
+    $Script:GpuMemoryMiB = $gpu.MemoryMiB
     $gpuVramGiB = ($gpu.MemoryMiB / 1024).ToString("F2", [Globalization.CultureInfo]::InvariantCulture)
     $Script:AccelDisplay = "$($gpu.Name) ($gpuVramGiB GiB VRAM, $($gpu.MemoryMiB) MiB reported, driver $($gpu.DriverVersion))"
-    $Script:AccelRequirement = "NVIDIA GPU with 24 GB VRAM and driver 581+"
+    $Script:AccelRequirement = "NVIDIA GPU with 16 GB VRAM and driver 581+"
 
-    # Allow 256 MiB of reporting headroom for 24 GiB cards (e.g. RTX 4090 reports 24564 MiB).
-    $minimumReportedVramMiB = (24 * 1024) - 256
+    # Allow 256 MiB of reporting headroom for 16 GiB cards.
+    $minimumReportedVramMiB = (16 * 1024) - 256
     if ($gpu.MemoryMiB -lt $minimumReportedVramMiB) {
         $Script:GpuOk = $false
     }

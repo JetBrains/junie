@@ -8,14 +8,16 @@ Installation scripts and update metadata for the Junie local model (on-device in
   is supported but slow at reading context — its prefill is about 4x slower
   than on an M5 — so the installer reports the `gpu` check as `warn` there and
   emits a `warning` event.
-- **Windows** (`install.ps1`): NVIDIA GPU with 24 GB VRAM, driver 581+, Visual
+- **Windows** (`install.ps1`): NVIDIA GPU with 16 GB VRAM, driver 581+, Visual
   C++ Redistributable; `windows-amd64` and `windows-aarch64`
 - **Linux** (`install.sh`): `linux-amd64` or `linux-aarch64`, kernel 5.15+,
-  NVIDIA GPU with 24 GB VRAM (at least 24320 MiB reported by `nvidia-smi`) and
+  NVIDIA GPU with 16 GB VRAM (at least 16128 MiB reported by `nvidia-smi`) and
   the NVIDIA proprietary driver 580+. 
 
 On Windows and Linux only the first NVIDIA GPU is checked; VRAM of several GPUs
-is not combined. Linux uses the same GGUF models as Windows. The Linux driver
+is not combined. Models still have their own `min_vram` requirement, so a model
+requiring 24 GB is hidden from `--models` and cannot be selected on a 16 GB card.
+Linux uses the same GGUF models as Windows. The Linux driver
 minimum is 580 because that is the Linux number of the release branch that
 Windows ships as 581. `nvidia-smi` ships only with the proprietary driver, so the
 open-source nouveau driver fails the check. Neither Windows nor Linux imposes a
@@ -91,6 +93,7 @@ $env:JUNIE_LOCAL_MODEL_TEST_MODE='1'; .\install.ps1
 ### `--models`
 
 Lists the models published for this platform in the selected channel and exits.
+Models whose `min_vram` exceeds the detected memory are omitted.
 Human output is one `displayName (id, size)` line per model with its description
 underneath; with `--json` a single `models` event carries the same data.
 
@@ -268,7 +271,7 @@ Fields:
 One JSON object per line, listing available models for each platform:
 
 ```json
-{"platform":"macos-aarch64","id":"Qwen3.6-27B-MLX-4bit","displayName":"Qwen 3.6","description":"A 27B vision-language model built for agentic coding, STEM reasoning, and image understanding"}
+{"platform":"macos-aarch64","min_vram":40,"id":"Qwen3.6-27B-MLX-4bit","displayName":"Qwen 3.6","description":"A 27B vision-language model built for agentic coding, STEM reasoning, and image understanding"}
 ```
 
 Fields:
@@ -276,6 +279,7 @@ Fields:
 | Field | Description |
 |---|---|
 | `platform` | Target platform (e.g. `macos-aarch64`) |
+| `min_vram` | Minimum memory in whole GiB: first GPU’s VRAM on Windows/Linux (256 MiB reporting allowance), unified memory on macOS |
 | `id` | Model identifier — matches the filename in the `models/` folder (without `.json`) and is used with `--model` |
 | `displayName` | Human-readable model name |
 | `description` | One-line description shown by `--models` |
@@ -346,7 +350,7 @@ Fields:
 ## Adding a New Model
 
 1. Create a new model detail file `models/<ModelId>.json` with `id`, `junieConfig`, and `archives` fields.
-2. Add a new line to `update-info-models-main.jsonl` (and/or `update-info-models-eap.jsonl`) for each platform the model supports.
+2. Add a new line to `update-info-models-main.jsonl` (and/or `update-info-models-eap.jsonl`) for each platform the model supports, including its numeric `min_vram` requirement.
 3. If needed, update `install.sh` and `install.ps1` to handle any platform-specific logic for the new model.
 
 ## Adding a New Platform
