@@ -16,7 +16,7 @@
   - Microsoft Visual C++ Redistributable
 
 .PARAMETER Model
-  Model identifier to install.  Default: Qwen3.6-27B-Q4_K_M
+  Model identifier to install.  Default: Inkling-2-Mini-UD-Q3_K_XL
 
 .PARAMETER Channel
   Update channel: main (default) or eap.
@@ -57,7 +57,7 @@
 # CLI parameter parsing (PowerShell 5.1 doesn't support -- switches)
 # ============================================================
 
-$script:ArgModel = "Qwen3.6-27B-Q4_K_M"
+$script:ArgModel = "Inkling-2-Mini-UD-Q3_K_XL"
 $script:ArgChannel = "main"
 $script:ArgCheckOnly = $false
 $script:ArgListModels = $false
@@ -250,7 +250,7 @@ function usage {
     Write-Host "Usage: install.ps1 [options]"
     Write-Host ""
     Write-Host "Options:"
-    Write-Host "  --model <name>     Model to install: Qwen3.6-27B-Q4_K_M (default)"
+    Write-Host "  --model <name>     Model to install: Inkling-2-Mini-UD-Q3_K_XL (default)"
     Write-Host "  --channel <name>   Update channel: main (default) or eap"
     Write-Host "  --check-only       Report system information, then exit"
     Write-Host "  --models           List all available models for this architecture, then exit"

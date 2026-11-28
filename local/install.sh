@@ -68,7 +68,7 @@ UPDATE=false
 if [ "$OS_TYPE" = "macos" ]; then
   MODEL="Qwen3.6-27B-MLX-4bit"
 else
-  MODEL="Qwen3.6-27B-Q4_K_M"
+  MODEL="Inkling-2-Mini-UD-Q3_K_XL"
 fi
 CHANNEL="main"
 

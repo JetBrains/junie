@@ -37,7 +37,7 @@ accepts the PowerShell spellings (`-Model`, `-CheckOnly`, …) for the same flag
 
 | Option | Description |
 |---|---|
-| `--model <id>` | Model to install, as listed by `--models`. Defaults to `Qwen3.6-27B-MLX-4bit` (macOS) / `Qwen3.6-27B-Q4_K_M` (Windows/Linux) |
+| `--model <id>` | Model to install, as listed by `--models`. Defaults to `Qwen3.6-27B-MLX-4bit` (macOS) / `Inkling-2-Mini-UD-Q3_K_XL` (Windows/Linux) |
 | `--channel <name>` | Update channel: `main` (default) or `eap` |
 | `--check-only` | Report system information, then exit without installing |
 | `--models` | List the models available for this platform, then exit |
