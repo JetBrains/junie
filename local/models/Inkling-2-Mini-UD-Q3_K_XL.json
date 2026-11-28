@@ -14,6 +14,7 @@
     "maxContextLength": 300000,
     "temperature": 1.0,
     "extraBody": {
+      "reasoning_effort": "low",
       "top_p": 1.0,
       "top_k": 0,
       "min_p": 0.0
